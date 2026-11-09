@@ -1,0 +1,81 @@
+{
+  "by": "hand",
+  "source_sha256": "9c09c780ea44f689c2628970658ccd0d5c24e7ca450018873c638509fe3597b6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "목표 자리는 10.91.2.0/24, 곧 서브넷 B예요.",
+      "target": "text:서버를 10.91.2.0/24에 놓아야 해요."
+    },
+    {
+      "action": "say",
+      "text": "준비 명령은 서브넷 A의 ID를 써요.",
+      "target": "code:\"$LAB_SUBNET_A_ID\""
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-subnets.sh",
+      "say": "두 서브넷의 ID와 범위를 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "서브넷 A는 10.91.1.0/24, B는 10.91.2.0/24예요. 같은 VPC 안의 다른 범위예요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 그대로 실행하면 서버가 서브넷 A에 놓여요. 그 서버를 남긴 채 B에 하나 더 띄우면 두 대라서 통과하지 않아요.",
+      "target": "text:처음 명령으로 만든 서버가 남아 있으면 통과하지 않아요."
+    },
+    {
+      "action": "say",
+      "text": "여러분은 처음 명령을 한 번 실행해 10.91.1로 시작하는 주소를 직접 보세요. 그다음 「초기화」로 서버를 없애요.",
+      "target": "text:「초기화」를 눌러 서버가 없는 처음 상태로 돌아가세요."
+    },
+    {
+      "action": "say",
+      "text": "해설 화면에는 「초기화」가 없어요. 그래서 처음 명령은 실행하지 않고 바로 고칠게요.",
+      "target": "text:결과를 확인한 뒤 「초기화」로 처음 상태를 받고 고치세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "\"$LAB_SUBNET_A_ID\"",
+      "after": "\"$LAB_SUBNET_B_ID\"",
+      "say": "서브넷 변수 한 곳을 B로 고쳐요.",
+      "file": "launch-server.sh"
+    },
+    {
+      "action": "bash_command",
+      "command": "bash launch-server.sh",
+      "say": "고친 명령으로 서버를 실행해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 240
+    },
+    {
+      "action": "say",
+      "text": "출력의 PrivateIpAddress가 10.91.2로 시작해요. 서브넷 B의 범위에서 받은 주소예요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 wait instance-running --endpoint-url \"$LAB_ENDPOINT\" --filters Name=subnet-id,Values=\"$LAB_SUBNET_B_ID\"",
+      "say": "서버가 다 켜질 때까지 기다려요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 300
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-servers.sh",
+      "say": "서버 표를 확인해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "서버가 한 대이고 서브넷 B에서 running이에요. 바꾼 것은 서브넷 변수 하나예요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

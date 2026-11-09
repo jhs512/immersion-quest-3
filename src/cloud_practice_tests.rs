@@ -3,7 +3,7 @@ use super::*;
 const STARTER: &str = "# 준비된 VPC 안에 서브넷 하나를 만드는 명령이에요.\n# 실행 전에 --cidr-block 값을 VPC 범위와 비교해 보세요.\naws ec2 create-subnet \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --vpc-id \"$LAB_VPC_ID\" \\\n  --cidr-block STARTER_CIDR\n";
 
 fn cloud(goal: CloudGoal, vpc: &str) -> CloudExercise {
-    CloudExercise { goal, vpc_cidr: vpc.into(), subnets: vec![], client_subnet: None, server_subnet: None, target_cidr: None, target_subnet: None, new_prefix: None, address_file: None }
+    CloudExercise { goal, vpc_cidr: vpc.into(), subnets: vec![], client_subnet: None, server_subnet: None, target_cidr: None, target_subnet: None, new_prefix: None, address_file: None, editable: vec![] }
 }
 fn subnet(name: &str, block: &str) -> CloudSubnet {
     CloudSubnet { name: name.into(), cidr: block.into() }
@@ -118,6 +118,23 @@ fn git_exercise_validation_keeps_cloud_separate() {
 }
 
 #[test]
+fn editor_shows_only_listed_prepared_files() {
+    let mut shown = representative("10.91.0.0/16", "10.91.2.0/24", "10.92.2.0/24");
+    assert!(GitPractice::new(shown.clone()).unwrap().editable_files().is_empty(), "no list, terminal only");
+    shown.cloud.as_mut().unwrap().editable = vec!["create-subnet.sh".into()];
+    assert!(shown.validate().is_ok());
+    let practice = GitPractice::new(shown.clone()).unwrap();
+    assert_eq!(practice.editable_files(), vec!["create-subnet.sh".to_string()]);
+    assert!(practice.read_editable("create-subnet.sh").unwrap().contains("--cidr-block 10.92.2.0/24"));
+    assert!(practice.save_editable("other.sh", "x").is_err(), "an unlisted file is not editable");
+    for bad in [vec!["missing.sh"], vec!["../create-subnet.sh"], vec!["create-subnet.sh", "create-subnet.sh"]] {
+        let mut spec = shown.clone();
+        spec.cloud.as_mut().unwrap().editable = bad.iter().map(|f| f.to_string()).collect();
+        assert!(spec.validate().is_err(), "{bad:?}");
+    }
+}
+
+#[test]
 fn fixture_identity_changes_with_the_prepared_state() {
     let a = representative("10.91.0.0/16", "10.91.2.0/24", "10.92.2.0/24");
     let b = representative("10.73.0.0/16", "10.73.2.0/24", "10.74.2.0/24");
@@ -151,7 +168,7 @@ fn aws_wrapper_guards_endpoint_profile_and_environment() {
     }
     let dir = tempfile::tempdir().unwrap();
     let real = dir.path().join("real aws");
-    std::fs::write(&real, "#!/usr/bin/env bash\nprintf 'ARG<%s>\\n' \"$@\"\necho \"ENV<$AWS_ENDPOINT_URL|$AWS_PROFILE|$AWS_ACCESS_KEY_ID>\"\n").unwrap();
+    std::fs::write(&real, "#!/bin/bash\nprintf 'ARG<%s>\\n' \"$@\"\necho \"ENV<$AWS_ENDPOINT_URL|$AWS_PROFILE|$AWS_ACCESS_KEY_ID>\"\n").unwrap();
     let config = dir.path().join("empty config");
     std::fs::write(&config, "").unwrap();
     let owned = "http://127.0.0.1:45555";
@@ -162,8 +179,8 @@ fn aws_wrapper_guards_endpoint_profile_and_environment() {
         std::fs::set_permissions(dir.path().join(f), std::fs::Permissions::from_mode(0o755)).unwrap();
     }
     let env = vec![("AWS_PROFILE".to_string(), "real-account".to_string()), ("AWS_ACCESS_KEY_ID".to_string(), "AKIAREAL".to_string())];
-    let (ok, out, _) = bash_in(dir.path(), &env, "./aws ec2 describe-vpcs --query 'Vpcs[0]'");
-    assert!(ok, "{out}");
+    let (ok, out, err) = bash_in(dir.path(), &env, "./aws ec2 describe-vpcs --query 'Vpcs[0]'");
+    assert!(ok, "{out}{err}");
     assert!(out.starts_with(&format!("ARG<--endpoint-url>\nARG<{owned}>\nARG<ec2>\nARG<describe-vpcs>\nARG<--query>\nARG<Vpcs[0]>\n")), "{out}");
     assert!(out.contains(&format!("ENV<{owned}||test>")), "inherited profile/key must not reach the CLI: {out}");
     // Exact owned endpoint, alone, in equals form, or repeated: one owned endpoint reaches the CLI.
@@ -200,6 +217,33 @@ fn aws_wrapper_guards_endpoint_profile_and_environment() {
         assert!(!ok && !out.contains("ARG<"), "{rejected} must be rejected before the CLI runs: {out}{err}");
     }
     println!("PASS wrapper: endpoint injected, inherited AWS_* replaced, external/other endpoint and profile rejected before exec");
+}
+
+/// `client-request` trims a Windows `--output text` CRLF and surrounding blanks, nothing inside.
+#[test]
+fn client_request_trims_only_surrounding_whitespace() {
+    if bash_program().as_os_str() == "bash" && Command::new("bash").arg("--version").output().is_err() {
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let docker = dir.path().join("fake docker");
+    std::fs::write(&docker, "#!/bin/bash\nprintf 'ARG<%s>\\n' \"$@\"\n").unwrap();
+    std::fs::write(dir.path().join("client-request"), client_wrapper(&docker, "runtime", "client")).unwrap();
+    #[cfg(unix)]
+    for f in ["client-request", "fake docker"] {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(dir.path().join(f), std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let expected = format!("ARG<exec>\nARG<runtime>\nARG<docker>\nARG<exec>\nARG<client>\nARG<java>\nARG</opt/mq/HttpCheck.java>\nARG<10.91.2.10>\nARG<{HTTP_PORT}>\n");
+    std::fs::write(dir.path().join("crlf.txt"), "10.91.2.10\r\n").unwrap();
+    for accepted in ["./client-request 10.91.2.10", "./client-request \"$(< crlf.txt)\"", "./client-request $' 10.91.2.10\\t\\r\\n'"] {
+        let (ok, out, err) = bash_in(dir.path(), &[], accepted);
+        assert!(ok && out == expected, "{accepted}: {out}{err}");
+    }
+    for rejected in ["./client-request", "./client-request '10.91. 2.10'", "./client-request 10.91.2.10 10.91.2.11", "./client-request http://10.91.2.10", "./client-request $'\\r\\n'"] {
+        let (ok, out, err) = bash_in(dir.path(), &[], rejected);
+        assert!(!ok && !out.contains("ARG<"), "{rejected} must be rejected before docker runs: {out}{err}");
+    }
 }
 
 #[test]
@@ -689,5 +733,223 @@ fn docker_cloud_transfer_failure_reaps_both_processes() {
         assert!(transfer_image_within(&missing, TEMURIN, Duration::from_secs(120)).is_err());
         assert!(started.elapsed() < Duration::from_secs(60), "failure path took {:?}", started.elapsed());
         println!("PASS transfer failure: returned Err in {:?} with both processes reaped", started.elapsed());
+    });
+}
+
+// -- The published first cloud lesson, step by step, through the submission path ----------------
+const LESSON: &str = "courses/redesigned/cloud-vpc-subnet-ec2.json";
+struct LessonStep { id: String, title: String, exercise: GitExercise, narration: Vec<Value> }
+fn lesson_steps() -> Vec<LessonStep> {
+    let raw = std::fs::read(Path::new(env!("CARGO_MANIFEST_DIR")).join(LESSON)).expect("build the lesson first");
+    let lesson: Value = serde_json::from_slice(&raw).unwrap();
+    lesson["tasks"].as_array().unwrap().iter().map(|t| LessonStep {
+        id: t["id"].as_str().unwrap().into(), title: t["title"].as_str().unwrap().into(),
+        exercise: serde_json::from_value(t["git_terminal"].clone()).unwrap(),
+        narration: t["narration"].as_array().unwrap().clone(),
+    }).collect()
+}
+fn edit(practice: &GitPractice, file: &str, before: &str, after: &str) {
+    let path = practice.work().join(file);
+    let text = std::fs::read_to_string(&path).unwrap();
+    assert_eq!(text.matches(before).count(), 1, "{file}: {before}");
+    std::fs::write(&path, text.replacen(before, after, 1)).unwrap();
+}
+/// Replay the narration's editor patches and terminal commands, as auto-review does, and keep
+/// every command's real output as evidence. A command marked `fails` must fail; others succeed.
+fn replay(practice: &GitPractice, env: &[(String, String)], step: &LessonStep, lane: &str) -> Vec<String> {
+    let mut outputs = vec![];
+    for (index, action) in step.narration.iter().enumerate() {
+        match action["action"].as_str() {
+            Some("patch_code") => edit(practice, action["file"].as_str().unwrap(), action["before"].as_str().unwrap(), action["after"].as_str().unwrap()),
+            Some("bash_command") => {
+                let command = action["command"].as_str().unwrap();
+                let (ok, out, err) = sh(practice, env, command);
+                let text = format!("$ {command}\n{out}{err}");
+                std::fs::write(evidence_dir().join(format!("lesson-{}-{lane}-{index:02}.txt", &step.id[4..12])), &text).unwrap();
+                assert_eq!(ok, !action["fails"].as_bool().unwrap_or(false), "{}: {text}", step.title);
+                outputs.push(text);
+            }
+            _ => {}
+        }
+    }
+    outputs
+}
+fn has(outputs: &[String], index: usize, wanted: &[&str]) {
+    for w in wanted {
+        assert!(outputs[index].contains(w), "narration command {index} should show {w:?}: {}", outputs[index]);
+    }
+}
+fn feedback(report: &crate::runner::TestReport, wanted: &str) -> bool {
+    report.cases.iter().any(|c| !c.passed && c.stdout.contains(wanted))
+}
+
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine, Git Bash and AWS CLI v2; runs the published lesson's subnet steps"]
+fn docker_cloud_lesson_subnet_steps() {
+    let steps = lesson_steps();
+    assert_eq!(steps.len(), 7);
+    guarded("lesson-subnets", |owned| {
+        let open = |owned: &mut Vec<String>, spec: GitExercise| {
+            let p = GitPractice::new(spec).unwrap();
+            owned.push(owner(p.root()));
+            let env = p.prepare_cloud().unwrap();
+            (p, env)
+        };
+        // 1: a run task. The start state fails; the prepared command makes it pass.
+        let (p, env) = open(owned, steps[0].exercise.clone());
+        assert!(!report(&p).passed, "step 1 initial");
+        let out = replay(&p, &env, &steps[0], "student");
+        has(&out, 0, &["\"CidrBlock\": \"10.91.0.0/16\""]);
+        has(&out, 1, &["\"Subnets\": []"]);
+        has(&out, 2, &["\"CidrBlock\": \"10.91.1.0/24\""]);
+        assert!(report(&p).passed, "step 1 after the prepared command");
+        p.cleanup_cloud().unwrap();
+
+        // 2 (representative): starter refused, printed success is not state, the narration's fix passes.
+        let (p, env) = open(owned, steps[1].exercise.clone());
+        let original = std::fs::read(p.work().join("create-subnet.sh")).unwrap();
+        assert!(!report(&p).passed, "step 2 initial");
+        let (ok, _, err) = sh(&p, &env, "bash create-subnet.sh");
+        assert!(!ok && err.contains("InvalidSubnet.Range"));
+        assert!(sh(&p, &env, r#"echo '{"Subnet":{"CidrBlock":"10.91.2.0/24","State":"available"}}'"#).0);
+        assert!(!report(&p).passed, "step 2 printed success");
+        // The explanation lane: its own resources; the student's files and state stay as they were.
+        let teacher = GitPractice::new(steps[1].exercise.demonstration()).unwrap();
+        owned.push(owner(teacher.root()));
+        let teacher_env = teacher.prepare_cloud().unwrap();
+        let out = replay(&teacher, &teacher_env, &steps[1], "demo");
+        has(&out, 0, &["InvalidSubnet.Range"]);
+        has(&out, 1, &["\"Subnets\": []"]);
+        has(&out, 2, &["\"CidrBlock\": \"10.91.2.0/24\""]);
+        assert!(teacher.check_exercise().unwrap().passed, "step 2 narration reaches the goal");
+        teacher.release_network_demo();
+        assert!(!report(&p).passed, "the demonstration did not change the student");
+        assert_eq!(std::fs::read(p.work().join("create-subnet.sh")).unwrap(), original);
+        replay(&p, &env, &steps[1], "student");
+        assert!(report(&p).passed, "step 2 one-line fix");
+        p.cleanup_cloud().unwrap();
+        // Changed fixture: the same prepared file with another VPC.
+        let mut changed = steps[1].exercise.clone();
+        let cloud = changed.cloud.as_mut().unwrap();
+        cloud.vpc_cidr = "10.73.0.0/16".into();
+        cloud.target_cidr = Some("10.73.2.0/24".into());
+        let shell = changed.shell.as_mut().unwrap();
+        for files in [&mut shell.start.as_mut().unwrap().files, &mut shell.demo.files] {
+            let file = files.get_mut("create-subnet.sh").unwrap();
+            *file = file.replace("10.92.2.0/24", "10.74.2.0/24");
+        }
+        let (p, env) = open(owned, changed);
+        assert!(!sh(&p, &env, "bash create-subnet.sh").0);
+        edit(&p, "create-subnet.sh", "--cidr-block 10.74.2.0/24", "--cidr-block 10.91.2.0/24");
+        assert!(!sh(&p, &env, "bash create-subnet.sh").0, "the default answer is outside the changed VPC");
+        assert!(!report(&p).passed);
+        edit(&p, "create-subnet.sh", "--cidr-block 10.91.2.0/24", "--cidr-block 10.73.2.0/24");
+        assert!(sh(&p, &env, "bash create-subnet.sh").0);
+        assert!(report(&p).passed, "step 2 changed fixture");
+        p.cleanup_cloud().unwrap();
+
+        // 3: any free /25 passes; overlap is refused; another size fails.
+        let (p, env) = open(owned, steps[2].exercise.clone());
+        assert!(!report(&p).passed, "step 3 initial");
+        let (ok, _, err) = sh(&p, &env, "bash create-subnet.sh");
+        assert!(!ok && err.contains("InvalidSubnet.Conflict"), "overlap refused: {err}");
+        edit(&p, "create-subnet.sh", "--cidr-block 10.91.1.128/25", "--cidr-block 10.91.2.0/24");
+        assert!(sh(&p, &env, "bash create-subnet.sh").0);
+        let wrong = report(&p);
+        assert!(!wrong.passed && feedback(&wrong, "/25 크기가 아니에요"), "step 3 a /24");
+        p.cleanup_cloud().unwrap();
+        let (p, env) = open(owned, steps[2].exercise.clone());
+        let out = replay(&p, &env, &steps[2], "student");
+        has(&out, 0, &["\"CidrBlock\": \"10.91.1.0/24\""]);
+        has(&out, 1, &["InvalidSubnet.Conflict"]);
+        has(&out, 2, &["\"CidrBlock\": \"10.91.2.0/25\""]);
+        assert!(report(&p).passed, "step 3 narration");
+        p.cleanup_cloud().unwrap();
+        let (p, env) = open(owned, steps[2].exercise.clone());
+        edit(&p, "create-subnet.sh", "--cidr-block 10.91.1.128/25", "--cidr-block 10.91.3.0/25");
+        assert!(sh(&p, &env, "bash create-subnet.sh").0);
+        assert!(report(&p).passed, "step 3 another free /25");
+        p.cleanup_cloud().unwrap();
+        println!("PASS lesson subnet steps 1-3");
+    });
+}
+
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine; runs privileged Docker-in-Docker with real Java 25 EC2 guests for the published lesson"]
+fn docker_cloud_lesson_server_steps() {
+    let steps = lesson_steps();
+    guarded("lesson-servers", |owned| {
+        let directory = tempfile::tempdir().unwrap();
+        let store = GitPracticeStore::new(directory.path()).unwrap();
+        let open = |owned: &mut Vec<String>, scope: &str, spec: GitExercise| {
+            let p = store.open(scope, spec).unwrap();
+            owned.push(owner(p.root()));
+            let env = p.prepare_cloud().unwrap();
+            (p, env)
+        };
+        let reset = |owned: &mut Vec<String>, scope: &str, step: &LessonStep| {
+            let p = store.reset_step(scope, step.exercise.clone(), &step.id).unwrap();
+            owned.push(owner(p.root()));
+            let env = p.prepare_cloud().unwrap();
+            (p, env)
+        };
+        // 4: a run task on a real guest.
+        let (p, env) = open(owned, "step4", steps[3].exercise.clone());
+        assert!(!report(&p).passed, "step 4 initial");
+        let out = replay(&p, &env, &steps[3], "student");
+        has(&out, 0, &["\"PrivateIpAddress\": \"10.91.2."]);
+        has(&out, 3, &["10.91.2.", "running"]);
+        assert!(report(&p).passed, "step 4 prepared command");
+        p.cleanup_cloud().unwrap();
+
+        // 5: the starter places the server in A; a second server in B is still wrong; 초기화 then the fix.
+        let (p, env) = open(owned, "step5", steps[4].exercise.clone());
+        assert!(sh(&p, &env, "bash launch-server.sh > /dev/null").0);
+        let wrong = report(&p);
+        assert!(!wrong.passed && feedback(&wrong, "목표 서브넷이 아닌 곳"), "step 5 starter in A");
+        let (_, table, _) = sh(&p, &env, "bash list-servers.sh");
+        assert!(table.contains("10.91.1."), "the learner can see the A address: {table}");
+        edit(&p, "launch-server.sh", "\"$LAB_SUBNET_A_ID\"", "\"$LAB_SUBNET_B_ID\"");
+        assert!(sh(&p, &env, "bash launch-server.sh > /dev/null").0);
+        let two = report(&p);
+        assert!(!two.passed && feedback(&two, "서버가 2대예요"), "step 5 A left behind");
+        let (p2, env2) = reset(owned, "step5", &steps[4]);
+        assert!(!docker(&["inspect", &names(p.root()).1], 15).unwrap().ok, "초기화 removed the old runtime");
+        assert!(std::fs::read_to_string(p2.work().join("launch-server.sh")).unwrap().contains("\"$LAB_SUBNET_A_ID\""), "prepared file restored");
+        assert!(!report(&p2).passed, "step 5 after 초기화");
+        let out = replay(&p2, &env2, &steps[4], "student");
+        has(&out, 0, &["10.91.1.0/24", "10.91.2.0/24"]);
+        has(&out, 1, &["\"PrivateIpAddress\": \"10.91.2."]);
+        assert!(report(&p2).passed, "step 5 narration");
+        p2.cleanup_cloud().unwrap();
+
+        // 6: placeholder and printed output fail; the API private address passes the grader's own request.
+        let (p, env) = open(owned, "step6", steps[5].exercise.clone());
+        assert!(!report(&p).passed, "step 6 placeholder");
+        assert!(sh(&p, &env, "echo 'HTTP/1.1 200 OK'; echo 'from=10.91.1.10'").0);
+        assert!(!report(&p).passed, "step 6 printed response");
+        let out = replay(&p, &env, &steps[5], "student");
+        has(&out, 0, &["CONNECT_FAIL"]);
+        has(&out, 4, &["HTTP/1.1 200 OK", "served-on=10.91.2.", "from=10.91.1.", "java.version=25"]);
+        assert!(report(&p).passed, "step 6 narration");
+        p.cleanup_cloud().unwrap();
+
+        // 7: a server left in the client's subnet fails; after 초기화 the narration passes with real HTTP.
+        let (p, env) = open(owned, "step7", steps[6].exercise.clone());
+        assert!(!report(&p).passed, "step 7 initial");
+        assert!(!sh(&p, &env, "bash create-subnet.sh").0, "starter overlaps subnet A");
+        edit(&p, "create-subnet.sh", "--cidr-block 10.91.1.0/24", "--cidr-block 10.91.2.0/24");
+        assert!(sh(&p, &env, "bash create-subnet.sh > /dev/null").0);
+        assert!(sh(&p, &env, "bash launch-server.sh > /dev/null").0);
+        let wrong = report(&p);
+        assert!(!wrong.passed && feedback(&wrong, "목표 서브넷이 아닌 곳"), "step 7 server in A");
+        let (p2, env2) = reset(owned, "step7", &steps[6]);
+        let out = replay(&p2, &env2, &steps[6], "student");
+        has(&out, 0, &["\"CidrBlock\": \"10.91.2.0/24\""]);
+        has(&out, 1, &["\"PrivateIpAddress\": \"10.91.2."]);
+        has(&out, 5, &["HTTP/1.1 200 OK", "served-on=10.91.2.", "from=10.91.1."]);
+        assert!(report(&p2).passed, "step 7 narration");
+        p2.cleanup_cloud().unwrap();
+        println!("PASS lesson server steps 4-7");
     });
 }

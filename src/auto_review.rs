@@ -59,7 +59,7 @@ pub fn plan(task: &Task) -> Result<Plan, String> {
             return Err("실제 GitHub 저장소와 PR을 만드는 문제라서 자동 풀이를 지원하지 않아요. 이 문제는 직접 풀어 주세요.".into());
         }
         // Main.java of a Java step and the files of a Compose step are edited in the editor above the terminal.
-        let editor = exercise.java_build.is_some() || exercise.docker.as_ref().is_some_and(|d| d.compose.is_some()) || exercise.gitlab.as_ref().is_some_and(|g|!g.editable.is_empty());
+        let editor = exercise.java_build.is_some() || exercise.docker.as_ref().is_some_and(|d| d.compose.is_some()) || exercise.gitlab.as_ref().is_some_and(|g|!g.editable.is_empty()) || exercise.cloud.as_ref().is_some_and(|c| !c.editable.is_empty());
         let actions: Vec<Value> = task.narration.iter()
             .filter(|a| a["action"].as_str().is_some_and(|name| TERMINAL_ACTIONS.contains(&name) || (editor && name == "patch_code")))
             .cloned().collect();

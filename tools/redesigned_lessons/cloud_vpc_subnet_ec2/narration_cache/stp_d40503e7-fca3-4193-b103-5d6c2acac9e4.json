@@ -1,0 +1,69 @@
+{
+  "by": "hand",
+  "source_sha256": "9aea9773cea4457d42511706b217a175ba2310260a915b2491477cd24fdb6b0f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "준비된 VPC는 10.91.0.0/16이고 서브넷은 아직 없어요. 먼저 그 VPC를 API로 직접 읽어 볼게요.",
+      "target": "text:실습 환경이 범위가 10.91.0.0/16인 VPC 하나만 만들어 뒀어요."
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 describe-vpcs --endpoint-url \"$LAB_ENDPOINT\" --vpc-ids \"$LAB_VPC_ID\"",
+      "say": "describe-vpcs로 준비된 VPC를 조회해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 120
+    },
+    {
+      "action": "say",
+      "text": "CidrBlock이 10.91.0.0/16이에요. /16이라 앞 두 칸 10.91이 이 VPC의 주소 공간을 정해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 다른 터미널의 aws에서 --endpoint-url을 빼면 실제 AWS 주소로 요청해요. 이 실습 터미널만 로컬 실습 주소로 보내 줘요.",
+      "target": "text:실제 AWS에는 접속하지 않아요."
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-subnets.sh",
+      "say": "서브넷 목록부터 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "Subnets가 빈 목록이에요. 이 VPC에는 아직 서브넷이 없어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "준비 명령은 이 VPC 안의 10.91.1.0/24를 쓰겠다고 선언해요. 10.91로 시작하니 VPC 범위 안이에요.",
+      "target": "code:--cidr-block 10.91.1.0/24"
+    },
+    {
+      "action": "bash_command",
+      "command": "bash create-subnet.sh",
+      "say": "준비 명령을 그대로 실행해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "새 서브넷이 생겼어요. 출력의 CidrBlock은 10.91.1.0/24이고 VpcId는 준비된 VPC의 ID예요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-subnets.sh",
+      "say": "목록을 다시 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "목록에도 같은 서브넷이 하나 보여요. 채점도 이 목록 같은 실제 상태를 읽어요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

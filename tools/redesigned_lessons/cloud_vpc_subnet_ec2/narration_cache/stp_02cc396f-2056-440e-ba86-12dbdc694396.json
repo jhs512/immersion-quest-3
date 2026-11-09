@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "5e694f92eff7035b3243e5a7e952dcc2ea7d397e5898edb143b75bec684829e6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "서버는 서브넷 하나에 놓이고, 주소도 그 서브넷의 범위에서 받아요.",
+      "target": "text:서버의 사설 IP 주소는 그 서브넷의 범위에서 받아요."
+    },
+    {
+      "action": "say",
+      "text": "준비 명령은 서브넷 B의 ID를 써요. 서브넷 B의 범위는 10.91.2.0/24예요.",
+      "target": "code:\"$LAB_SUBNET_B_ID\""
+    },
+    {
+      "action": "bash_command",
+      "command": "bash launch-server.sh",
+      "say": "준비 명령을 그대로 실행해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 240
+    },
+    {
+      "action": "say",
+      "text": "요청이 받아들여졌어요. PrivateIpAddress가 10.91.2로 시작하고, 출력의 상태는 아직 pending이에요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-servers.sh",
+      "say": "표로 서버의 상태를 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "상태 칸을 보세요. pending이면 아직 켜지는 중이고, running이면 다 켜진 거예요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 실행 요청이 성공한 것과 서버가 다 켜진 것은 달라요. running을 확인한 뒤 제출하세요.",
+      "target": "text:상태가 running이 아니면 잠시 뒤 bash list-servers.sh를 다시 실행하세요."
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 wait instance-running --endpoint-url \"$LAB_ENDPOINT\" --filters Name=subnet-id,Values=\"$LAB_SUBNET_B_ID\"",
+      "say": "해설은 running이 될 때까지 기다리는 명령을 써요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 300
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-servers.sh",
+      "say": "기다린 뒤 다시 표를 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "이제 running이에요. 사설 IP 주소가 서브넷 B의 범위 10.91.2.0/24 안에 있어요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

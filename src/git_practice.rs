@@ -277,6 +277,9 @@ impl GitExercise {
                 let shell=self.shell.as_ref().unwrap();
                 if !shell.start.as_ref().is_some_and(|s|s.files.contains_key(file))||!shell.demo.files.contains_key(file){return Err("클라우드 실습의 주소 파일을 준비하세요.".into())}
             }
+            // The editor shows prepared files only, so a reset or a demonstration restores them too.
+            let shell=self.shell.as_ref().unwrap();
+            if cloud.editable.iter().any(|f|!shell.start.as_ref().is_some_and(|s|s.files.contains_key(f))||!shell.demo.files.contains_key(f)){return Err("클라우드 실습에서 고칠 파일을 준비하세요.".into())}
         }
         if let Some(shell)=&self.shell {shell.validate_commands(self.network.is_some()||self.cloud.is_some())?;if self.initial_history!=GitInitialHistory::Uninitialized||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Bash 실습의 시작 상태를 확인하세요.".into())}}
         if self.demo_setup.is_some(){self.demonstration().validate()?;}

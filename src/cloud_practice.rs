@@ -66,6 +66,9 @@ pub struct CloudExercise {
     pub new_prefix: Option<u8>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub address_file: Option<String>,
+    /// Prepared files shown in the editor above the terminal; other prepared files stay terminal-only.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub editable: Vec<String>,
 }
 
 // -- addresses ---------------------------------------------------------------------------
@@ -96,6 +99,10 @@ impl CloudExercise {
         let bad = || Err::<(), String>("클라우드 실습 구성을 확인하세요.".into());
         let Some(vpc) = cidr(&self.vpc_cidr).filter(|c| (16..=24).contains(&c.1)) else { return bad() };
         if self.subnets.len() > 4 {
+            return bad();
+        }
+        let file = |f: &String| crate::repository_course::safe_file(f) && !f.contains('/');
+        if self.editable.len() > 4 || !self.editable.iter().all(file) || self.editable.iter().enumerate().any(|(i, f)| self.editable[..i].contains(f)) {
             return bad();
         }
         let mut blocks: Vec<(u32, u8)> = vec![];
@@ -446,7 +453,7 @@ fn posix(path: &Path) -> String {
 /// MQ's own `aws` entrypoint for the practice terminal: normal syntax, only the owned endpoint.
 fn aws_wrapper(endpoint: &str, real: &Path, config: &Path) -> String {
     format!(
-        r#"#!/usr/bin/env bash
+        r#"#!/bin/bash
 # MQ 실습용 aws: 이 실습의 로컬 주소로만 요청해요.
 owned={owned}
 args=()
@@ -487,10 +494,10 @@ exec {real} --endpoint-url "$owned" "${{args[@]}}"
 /// The prepared request command: the client guest's own HTTP request to one IPv4 address.
 fn client_wrapper(docker: &Path, runtime: &str, client: &str) -> String {
     format!(
-        r#"#!/usr/bin/env bash
+        r#"#!/bin/bash
 # 준비된 클라이언트 서버 안에서 HTTP 요청을 보내요.
 # A Windows `--output text` file ends in CRLF; drop surrounding whitespace before checking.
-address="${{1-}}"; address="${{address//[$'\r\n\t ']/}}"
+address="${{1-}}"; address="${{address#"${{address%%[![:space:]]*}}"}}"; address="${{address%"${{address##*[![:space:]]}}"}}"
 if [ $# -ne 1 ] || ! [[ "$address" =~ ^[0-9]{{1,3}}(\.[0-9]{{1,3}}){{3}}$ ]]; then echo "사용법: client-request <IPv4 주소>" >&2; exit 2; fi
 export MSYS_NO_PATHCONV=1
 exec {docker} exec {runtime} docker exec {client} java /opt/mq/HttpCheck.java "$address" {port}
@@ -764,7 +771,7 @@ impl GitPractice {
         let vpcs = api(root, &state, &["ec2", "describe-vpcs", "--vpc-ids", &state.vpc_id])?;
         if !vpcs.ok {
             if vpcs.err.contains("InvalidVpcID.NotFound") {
-                record("준비된 VPC", false, "준비된 VPC를 지우지 마세요. 「다시 시작」으로 처음 상태를 받으세요.", "준비된 VPC가 없어졌어요.".into());
+                record("준비된 VPC", false, "준비된 VPC를 지우지 마세요. 「초기화」로 처음 상태를 받으세요.", "준비된 VPC가 없어졌어요.".into());
                 return Ok(TestReport { passed: false, cases });
             }
             return Err("실습용 클라우드 API가 VPC 조회를 거절했어요. 초기화하세요.".into());

@@ -1,6 +1,6 @@
 """Authoring contract: course intent -> lesson preview -> PRD -> executable work.
 
-Canonical network previews bind only the new network series. Existing courses'
+Canonical previews bind only the network series and the cloud lessons. Existing courses'
 other preview sources remain unchanged. Structural checks do not replace review.
 """
 import hashlib
@@ -13,6 +13,10 @@ ROOT = Path(__file__).resolve().parents[1]
 def digest(value):
     return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True,
                                      separators=(',', ':')).encode()).hexdigest()
+
+
+# Lessons whose learner-facing preview is a canonical, reviewed file bound to the course intent.
+CANONICAL_PREVIEW_PREFIXES = ('network-', 'cloud-')
 
 
 def course_intent(course):

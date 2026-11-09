@@ -1,0 +1,999 @@
+{
+  "description": "VPC와 서브넷의 범위를 선언하고, 서버를 원하는 서브넷에 놓아 같은 VPC에서 응답을 받아요.",
+  "presentation": {
+    "objectives": [
+      "이미 아는 CIDR로 VPC와 서브넷의 포함 관계를 읽고 선언해요.",
+      "서버 한 대를 원하는 서브넷에 놓고, 받은 주소가 그 범위 안인지 확인해요.",
+      "같은 VPC 안의 다른 서버에서 그 주소로 HTTP 응답을 받아 배치를 확인해요."
+    ],
+    "chapters": {
+      "chp_3af90387-0f71-4688-8610-b72057a60132": [
+        "VPC 범위 안에서 겹치지 않는 서브넷을 만들고, 범위 밖·겹침이 거절되는 것을 확인해요."
+      ],
+      "chp_ad344928-7502-4a61-bd1e-914d051497cb": [
+        "서버는 서브넷 하나에 놓이고, 그 범위에서 사설 IP 주소를 받아요.",
+        "같은 VPC의 다른 서브넷에서 그 사설 주소로 HTTP 응답을 받아요."
+      ],
+      "chp_55714e15-1931-473d-a983-ffe27518b0eb": [
+        "앞에서 확인한 범위·자리·주소를 조합해 자바 서버를 지정한 서브넷에 배치하고 응답을 받아요."
+      ]
+    },
+    "units": {
+      "unt_a183b451-d597-4c39-8bcd-5c748bad3737": {
+        "objectives": [
+          "서브넷이 VPC 범위의 일부여야 하고, 같은 VPC 안에서 겹칠 수 없다는 규칙을 생성 성공과 거절로 확인해요."
+        ],
+        "premise": "실습 환경이 VPC 하나를 미리 만들어 둬요. VPC는 주소 공간 하나를 선언한 자원이고, 범위는 10.91.0.0/16이에요. 문제마다 새 실습 상태에서 시작해요. 모든 aws 명령은 이 컴퓨터의 로컬 실습 주소로만 가요."
+      },
+      "unt_478d3126-fd55-47cb-bb26-424d43aa333f": {
+        "objectives": [
+          "run-instances의 서브넷 지정과 결과 서버의 서브넷·사설 IP 주소의 관계를 읽어요."
+        ],
+        "premise": "실습 환경이 VPC 10.91.0.0/16에 서브넷 A 10.91.1.0/24와 서브넷 B 10.91.2.0/24를 미리 만들어 둬요. 서버 이미지는 network-http처럼 ServerSocket으로 응답하는 작은 자바 HTTP 서버예요. 서버를 준비하는 데 몇 분 걸릴 수 있어요."
+      },
+      "unt_9857746a-5a77-445f-837c-ae89b09febb9": {
+        "objectives": [
+          "API가 알려 준 사설 주소로 같은 VPC의 다른 서버가 실제 HTTP 응답을 받아요."
+        ],
+        "premise": "실습 환경이 서브넷 B의 자바 서버와 서브넷 A의 클라이언트 서버를 미리 실행해 둬요. client-request는 클라이언트 서버 안에서 HTTP 요청을 보내요. 이 수업은 같은 VPC 안의 연결만 확인해요."
+      },
+      "unt_281e9e3e-6dec-4441-b1cc-db99a39998cf": {
+        "objectives": [
+          "새 개념 없이 1·2장의 판단을 조합해요."
+        ],
+        "premise": "VPC와 서브넷 A, 서브넷 A의 클라이언트 서버만 준비돼 있어요. 목표 서브넷은 직접 만들어요."
+      }
+    },
+    "learning_strategy": "먼저 준비 명령을 실행해 실제 API 결과를 봐요. 편집기에서 값 한 곳만 고치고 같은 명령으로 다시 확인해요."
+  },
+  "tasks": [
+    {
+      "id": "stp_d40503e7-fca3-4193-b103-5d6c2acac9e4",
+      "title": "준비된 명령으로 VPC 안에 서브넷을 만드세요",
+      "goal": "VPC는 주소 공간 하나를 선언한 자원이에요. 서브넷(subnet)은 그 VPC 안의 더 작은 주소 범위예요. 서버는 나중에 서브넷 안에 놓여요.\n\n이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 범위가 10.91.0.0/16인 VPC 하나만 만들어 뒀어요. 서브넷은 아직 없어요. `LAB_ENDPOINT`는 이 컴퓨터의 로컬 실습 주소이고, `LAB_VPC_ID`는 준비된 VPC의 ID예요. 실제 AWS에는 접속하지 않아요.\n\n편집기의 `create-subnet.sh`는 이 VPC 안에 서브넷 하나를 만드는 준비 명령이에요. 이번에는 고치지 않고 그대로 실행해요. 터미널 폴더의 `list-subnets.sh`는 이 VPC의 서브넷 목록을 보여 줘요.\n\n**할 일**\n\n1. 터미널에 `aws ec2 describe-vpcs --endpoint-url \"$LAB_ENDPOINT\" --vpc-ids \"$LAB_VPC_ID\"`를 입력하고 Enter를 누르세요. `CidrBlock`이 VPC의 주소 공간이에요.\n2. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 아직 서브넷이 없는지 확인하세요.\n3. 편집기에서 `create-subnet.sh`의 `--vpc-id`와 `--cidr-block` 값을 읽으세요.\n4. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 출력에서 새 서브넷의 `SubnetId`와 `CidrBlock`을 읽으세요.\n5. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 새 서브넷의 `VpcId`가 준비된 VPC의 ID와 같은지 확인하세요.\n6. 서브넷이 생긴 것을 확인했으면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 준비 명령을 그대로 실행해요. 준비된 VPC 안에 10.91.1.0/24 서브넷이 생겨요.\nbash create-subnet.sh\n# 목록에서 새 서브넷의 VpcId와 CidrBlock을 확인해요.\nbash list-subnets.sh",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "준비된 VPC는 10.91.0.0/16이고 서브넷은 아직 없어요. 먼저 그 VPC를 API로 직접 읽어 볼게요.",
+          "target": "text:실습 환경이 범위가 10.91.0.0/16인 VPC 하나만 만들어 뒀어요."
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 describe-vpcs --endpoint-url \"$LAB_ENDPOINT\" --vpc-ids \"$LAB_VPC_ID\"",
+          "say": "describe-vpcs로 준비된 VPC를 조회해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 120
+        },
+        {
+          "action": "say",
+          "text": "CidrBlock이 10.91.0.0/16이에요. /16이라 앞 두 칸 10.91이 이 VPC의 주소 공간을 정해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 다른 터미널의 aws에서 --endpoint-url을 빼면 실제 AWS 주소로 요청해요. 이 실습 터미널만 로컬 실습 주소로 보내 줘요.",
+          "target": "text:실제 AWS에는 접속하지 않아요."
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-subnets.sh",
+          "say": "서브넷 목록부터 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "Subnets가 빈 목록이에요. 이 VPC에는 아직 서브넷이 없어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "준비 명령은 이 VPC 안의 10.91.1.0/24를 쓰겠다고 선언해요. 10.91로 시작하니 VPC 범위 안이에요.",
+          "target": "code:--cidr-block 10.91.1.0/24"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash create-subnet.sh",
+          "say": "준비 명령을 그대로 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "새 서브넷이 생겼어요. 출력의 CidrBlock은 10.91.1.0/24이고 VpcId는 준비된 VPC의 ID예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-subnets.sh",
+          "say": "목록을 다시 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "목록에도 같은 서브넷이 하나 보여요. 채점도 이 목록 같은 실제 상태를 읽어요.",
+          "target": "#git-demo-terminal"
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "create_subnet",
+          "vpc_cidr": "10.91.0.0/16",
+          "target_cidr": "10.91.1.0/24",
+          "editable": [
+            "create-subnet.sh"
+          ]
+        },
+        "shell": {
+          "step_id": "stp_d40503e7-fca3-4193-b103-5d6c2acac9e4",
+          "start": {
+            "files": {
+              "create-subnet.sh": "# 준비된 VPC 안에 서브넷 하나를 만드는 명령이에요.\n# --vpc-id는 어느 VPC에, --cidr-block은 그 안의 어느 범위에 만들지 정해요.\naws ec2 create-subnet \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --vpc-id \"$LAB_VPC_ID\" \\\n  --cidr-block 10.91.1.0/24\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "create-subnet.sh": "# 준비된 VPC 안에 서브넷 하나를 만드는 명령이에요.\n# --vpc-id는 어느 VPC에, --cidr-block은 그 안의 어느 범위에 만들지 정해요.\naws ec2 create-subnet \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --vpc-id \"$LAB_VPC_ID\" \\\n  --cidr-block 10.91.1.0/24\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      }
+    },
+    {
+      "id": "stp_ed72ac2b-8f2c-4e8c-a8ce-5f3bacb80b20",
+      "title": "범위 밖 서브넷을 VPC 안으로 고치세요",
+      "goal": "서브넷은 VPC 주소 공간의 일부여야 해요. VPC 밖의 범위로는 서브넷을 만들 수 없어요.\n\n이번 문제도 새 실습 상태에서 시작해요. 앞 문제에서 만든 서브넷은 없어요. 준비된 VPC의 범위는 10.91.0.0/16이에요.\n\n편집기의 `create-subnet.sh`는 서브넷을 만드는 준비 명령인데, `--cidr-block` 값이 틀렸어요. 이 VPC 안에 10.91.2.0/24 서브넷 하나를 만들어야 해요. `--endpoint-url`과 `--vpc-id`는 그대로 두세요.\n\n**할 일**\n\n1. 편집기에서 `create-subnet.sh`의 `--cidr-block` 값을 VPC 범위 10.91.0.0/16과 비교하세요.\n2. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 오류 메시지를 읽으세요.\n3. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 서브넷이 생기지 않았는지 확인하세요.\n4. 편집기에서 `--cidr-block` 값 한 곳만 `10.91.2.0/24`로 고치세요.\n5. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 이번 출력의 `CidrBlock`과 `VpcId`를 읽으세요.\n6. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 고친 범위의 서브넷이 하나 있는지 확인하세요.\n7. 고친 뒤 상태를 확인했으면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# create-subnet.sh의 --cidr-block을 10.92.2.0/24에서 10.91.2.0/24로 고쳐요.\n# /16 VPC 10.91.0.0/16 안이려면 앞 두 칸이 10.91이어야 해요.\nbash create-subnet.sh\nbash list-subnets.sh",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "VPC는 10.91.0.0/16이고, 그 안에 10.91.2.0/24를 만들어야 해요.",
+          "target": "text:이 VPC 안에 10.91.2.0/24 서브넷 하나를 만들어야 해요."
+        },
+        {
+          "action": "say",
+          "text": "준비 값은 10.92.2.0/24예요. 둘째 칸이 92라서 10.91로 시작하는 VPC 밖이에요.",
+          "target": "code:10.92.2.0/24"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash create-subnet.sh",
+          "say": "고치기 전에 그대로 실행해 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60,
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "InvalidSubnet.Range 오류예요. VPC 밖의 범위라서 API가 거절했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-subnets.sh",
+          "say": "거절된 뒤의 목록을 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "Subnets가 비어 있어요. 거절된 명령은 아무것도 만들지 않았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 끝의 2.0/24만 맞춰 보고 둘째 칸을 놓치기 쉬워요. /16 VPC 안이려면 앞 두 칸이 같아야 해요.",
+          "target": "code:10.92.2.0/24"
+        },
+        {
+          "action": "patch_code",
+          "before": "--cidr-block 10.92.2.0/24",
+          "after": "--cidr-block 10.91.2.0/24",
+          "say": "92를 91로 고쳐 VPC 안의 범위로 옮겨요.",
+          "file": "create-subnet.sh"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash create-subnet.sh",
+          "say": "고친 명령을 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "이번에는 서브넷이 생겼어요. CidrBlock은 10.91.2.0/24이고 VpcId는 준비된 VPC예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-subnets.sh",
+          "say": "고친 뒤 목록을 확인해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "목록에 10.91.2.0/24 서브넷이 하나 있어요. 고친 곳은 --cidr-block 한 줄뿐이에요.",
+          "target": "code:--cidr-block 10.91.2.0/24"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. VPC를 새로 만들어 같은 숫자의 서브넷을 만들면 준비된 VPC가 아니라서 통과하지 않아요.",
+          "target": "text:--endpoint-url과 --vpc-id는 그대로 두세요."
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "create_subnet",
+          "vpc_cidr": "10.91.0.0/16",
+          "target_cidr": "10.91.2.0/24",
+          "editable": [
+            "create-subnet.sh"
+          ]
+        },
+        "shell": {
+          "step_id": "stp_ed72ac2b-8f2c-4e8c-a8ce-5f3bacb80b20",
+          "start": {
+            "files": {
+              "create-subnet.sh": "# 준비된 VPC 안에 서브넷 하나를 만드는 명령이에요.\n# --vpc-id는 어느 VPC에, --cidr-block은 그 안의 어느 범위에 만들지 정해요.\naws ec2 create-subnet \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --vpc-id \"$LAB_VPC_ID\" \\\n  --cidr-block 10.92.2.0/24\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "create-subnet.sh": "# 준비된 VPC 안에 서브넷 하나를 만드는 명령이에요.\n# --vpc-id는 어느 VPC에, --cidr-block은 그 안의 어느 범위에 만들지 정해요.\naws ec2 create-subnet \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --vpc-id \"$LAB_VPC_ID\" \\\n  --cidr-block 10.92.2.0/24\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      }
+    },
+    {
+      "id": "stp_6f9ee4ee-4568-406b-a2aa-1f47b58f75a8",
+      "title": "준비된 서브넷과 겹치지 않는 범위를 고르세요",
+      "goal": "같은 VPC 안의 서브넷끼리는 범위가 겹칠 수 없어요. 범위가 VPC 안에 있어도 이미 있는 서브넷과 겹치면 거절돼요.\n\n이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 VPC 10.91.0.0/16 안에 서브넷 10.91.1.0/24를 미리 만들어 뒀어요. 여러분이 만든 서브넷이 아니에요. 이 서브넷의 ID는 `LAB_SUBNET_A_ID`에 있어요.\n\n편집기의 `create-subnet.sh`는 /25 서브넷 하나를 만드는 준비 명령이에요. 준비된 서브넷은 그대로 두세요. VPC 안에서 준비된 서브넷과 겹치지 않는 /25 범위 하나를 직접 골라 만드세요.\n\n**할 일**\n\n1. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 준비된 서브넷의 `CidrBlock`을 읽으세요.\n2. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 오류 메시지를 읽으세요.\n3. 편집기에서 `--cidr-block` 값 한 곳을 VPC 안이면서 준비된 서브넷과 겹치지 않는 /25 범위로 고치세요.\n4. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 새 서브넷의 `CidrBlock`을 읽으세요.\n5. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 두 서브넷의 범위가 겹치지 않는지 확인하세요.\n6. 두 서브넷을 확인했으면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# create-subnet.sh의 --cidr-block을 10.91.1.128/25에서 겹치지 않는 /25로 고쳐요.\n# 예: 10.91.2.0/25. VPC 안의 다른 빈 /25도 통과해요.\nbash create-subnet.sh\nbash list-subnets.sh",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "준비된 서브넷 10.91.1.0/24는 그대로 두고, /25 서브넷을 하나 더 만드는 문제예요.",
+          "target": "text:준비된 서브넷은 그대로 두세요."
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-subnets.sh",
+          "say": "준비된 서브넷부터 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "10.91.1.0/24 서브넷 하나가 있어요. 10.91.1.0부터 10.91.1.255까지를 차지해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "준비 값 10.91.1.128/25는 VPC 안이에요. 그런데 10.91.1.128부터 255까지라 기존 범위의 안쪽이에요.",
+          "target": "code:10.91.1.128/25"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash create-subnet.sh",
+          "say": "그대로 실행해 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60,
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "InvalidSubnet.Conflict 오류예요. VPC 안의 범위인데도 기존 서브넷과 겹쳐서 거절됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 준비된 서브넷을 지우면 겹침은 사라져요. 하지만 준비 상태가 바뀌어 통과하지 않아요.",
+          "target": "text:여러분이 만든 서브넷이 아니에요."
+        },
+        {
+          "action": "patch_code",
+          "before": "--cidr-block 10.91.1.128/25",
+          "after": "--cidr-block 10.91.2.0/25",
+          "say": "셋째 칸을 2로 바꿔 10.91.2.0/25를 골라요.",
+          "file": "create-subnet.sh"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash create-subnet.sh",
+          "say": "고른 범위로 다시 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "새 서브넷 10.91.2.0/25가 생겼어요. 이번에는 거절되지 않았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-subnets.sh",
+          "say": "두 서브넷의 범위를 나란히 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "두 서브넷이 함께 있어요. 10.91.1.x와 10.91.2.0~127은 서로 겹치지 않아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "10.91.3.0/25처럼 VPC 안의 다른 빈 /25를 골라도 통과해요. 정답이 하나로 정해진 문제가 아니에요.",
+          "target": "text:VPC 안에서 준비된 서브넷과 겹치지 않는 /25 범위 하나를 직접 골라 만드세요."
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "choose_subnet",
+          "vpc_cidr": "10.91.0.0/16",
+          "subnets": [
+            {
+              "name": "A",
+              "cidr": "10.91.1.0/24"
+            }
+          ],
+          "new_prefix": 25,
+          "editable": [
+            "create-subnet.sh"
+          ]
+        },
+        "shell": {
+          "step_id": "stp_6f9ee4ee-4568-406b-a2aa-1f47b58f75a8",
+          "start": {
+            "files": {
+              "create-subnet.sh": "# 준비된 VPC 안에 서브넷 하나를 만드는 명령이에요.\n# --vpc-id는 어느 VPC에, --cidr-block은 그 안의 어느 범위에 만들지 정해요.\naws ec2 create-subnet \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --vpc-id \"$LAB_VPC_ID\" \\\n  --cidr-block 10.91.1.128/25\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "create-subnet.sh": "# 준비된 VPC 안에 서브넷 하나를 만드는 명령이에요.\n# --vpc-id는 어느 VPC에, --cidr-block은 그 안의 어느 범위에 만들지 정해요.\naws ec2 create-subnet \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --vpc-id \"$LAB_VPC_ID\" \\\n  --cidr-block 10.91.1.128/25\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      }
+    },
+    {
+      "id": "stp_02cc396f-2056-440e-ba86-12dbdc694396",
+      "title": "지정한 서브넷에서 서버 한 대를 실행하세요",
+      "goal": "인스턴스(instance)는 서브넷 하나에 놓이는 서버 자원이에요. 서버의 사설 IP 주소는 그 서브넷의 범위에서 받아요.\n\n이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 VPC 10.91.0.0/16 안에 서브넷 A 10.91.1.0/24와 서브넷 B 10.91.2.0/24를 미리 만들어 뒀어요. 두 서브넷의 ID는 `LAB_SUBNET_A_ID`와 `LAB_SUBNET_B_ID`에 있어요. 아직 서버는 없어요.\n\n편집기의 `launch-server.sh`는 서브넷 B에 서버 한 대를 실행하는 준비 명령이에요. 이번에는 고치지 않고 그대로 실행해요. `list-servers.sh`는 서버의 ID·서브넷 ID·사설 IP 주소·상태를 표로 보여 줘요.\n\n**할 일**\n\n1. 편집기에서 `launch-server.sh`의 `--subnet-id` 값을 읽으세요.\n2. 터미널에 `bash launch-server.sh`를 입력하고 Enter를 누르세요. 출력의 `SubnetId`와 `PrivateIpAddress`를 읽으세요.\n3. 터미널에 `bash list-servers.sh`를 입력하고 Enter를 누르세요. 서버의 상태를 읽으세요.\n4. 상태가 `running`이 아니면 잠시 뒤 `bash list-servers.sh`를 다시 실행하세요.\n5. 사설 IP 주소가 서브넷 B의 범위 10.91.2.0/24 안인지 확인하세요.\n6. 서버가 `running`인 것을 확인했으면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 준비 명령을 그대로 실행해요. 서버가 서브넷 B에 놓여요.\nbash launch-server.sh\n# 상태가 running이 될 때까지 표를 다시 확인해요.\nbash list-servers.sh",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "서버는 서브넷 하나에 놓이고, 주소도 그 서브넷의 범위에서 받아요.",
+          "target": "text:서버의 사설 IP 주소는 그 서브넷의 범위에서 받아요."
+        },
+        {
+          "action": "say",
+          "text": "준비 명령은 서브넷 B의 ID를 써요. 서브넷 B의 범위는 10.91.2.0/24예요.",
+          "target": "code:\"$LAB_SUBNET_B_ID\""
+        },
+        {
+          "action": "bash_command",
+          "command": "bash launch-server.sh",
+          "say": "준비 명령을 그대로 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 240
+        },
+        {
+          "action": "say",
+          "text": "요청이 받아들여졌어요. PrivateIpAddress가 10.91.2로 시작하고, 출력의 상태는 아직 pending이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "표로 서버의 상태를 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "상태 칸을 보세요. pending이면 아직 켜지는 중이고, running이면 다 켜진 거예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 실행 요청이 성공한 것과 서버가 다 켜진 것은 달라요. running을 확인한 뒤 제출하세요.",
+          "target": "text:상태가 running이 아니면 잠시 뒤 bash list-servers.sh를 다시 실행하세요."
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 wait instance-running --endpoint-url \"$LAB_ENDPOINT\" --filters Name=subnet-id,Values=\"$LAB_SUBNET_B_ID\"",
+          "say": "해설은 running이 될 때까지 기다리는 명령을 써요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "기다린 뒤 다시 표를 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "이제 running이에요. 사설 IP 주소가 서브넷 B의 범위 10.91.2.0/24 안에 있어요.",
+          "target": "#git-demo-terminal"
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "launch_server",
+          "vpc_cidr": "10.91.0.0/16",
+          "subnets": [
+            {
+              "name": "A",
+              "cidr": "10.91.1.0/24"
+            },
+            {
+              "name": "B",
+              "cidr": "10.91.2.0/24"
+            }
+          ],
+          "target_subnet": "B",
+          "editable": [
+            "launch-server.sh"
+          ]
+        },
+        "shell": {
+          "step_id": "stp_02cc396f-2056-440e-ba86-12dbdc694396",
+          "start": {
+            "files": {
+              "launch-server.sh": "# 준비된 서버 이미지로 서버(인스턴스) 한 대를 실행하는 명령이에요.\n# --subnet-id가 서버를 놓을 서브넷을 정해요.\n# --user-data의 파일은 서버가 켜질 때 자바 HTTP 서버를 시작해요.\naws ec2 run-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --image-id \"$LAB_SERVER_AMI\" \\\n  --instance-type t3.micro \\\n  --subnet-id \"$LAB_SUBNET_B_ID\" \\\n  --user-data file://server-user-data.sh\n",
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "launch-server.sh": "# 준비된 서버 이미지로 서버(인스턴스) 한 대를 실행하는 명령이에요.\n# --subnet-id가 서버를 놓을 서브넷을 정해요.\n# --user-data의 파일은 서버가 켜질 때 자바 HTTP 서버를 시작해요.\naws ec2 run-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --image-id \"$LAB_SERVER_AMI\" \\\n  --instance-type t3.micro \\\n  --subnet-id \"$LAB_SUBNET_B_ID\" \\\n  --user-data file://server-user-data.sh\n",
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      }
+    },
+    {
+      "id": "stp_2327dda1-9ff1-4260-ba4f-eed3fc6a13e8",
+      "title": "엉뚱한 서브넷에 놓이는 명령을 고치세요",
+      "goal": "같은 VPC 안에서도 어느 서브넷에 놓느냐에 따라 서버의 자리와 주소가 달라져요.\n\n이번 문제는 새 실습 상태에서 시작해요. 앞 문제처럼 실습 환경이 VPC 10.91.0.0/16과 서브넷 A 10.91.1.0/24, 서브넷 B 10.91.2.0/24를 미리 만들어 뒀어요. 아직 서버는 없어요.\n\n서버를 10.91.2.0/24에 놓아야 해요. 그런데 편집기의 `launch-server.sh`는 다른 서브넷을 가리켜요. 처음 명령으로 만든 서버가 남아 있으면 통과하지 않아요. 결과를 확인한 뒤 「초기화」로 처음 상태를 받고 고치세요.\n\n**할 일**\n\n1. 터미널에 `bash launch-server.sh`를 입력하고 Enter를 누르세요.\n2. 터미널에 `bash list-servers.sh`를 입력하고 Enter를 누르세요. 서버의 사설 IP 주소가 어느 서브넷 범위에 있는지 확인하세요.\n3. 「초기화」를 눌러 서버가 없는 처음 상태로 돌아가세요.\n4. 편집기에서 `launch-server.sh`의 `--subnet-id` 값 한 곳을 목표 서브넷의 변수로 고치세요.\n5. 터미널에 `bash launch-server.sh`를 입력하고 Enter를 누르세요.\n6. 터미널에 `bash list-servers.sh`를 입력하고 Enter를 누르세요. 서버가 한 대이고 사설 IP 주소가 10.91.2.0/24 안인지 확인하세요.\n7. 상태가 `running`인 것을 확인했으면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 처음 명령은 서브넷 A에 놓여요. 「초기화」로 처음 상태를 받은 뒤 고쳐요.\n# launch-server.sh의 --subnet-id를 \"$LAB_SUBNET_A_ID\"에서 \"$LAB_SUBNET_B_ID\"로 고쳐요.\nbash launch-server.sh\nbash list-servers.sh",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "목표 자리는 10.91.2.0/24, 곧 서브넷 B예요.",
+          "target": "text:서버를 10.91.2.0/24에 놓아야 해요."
+        },
+        {
+          "action": "say",
+          "text": "준비 명령은 서브넷 A의 ID를 써요.",
+          "target": "code:\"$LAB_SUBNET_A_ID\""
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-subnets.sh",
+          "say": "두 서브넷의 ID와 범위를 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "서브넷 A는 10.91.1.0/24, B는 10.91.2.0/24예요. 같은 VPC 안의 다른 범위예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 그대로 실행하면 서버가 서브넷 A에 놓여요. 그 서버를 남긴 채 B에 하나 더 띄우면 두 대라서 통과하지 않아요.",
+          "target": "text:처음 명령으로 만든 서버가 남아 있으면 통과하지 않아요."
+        },
+        {
+          "action": "say",
+          "text": "여러분은 처음 명령을 한 번 실행해 10.91.1로 시작하는 주소를 직접 보세요. 그다음 「초기화」로 서버를 없애요.",
+          "target": "text:「초기화」를 눌러 서버가 없는 처음 상태로 돌아가세요."
+        },
+        {
+          "action": "say",
+          "text": "해설 화면에는 「초기화」가 없어요. 그래서 처음 명령은 실행하지 않고 바로 고칠게요.",
+          "target": "text:결과를 확인한 뒤 「초기화」로 처음 상태를 받고 고치세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "\"$LAB_SUBNET_A_ID\"",
+          "after": "\"$LAB_SUBNET_B_ID\"",
+          "say": "서브넷 변수 한 곳을 B로 고쳐요.",
+          "file": "launch-server.sh"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash launch-server.sh",
+          "say": "고친 명령으로 서버를 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 240
+        },
+        {
+          "action": "say",
+          "text": "출력의 PrivateIpAddress가 10.91.2로 시작해요. 서브넷 B의 범위에서 받은 주소예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 wait instance-running --endpoint-url \"$LAB_ENDPOINT\" --filters Name=subnet-id,Values=\"$LAB_SUBNET_B_ID\"",
+          "say": "서버가 다 켜질 때까지 기다려요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "서버 표를 확인해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "서버가 한 대이고 서브넷 B에서 running이에요. 바꾼 것은 서브넷 변수 하나예요.",
+          "target": "#git-demo-terminal"
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "launch_server",
+          "vpc_cidr": "10.91.0.0/16",
+          "subnets": [
+            {
+              "name": "A",
+              "cidr": "10.91.1.0/24"
+            },
+            {
+              "name": "B",
+              "cidr": "10.91.2.0/24"
+            }
+          ],
+          "target_subnet": "B",
+          "editable": [
+            "launch-server.sh"
+          ]
+        },
+        "shell": {
+          "step_id": "stp_2327dda1-9ff1-4260-ba4f-eed3fc6a13e8",
+          "start": {
+            "files": {
+              "launch-server.sh": "# 준비된 서버 이미지로 서버(인스턴스) 한 대를 실행하는 명령이에요.\n# --subnet-id가 서버를 놓을 서브넷을 정해요.\n# --user-data의 파일은 서버가 켜질 때 자바 HTTP 서버를 시작해요.\naws ec2 run-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --image-id \"$LAB_SERVER_AMI\" \\\n  --instance-type t3.micro \\\n  --subnet-id \"$LAB_SUBNET_A_ID\" \\\n  --user-data file://server-user-data.sh\n",
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "launch-server.sh": "# 준비된 서버 이미지로 서버(인스턴스) 한 대를 실행하는 명령이에요.\n# --subnet-id가 서버를 놓을 서브넷을 정해요.\n# --user-data의 파일은 서버가 켜질 때 자바 HTTP 서버를 시작해요.\naws ec2 run-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --image-id \"$LAB_SERVER_AMI\" \\\n  --instance-type t3.micro \\\n  --subnet-id \"$LAB_SUBNET_A_ID\" \\\n  --user-data file://server-user-data.sh\n",
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      }
+    },
+    {
+      "id": "stp_b1ee75c5-0354-426e-8e03-60ebfd7fbe9b",
+      "title": "다른 서브넷의 서버에 사설 주소로 요청하세요",
+      "goal": "같은 VPC 안의 서버끼리는 사설 IP 주소로 연결해요. 연결할 주소는 API가 알려 준 서버의 사설 IP 주소예요.\n\n이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 서브넷 A 10.91.1.0/24에 클라이언트 서버를, 서브넷 B 10.91.2.0/24에 자바 HTTP 서버를 미리 실행해 뒀어요. 두 서버의 ID는 `LAB_CLIENT_ID`와 `LAB_SERVER_ID`에 있어요.\n\n`client-request <IPv4 주소>`는 클라이언트 서버 안에서 그 주소의 8080 포트로 HTTP 요청을 보내요. 편집기의 `server-address.txt`에는 요청할 주소가 한 줄 있는데, 아직 서버의 주소가 아니에요. 이 파일의 주소를 서버의 사설 IP 주소로 고치세요.\n\n**할 일**\n\n1. 터미널에 `client-request \"$(cat server-address.txt)\"`를 입력하고 Enter를 누르세요. 결과를 읽으세요.\n2. 터미널에 `echo \"$LAB_SERVER_ID\"`를 입력하고 Enter를 누르세요. 서버의 ID를 읽으세요.\n3. 터미널에 `bash list-servers.sh`를 입력하고 Enter를 누르세요. 그 ID인 서버의 사설 IP 주소를 읽으세요.\n4. 편집기에서 `server-address.txt`의 주소를 그 사설 IP 주소로 고치세요.\n5. 터미널에 `client-request \"$(cat server-address.txt)\"`를 입력하고 Enter를 누르세요. 응답의 `served-on`과 `from`을 읽으세요.\n6. 응답을 확인했으면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# list-servers.sh 표에서 LAB_SERVER_ID 서버의 사설 IP 주소를 읽어 server-address.txt에 적어요.\n# 클라이언트 서버 안에서 그 주소로 요청해요.\nclient-request \"$(cat server-address.txt)\"",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "요청은 서브넷 A의 클라이언트에서 출발해요. 서브넷 B에 있는 서버의 주소를 알아내는 게 핵심이에요.",
+          "target": "text:연결할 주소는 API가 알려 준 서버의 사설 IP 주소예요."
+        },
+        {
+          "action": "say",
+          "text": "파일의 10.91.2.99는 서브넷 B의 범위 안이에요. 하지만 서버가 받은 주소인지는 아직 몰라요.",
+          "target": "code:10.91.2.99"
+        },
+        {
+          "action": "bash_command",
+          "command": "client-request \"$(cat server-address.txt)\"",
+          "say": "지금 파일의 주소로 요청해 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60,
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "CONNECT_FAIL이에요. 10.91.2.99에는 응답하는 서버가 없어서 연결 시간이 지났어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo \"$LAB_SERVER_ID\"",
+          "say": "서버의 ID부터 확인해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "이 ID가 서브넷 B의 자바 서버예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "서버 표를 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "서버가 두 대예요. 그 ID의 줄에서 10.91.2로 시작하는 사설 IP 주소를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "해설은 그 주소를 aws 명령으로 파일에 옮겨 적을게요. 여러분은 편집기에 직접 적으면 돼요.",
+          "target": "text:편집기에서 server-address.txt의 주소를 그 사설 IP 주소로 고치세요."
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 describe-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\" --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text > server-address.txt",
+          "say": "API가 알려 준 서버의 사설 주소를 파일에 적어요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "편집기의 server-address.txt가 표에서 읽은 주소로 바뀌었어요.",
+          "target": "editor"
+        },
+        {
+          "action": "bash_command",
+          "command": "client-request \"$(cat server-address.txt)\"",
+          "say": "고친 주소로 다시 요청해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 120
+        },
+        {
+          "action": "say",
+          "text": "200 OK 응답이에요. served-on은 서버의 사설 주소이고, from은 클라이언트의 주소예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "from이 10.91.1로 시작해요. 서브넷 A의 클라이언트가 같은 VPC의 서브넷 B 서버에 닿았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 표에는 클라이언트 줄도 있어요. 10.91.1로 시작하는 클라이언트 주소를 적으면 연결도 채점도 실패해요.",
+          "target": "text:이 파일의 주소를 서버의 사설 IP 주소로 고치세요."
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "request_server",
+          "vpc_cidr": "10.91.0.0/16",
+          "subnets": [
+            {
+              "name": "A",
+              "cidr": "10.91.1.0/24"
+            },
+            {
+              "name": "B",
+              "cidr": "10.91.2.0/24"
+            }
+          ],
+          "client_subnet": "A",
+          "server_subnet": "B",
+          "address_file": "server-address.txt",
+          "editable": [
+            "server-address.txt"
+          ]
+        },
+        "shell": {
+          "step_id": "stp_b1ee75c5-0354-426e-8e03-60ebfd7fbe9b",
+          "start": {
+            "files": {
+              "server-address.txt": "10.91.2.99\n",
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "server-address.txt": "10.91.2.99\n",
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      }
+    },
+    {
+      "id": "stp_6cb45d59-91d2-4bb7-b082-06523207af50",
+      "title": "자바 서버를 10.91.2.0/24에 배치하세요",
+      "goal": "지금까지 확인한 범위·자리·주소를 한 번에 써요. 새로 배울 것은 없어요.\n\n이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 VPC 10.91.0.0/16에 서브넷 A 10.91.1.0/24와 그 안의 클라이언트 서버만 미리 만들어 뒀어요. 목표 서브넷 10.91.2.0/24는 아직 없어요. 새 서브넷에는 준비된 ID 변수가 없어요. 그래서 `launch-server.sh`는 `subnet-id.sh`로 범위에 맞는 서브넷 ID를 찾아요.\n\n서브넷 10.91.2.0/24를 만들고, 그 안에 준비된 자바 HTTP 서버 한 대를 실행하세요. 그리고 서브넷 A의 클라이언트에서 그 서버의 사설 IP 주소로 응답을 받으세요. 편집기의 세 파일에는 아직 맞지 않는 값이 한 곳씩 있어요. 서버가 엉뚱한 자리에 생기면 「초기화」로 처음 상태를 받으세요.\n\n**할 일**\n\n1. 편집기에서 `create-subnet.sh`의 `--cidr-block` 값을 목표 범위로 고치세요.\n2. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 새 서브넷의 `CidrBlock`을 확인하세요.\n3. 편집기에서 `launch-server.sh`의 `subnet-id.sh` 뒤 범위를 새 서브넷의 범위로 고치세요.\n4. 터미널에 `bash launch-server.sh`를 입력하고 Enter를 누르세요. 출력의 `PrivateIpAddress`를 읽으세요.\n5. 터미널에 `bash list-servers.sh`를 입력하고 Enter를 누르세요. 새 서버가 `running`인지 확인하세요.\n6. 편집기에서 `server-address.txt`의 주소를 새 서버의 사설 IP 주소로 고치세요.\n7. 터미널에 `client-request \"$(cat server-address.txt)\"`를 입력하고 Enter를 누르세요. 연결에 실패하면 잠시 뒤 다시 실행하세요.\n8. 응답의 `served-on`과 `from`을 확인했으면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# create-subnet.sh의 --cidr-block을 10.91.2.0/24로 고쳐 목표 서브넷을 만들어요.\nbash create-subnet.sh\n# launch-server.sh의 subnet-id.sh 뒤 범위를 10.91.2.0/24로 고쳐 새 서브넷에 서버를 실행해요.\nbash launch-server.sh\n# 새 서버의 사설 IP 주소를 server-address.txt에 적고, 서브넷 A의 클라이언트에서 요청해요.\nclient-request \"$(cat server-address.txt)\"",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "범위는 1장, 자리는 서브넷 선택, 주소는 요청 문제에서 확인했어요. 이번에는 셋을 이어서 써요.",
+          "target": "text:지금까지 확인한 범위·자리·주소를 한 번에 써요."
+        },
+        {
+          "action": "say",
+          "text": "준비 값 10.91.1.0/24는 서브넷 A와 같은 범위라 겹쳐요.",
+          "target": "code:--cidr-block 10.91.1.0/24"
+        },
+        {
+          "action": "patch_code",
+          "before": "--cidr-block 10.91.1.0/24",
+          "after": "--cidr-block 10.91.2.0/24",
+          "say": "목표 범위 10.91.2.0/24로 고쳐요.",
+          "file": "create-subnet.sh"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash create-subnet.sh",
+          "say": "목표 서브넷을 만들어요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "10.91.2.0/24 서브넷이 생겼어요. 이 서브넷의 ID는 준비된 변수에 없어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "patch_code",
+          "before": "subnet-id.sh 10.91.1.0/24",
+          "after": "subnet-id.sh 10.91.2.0/24",
+          "say": "서버를 놓을 자리를 새 서브넷의 범위로 고쳐요.",
+          "file": "launch-server.sh"
+        },
+        {
+          "action": "say",
+          "text": "subnet-id.sh가 이 범위로 새 서브넷의 ID를 찾아 --subnet-id에 넣어요.",
+          "target": "code:subnet-id.sh 10.91.2.0/24"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 서브넷만 만들고 이 범위를 10.91.1.0/24로 두면 서버가 클라이언트와 같은 서브넷 A에 놓여요.",
+          "target": "text:서버가 엉뚱한 자리에 생기면 「초기화」로 처음 상태를 받으세요."
+        },
+        {
+          "action": "bash_command",
+          "command": "bash launch-server.sh",
+          "say": "자바 서버를 새 서브넷에 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 240
+        },
+        {
+          "action": "say",
+          "text": "PrivateIpAddress가 10.91.2로 시작해요. 새 서브넷의 범위에서 주소를 받았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 wait instance-running --endpoint-url \"$LAB_ENDPOINT\" --filters Name=subnet-id,Values=\"$(bash subnet-id.sh 10.91.2.0/24)\"",
+          "say": "서버가 running이 될 때까지 기다릴게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "서버 표를 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "새 서버가 10.91.2 주소로 running이에요. 클라이언트는 10.91.1 주소예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 describe-instances --endpoint-url \"$LAB_ENDPOINT\" --filters Name=subnet-id,Values=\"$(bash subnet-id.sh 10.91.2.0/24)\" --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text > server-address.txt",
+          "say": "표에서 읽은 새 서버의 주소를 파일에 옮겨 적어요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "server-address.txt에 새 서버의 사설 주소가 들어갔어요.",
+          "target": "editor"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. running은 API가 본 상태예요. 자바 프로그램이 요청을 받을 준비가 됐다는 뜻은 아니에요.",
+          "target": "text:연결에 실패하면 잠시 뒤 다시 실행하세요."
+        },
+        {
+          "action": "bash_command",
+          "command": "until client-request \"$(cat server-address.txt)\"; do sleep 3; done",
+          "say": "응답이 올 때까지 같은 요청을 다시 보내요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 240
+        },
+        {
+          "action": "say",
+          "text": "CONNECT_FAIL 줄은 자바 프로그램이 아직 켜지는 중이었다는 뜻이에요. 그 뒤에 200 OK 응답이 왔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "served-on은 10.91.2로, from은 10.91.1로 시작해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "서브넷 A의 클라이언트가 새 서브넷의 자바 서버에서 응답을 받았어요.",
+          "target": "text:그리고 서브넷 A의 클라이언트에서 그 서버의 사설 IP 주소로 응답을 받으세요."
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "deploy_server",
+          "vpc_cidr": "10.91.0.0/16",
+          "subnets": [
+            {
+              "name": "A",
+              "cidr": "10.91.1.0/24"
+            }
+          ],
+          "client_subnet": "A",
+          "target_cidr": "10.91.2.0/24",
+          "address_file": "server-address.txt",
+          "editable": [
+            "create-subnet.sh",
+            "launch-server.sh",
+            "server-address.txt"
+          ]
+        },
+        "shell": {
+          "step_id": "stp_6cb45d59-91d2-4bb7-b082-06523207af50",
+          "start": {
+            "files": {
+              "create-subnet.sh": "# 준비된 VPC 안에 서브넷 하나를 만드는 명령이에요.\n# --vpc-id는 어느 VPC에, --cidr-block은 그 안의 어느 범위에 만들지 정해요.\naws ec2 create-subnet \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --vpc-id \"$LAB_VPC_ID\" \\\n  --cidr-block 10.91.1.0/24\n",
+              "launch-server.sh": "# 준비된 서버 이미지로 서버(인스턴스) 한 대를 실행하는 명령이에요.\n# subnet-id.sh가 $( ) 안의 범위로 서브넷 ID를 찾아 --subnet-id에 넣어요.\n# --user-data의 파일은 서버가 켜질 때 자바 HTTP 서버를 시작해요.\naws ec2 run-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --image-id \"$LAB_SERVER_AMI\" \\\n  --instance-type t3.micro \\\n  --subnet-id \"$(bash subnet-id.sh 10.91.1.0/24)\" \\\n  --user-data file://server-user-data.sh\n",
+              "server-address.txt": "0.0.0.0\n",
+              "subnet-id.sh": "# 준비된 VPC에서 주어진 범위(CIDR)의 서브넷 ID를 찾아 출력해요.\n# 사용법: bash subnet-id.sh 10.91.1.0/24\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\" Name=cidr-block,Values=\"$1\" \\\n  --query 'Subnets[0].SubnetId' \\\n  --output text | tr -d '\\r'\n",
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "create-subnet.sh": "# 준비된 VPC 안에 서브넷 하나를 만드는 명령이에요.\n# --vpc-id는 어느 VPC에, --cidr-block은 그 안의 어느 범위에 만들지 정해요.\naws ec2 create-subnet \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --vpc-id \"$LAB_VPC_ID\" \\\n  --cidr-block 10.91.1.0/24\n",
+              "launch-server.sh": "# 준비된 서버 이미지로 서버(인스턴스) 한 대를 실행하는 명령이에요.\n# subnet-id.sh가 $( ) 안의 범위로 서브넷 ID를 찾아 --subnet-id에 넣어요.\n# --user-data의 파일은 서버가 켜질 때 자바 HTTP 서버를 시작해요.\naws ec2 run-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --image-id \"$LAB_SERVER_AMI\" \\\n  --instance-type t3.micro \\\n  --subnet-id \"$(bash subnet-id.sh 10.91.1.0/24)\" \\\n  --user-data file://server-user-data.sh\n",
+              "server-address.txt": "0.0.0.0\n",
+              "subnet-id.sh": "# 준비된 VPC에서 주어진 범위(CIDR)의 서브넷 ID를 찾아 출력해요.\n# 사용법: bash subnet-id.sh 10.91.1.0/24\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\" Name=cidr-block,Values=\"$1\" \\\n  --query 'Subnets[0].SubnetId' \\\n  --output text | tr -d '\\r'\n",
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n",
+              "list-subnets.sh": "# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\naws ec2 describe-subnets \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      }
+    }
+  ]
+}

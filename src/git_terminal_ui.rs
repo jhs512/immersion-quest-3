@@ -45,7 +45,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     // A Compose step: the files of the terminal's folder in an editor above the terminal.
     let is_compose=exercise.docker.as_ref().is_some_and(|d|d.compose.is_some());
     let is_gitlab=exercise.gitlab.is_some();
-    let has_editors=is_compose||exercise.gitlab.as_ref().is_some_and(|g|!g.editable.is_empty());
+    let has_editors=is_compose||exercise.gitlab.as_ref().is_some_and(|g|!g.editable.is_empty())||exercise.cloud.as_ref().is_some_and(|c|!c.editable.is_empty());
     let mut editor_files=use_signal(Vec::<(String,String)>::new);
     let mut editor_tab=use_signal(||0usize);
     let mut editor_version=use_signal(||0u64);

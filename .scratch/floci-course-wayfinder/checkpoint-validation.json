@@ -9,5 +9,15 @@
   "assertion": "src/cloud_practice_tests.rs:166; first stand-in CLI invocation returned non-success, stderr not included by assertion",
   "priorResult": "10 passed in Claude/Git Bash context; discrepancy unresolved",
   "unverifiedLastChange": "client-request strips whitespace/CRLF in argument; authoring change, not separately exercised",
-  "diffCheck": "clean"
+  "diffCheck": "clean",
+  "resolution": {
+    "at": "2026-11-10",
+    "cause": "PowerShell에서 cargo test를 실행하면 Git Bash가 --noprofile로 시작돼 /usr/bin이 PATH 앞에 없다. 래퍼와 대역 CLI의 #!/usr/bin/env bash가 상속 PATH의 C:/Windows/System32/bash.exe(WSL)를 골랐고, WSL은 C:/... 경로를 상대 경로(/mnt/c/.../C:/...)로 읽어 \"No such file or directory\"로 실패했다. Git Bash 문맥에서는 /usr/bin이 앞이라 통과했다.",
+    "fix": "aws·client-request 래퍼와 테스트 대역의 shebang을 #!/bin/bash로 바꿨다(src/java_build_practice.rs와 같은 관례). 첫 단언에 stderr도 싣는다. 실제 실습 터미널 PATH는 docker_lab::search_path가 Git의 usr/bin을 상속 PATH보다 앞에 둬서 이미 Git bash를 골랐지만, 이제 PATH 순서에 기대지 않는다.",
+    "crlf_change": "client-request의 인자 정리를 「모든 공백 삭제」에서 「앞뒤 공백·CR/LF만 삭제」로 좁혔다(10.91. 2.10 같은 내부 공백은 거절). 새 단위 검사 client_request_trims_only_surrounding_whitespace가 대역 docker로 CRLF 파일·탭·공백 허용과 빈 값·두 인자·URL·내부 공백 거절을 확인한다. 실제 수업 6·7번의 --output text > server-address.txt 경로(Windows CRLF)도 네이티브 실행에서 200 응답을 받았다.",
+    "after": {
+      "powershell": "11 passed / 0 failed / 8 ignored (수정 직후), 편집 파일 검사 추가 뒤 12 passed / 0 failed / 10 ignored",
+      "git_bash": "같은 결과"
+    }
+  }
 }

@@ -1,0 +1,82 @@
+{
+  "by": "hand",
+  "source_sha256": "ff38098d2fada4dbab1ceca39f5400075d3b38b42f22b91f1a906b34e8b9d32f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "준비된 서브넷 10.91.1.0/24는 그대로 두고, /25 서브넷을 하나 더 만드는 문제예요.",
+      "target": "text:준비된 서브넷은 그대로 두세요."
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-subnets.sh",
+      "say": "준비된 서브넷부터 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "10.91.1.0/24 서브넷 하나가 있어요. 10.91.1.0부터 10.91.1.255까지를 차지해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "준비 값 10.91.1.128/25는 VPC 안이에요. 그런데 10.91.1.128부터 255까지라 기존 범위의 안쪽이에요.",
+      "target": "code:10.91.1.128/25"
+    },
+    {
+      "action": "bash_command",
+      "command": "bash create-subnet.sh",
+      "say": "그대로 실행해 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60,
+      "fails": true
+    },
+    {
+      "action": "say",
+      "text": "InvalidSubnet.Conflict 오류예요. VPC 안의 범위인데도 기존 서브넷과 겹쳐서 거절됐어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 준비된 서브넷을 지우면 겹침은 사라져요. 하지만 준비 상태가 바뀌어 통과하지 않아요.",
+      "target": "text:여러분이 만든 서브넷이 아니에요."
+    },
+    {
+      "action": "patch_code",
+      "before": "--cidr-block 10.91.1.128/25",
+      "after": "--cidr-block 10.91.2.0/25",
+      "say": "셋째 칸을 2로 바꿔 10.91.2.0/25를 골라요.",
+      "file": "create-subnet.sh"
+    },
+    {
+      "action": "bash_command",
+      "command": "bash create-subnet.sh",
+      "say": "고른 범위로 다시 실행해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "새 서브넷 10.91.2.0/25가 생겼어요. 이번에는 거절되지 않았어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-subnets.sh",
+      "say": "두 서브넷의 범위를 나란히 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "두 서브넷이 함께 있어요. 10.91.1.x와 10.91.2.0~127은 서로 겹치지 않아요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "10.91.3.0/25처럼 VPC 안의 다른 빈 /25를 골라도 통과해요. 정답이 하나로 정해진 문제가 아니에요.",
+      "target": "text:VPC 안에서 준비된 서브넷과 겹치지 않는 /25 범위 하나를 직접 골라 만드세요."
+    }
+  ]
+}

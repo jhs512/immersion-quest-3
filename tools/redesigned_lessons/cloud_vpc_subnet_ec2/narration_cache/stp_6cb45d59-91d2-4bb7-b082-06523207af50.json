@@ -1,0 +1,122 @@
+{
+  "by": "hand",
+  "source_sha256": "1ae828d1ec07b67fbdaee26d9936ea810b827c318066af7524b1c59fbfc49fa2",
+  "entry": [
+    {
+      "action": "say",
+      "text": "범위는 1장, 자리는 서브넷 선택, 주소는 요청 문제에서 확인했어요. 이번에는 셋을 이어서 써요.",
+      "target": "text:지금까지 확인한 범위·자리·주소를 한 번에 써요."
+    },
+    {
+      "action": "say",
+      "text": "준비 값 10.91.1.0/24는 서브넷 A와 같은 범위라 겹쳐요.",
+      "target": "code:--cidr-block 10.91.1.0/24"
+    },
+    {
+      "action": "patch_code",
+      "before": "--cidr-block 10.91.1.0/24",
+      "after": "--cidr-block 10.91.2.0/24",
+      "say": "목표 범위 10.91.2.0/24로 고쳐요.",
+      "file": "create-subnet.sh"
+    },
+    {
+      "action": "bash_command",
+      "command": "bash create-subnet.sh",
+      "say": "목표 서브넷을 만들어요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "10.91.2.0/24 서브넷이 생겼어요. 이 서브넷의 ID는 준비된 변수에 없어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "patch_code",
+      "before": "subnet-id.sh 10.91.1.0/24",
+      "after": "subnet-id.sh 10.91.2.0/24",
+      "say": "서버를 놓을 자리를 새 서브넷의 범위로 고쳐요.",
+      "file": "launch-server.sh"
+    },
+    {
+      "action": "say",
+      "text": "subnet-id.sh가 이 범위로 새 서브넷의 ID를 찾아 --subnet-id에 넣어요.",
+      "target": "code:subnet-id.sh 10.91.2.0/24"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 서브넷만 만들고 이 범위를 10.91.1.0/24로 두면 서버가 클라이언트와 같은 서브넷 A에 놓여요.",
+      "target": "text:서버가 엉뚱한 자리에 생기면 「초기화」로 처음 상태를 받으세요."
+    },
+    {
+      "action": "bash_command",
+      "command": "bash launch-server.sh",
+      "say": "자바 서버를 새 서브넷에 실행해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 240
+    },
+    {
+      "action": "say",
+      "text": "PrivateIpAddress가 10.91.2로 시작해요. 새 서브넷의 범위에서 주소를 받았어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 wait instance-running --endpoint-url \"$LAB_ENDPOINT\" --filters Name=subnet-id,Values=\"$(bash subnet-id.sh 10.91.2.0/24)\"",
+      "say": "서버가 running이 될 때까지 기다릴게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 300
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-servers.sh",
+      "say": "서버 표를 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "새 서버가 10.91.2 주소로 running이에요. 클라이언트는 10.91.1 주소예요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 describe-instances --endpoint-url \"$LAB_ENDPOINT\" --filters Name=subnet-id,Values=\"$(bash subnet-id.sh 10.91.2.0/24)\" --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text > server-address.txt",
+      "say": "표에서 읽은 새 서버의 주소를 파일에 옮겨 적어요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "server-address.txt에 새 서버의 사설 주소가 들어갔어요.",
+      "target": "editor"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. running은 API가 본 상태예요. 자바 프로그램이 요청을 받을 준비가 됐다는 뜻은 아니에요.",
+      "target": "text:연결에 실패하면 잠시 뒤 다시 실행하세요."
+    },
+    {
+      "action": "bash_command",
+      "command": "until client-request \"$(cat server-address.txt)\"; do sleep 3; done",
+      "say": "응답이 올 때까지 같은 요청을 다시 보내요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 240
+    },
+    {
+      "action": "say",
+      "text": "CONNECT_FAIL 줄은 자바 프로그램이 아직 켜지는 중이었다는 뜻이에요. 그 뒤에 200 OK 응답이 왔어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "served-on은 10.91.2로, from은 10.91.1로 시작해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "서브넷 A의 클라이언트가 새 서브넷의 자바 서버에서 응답을 받았어요.",
+      "target": "text:그리고 서브넷 A의 클라이언트에서 그 서버의 사설 IP 주소로 응답을 받으세요."
+    }
+  ]
+}

@@ -46,7 +46,7 @@ Floci를 MQ 수업에 적용할 수 있는 학습 목표, 실제 검증 범위, 
 
 기존 목표·실습을 확인한 [자바 수업 연결 근거](existing-curriculum-alignment.md)를 기준으로 새 기초를 중복 도입하지 않는다.
 
-사용자가 첫 수업의 예고·PRD·대표 문제를 확인하고 다음 단계 진행을 승인했다. [선택한 대표 문제의 사전 검증](issues/05-selected-practice-preflight.md)과 [MQ 네이티브 실행기 연결](issues/11-native-cloud-runtime.md)을 마쳤다. 2026-11-10 현재까지 커밋·인수인계를 남기라는 요청으로 제작 프로세스를 종료했다. [첫 수업 본편](issues/12-first-lesson-content.md)은 소스 생성 전이며 [인수인계](../../docs/floci-cloud-handoff.md)의 마지막 단위 검사 실패부터 확인해 재개한다. 본편·운영 반영은 미완료다.
+사용자가 첫 수업의 예고·PRD·대표 문제를 확인하고 다음 단계 진행을 승인했다. [선택한 대표 문제의 사전 검증](issues/05-selected-practice-preflight.md)과 [MQ 네이티브 실행기 연결](issues/11-native-cloud-runtime.md)을 마쳤다. 2026-11-10 [첫 수업 본편](issues/12-first-lesson-content.md)을 7개 실습으로 완성·등록하고 실제 수업 데이터를 네이티브로 실행해 확인했다. 앱 화면·음성·Mac·운영 배포는 미완료다([인수인계](../../docs/floci-cloud-handoff.md)).
 
 ## Out of scope
 

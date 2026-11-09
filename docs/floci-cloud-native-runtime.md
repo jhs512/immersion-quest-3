@@ -55,6 +55,8 @@
 | `request_server` | `subnets`, `client_subnet`≠`server_subnet`, `address_file` | 클라이언트·서버(user-data로 자바 서버 시작, HTTP 준비까지 대기) | 새 자원 없음 + 주소 파일 = 서버 API 사설 주소 + 채점기 HTTP 확인 |
 | `deploy_server` | `subnets`, `client_subnet`, `target_cidr`, `address_file` | VPC, 클라이언트 서브넷·클라이언트, 서버 이미지 | 새 서브넷 `target_cidr` 하나 + 그 안의 서버 한 대 + 주소 파일 일치 + 채점기 HTTP 확인 |
 
+선택 필드 `editable`(최대 4개)은 터미널 위 편집기에 보여 줄 준비 파일 목록이다(2026-11-10 추가). 모든 항목이 `shell.start.files`와 `shell.demo.files`에 있어야 한다. 목록에 없는 준비 파일(`list-subnets.sh` 같은 조회 명령)은 터미널 폴더에만 있다. 편집기는 Compose와 같은 `editable_files`/`save_editable` 경로를 쓰고, 해설의 `patch_code`도 `file`로 이 파일을 고친다.
+
 목표가 쓰지 않는 필드는 비워야 검증을 통과한다. 서브넷 이름은 대문자·숫자 8자 이하이고, 환경 변수 이름이 된다. VPC는 `/16`~`/24`이다. 실습 터미널 환경 변수는 다음과 같다.
 
 - `LAB_ENDPOINT`, `LAB_VPC_ID`, `LAB_SUBNET_<이름>_ID`

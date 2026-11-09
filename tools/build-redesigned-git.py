@@ -96,6 +96,11 @@ def validate_highlights(task):
     compose = ((task.get('git_terminal') or {}).get('docker') or {}).get('compose')
     files = {name: task['git_terminal']['shell']['demo']['files'][name] for name in compose['editable']} if compose else None
     current = compose['editable'][0] if compose else None
+    # A cloud terminal step lists the prepared files its editor shows, like a Compose step.
+    cloud = ((task.get('git_terminal') or {}).get('cloud') or {}).get('editable')
+    if cloud:
+        files = {name: task['git_terminal']['shell']['demo']['files'][name] for name in cloud}
+        current = cloud[0]
     gitlab=(task.get('git_terminal') or {}).get('gitlab') or {}
     if gitlab.get('editable'):
         files={name:task['git_terminal']['files'][name] for name in gitlab['editable']}
@@ -210,7 +215,8 @@ def build(name, check=False):
     prd = json.loads((SOURCE / 'approved-prd.json').read_text(encoding='utf-8'))
     validate(prd, require_approval=True)
     authored = json.loads((SOURCE / 'content.json').read_text(encoding='utf-8'))
-    if name.startswith('network-'):
+    from curriculum_authority import CANONICAL_PREVIEW_PREFIXES
+    if name.startswith(CANONICAL_PREVIEW_PREFIXES):
         from curriculum_authority import validate_alignment
         catalog=json.loads((ROOT/'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
         owner,registration=next((course,item) for course in catalog['courses'] for item in course['lessons'] if item['key']==name)
@@ -265,7 +271,7 @@ def build(name, check=False):
         # exact code it talks about when the step shows code.
         if not any(action.get('target', '').startswith('text:') for action in actions):
             raise ValueError(f"{step['id']}: 해설이 문제의 어느 문장을 설명하는지 text: 강조가 없어요.")
-        has_code = bool(task.get('example_code') or task.get('starter_code')) or task.get('git_terminal', {}).get('java_build') is not None             or bool(((task.get('git_terminal') or {}).get('docker') or {}).get('compose'))
+        has_code = bool(task.get('example_code') or task.get('starter_code')) or task.get('git_terminal', {}).get('java_build') is not None             or bool(((task.get('git_terminal') or {}).get('docker') or {}).get('compose'))             or bool(((task.get('git_terminal') or {}).get('cloud') or {}).get('editable'))
         if has_code and not any(action.get('target', '').startswith(('code:', 'lines:', 'editor:')) or action.get('lines') for action in actions):
             raise ValueError(f"{step['id']}: 설명하는 코드 줄이나 토큰을 강조하지 않았어요.")
         for action in actions:
