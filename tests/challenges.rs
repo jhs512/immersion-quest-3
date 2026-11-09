@@ -110,18 +110,35 @@ async fn a_future_problem_runs_on_the_existing_grader() {
     assert!(!lesson_runner::check(task, &memorized).await.unwrap().passed);
 }
 
-/// Every current lesson has an actual final, including the replacement local GitLab MR and CI lessons.
-/// Each released designation resolves through the app's own rule to the last required graded
-/// problem. The sole deferred lesson must never gain a challenge clear from an old pass.
+/// Existing challenge designations resolve to real final problems. Network foundations instead
+/// require every exercise: their short final problem cannot replace the rest of the lesson.
 #[test]
 fn packaged_backend_course_designates_only_real_graded_final_challenges() {
     use molip_quest::{bundled_courses, challenges, repository_course::{CourseManifest, Lesson}};
     let course = CourseManifest::parse(bundled_courses::course_source("jhs512/mq3-course-redesigned-java-backend").unwrap()).unwrap();
-    let mut designated = 0;
+    let (mut designated, mut full_only) = (0, 0);
     for (index, reference) in course.lessons.iter().enumerate() {
         let lesson = Lesson::parse(bundled_courses::lesson_source(reference).unwrap(), reference).unwrap();
         let resolved = challenges::designated(reference, &lesson);
         let card = challenges::lesson_challenge(index, reference, &lesson).unwrap();
+        if reference.repository.starts_with("jhs512/mq3-lesson-redesigned-network-") {
+            use molip_quest::issue_progress::*;
+            full_only += 1;
+            assert!(reference.challenge_task.is_empty() && resolved.is_none() && !card.designated);
+            let required = lesson.required_tasks();
+            assert!(required.len() >= 4 && lesson.tasks.iter().all(|t| t.required && challenges::is_graded(t)));
+            let key = ProgressKey { user_id: 7, course_id: course.id.clone(), lesson_id: reference.id.clone() };
+            let passes: Vec<_> = required.iter().map(|id| {
+                let mut event = LearningEvent::new(key.clone(), &reference.revision, StudyMode::Full, "direct", EventKind::Attempt);
+                event.task_id = Some(id.clone());
+                event.passed = true;
+                event
+            }).collect();
+            assert!(!lesson_clear(&passes[passes.len()-1..], &reference.revision, &required, &reference.challenge_task).cleared(), "a final pass cannot skip network foundations");
+            let completed = passes.iter().fold(Vec::new(), |events, pass| molip_quest::progress_sync::apply_result(events, pass, &required));
+            assert!(lesson_clear(&completed, &reference.revision, &required, &reference.challenge_task).full);
+            continue;
+        }
         if reference.repository == "jhs512/mq3-lesson-redesigned-github-pr" {
             assert_eq!(reference.revision, "gitlab-mr-1");
             assert!(!lesson.tasks.iter().any(|t| t.id == "stp_2d42bbda-b942-4f8a-ba7a-beeceb7e8086"));
@@ -134,10 +151,11 @@ fn packaged_backend_course_designates_only_real_graded_final_challenges() {
         assert_eq!(position + 1, lesson.tasks.len(), "the final problem: {}", reference.title);
         assert!(card.designated && card.task_id == reference.challenge_task);
     }
-    assert_eq!(designated, course.lessons.len());
+    assert_eq!(full_only, 8);
+    assert_eq!(designated + full_only, course.lessons.len());
     // Every challenge is a distinct problem.
     let ids: std::collections::BTreeSet<_> = course.lessons.iter().filter(|l| !l.challenge_task.is_empty()).map(|l| l.challenge_task.as_str()).collect();
-    assert_eq!(ids.len(), course.lessons.len());
+    assert_eq!(ids.len(), designated);
     // A designation that is not a required graded problem of this revision is ignored.
     let mut reference = course.lessons.iter().find(|l| !l.challenge_task.is_empty()).unwrap().clone();
     let lesson = Lesson::parse(bundled_courses::lesson_source(&reference).unwrap(), &reference).unwrap();
@@ -185,7 +203,7 @@ fn gitlab_migration_preserves_old_problem_ids_without_awarding_the_new_final() {
 /// at 1 of N; the clear survives an app restart; a lesson reset voids it, also after a restart and
 /// after the pre-reset history is cached back from sync, and leaves the neighbouring lesson alone.
 #[test]
-fn every_packaged_backend_lesson_clears_by_its_challenge_alone_and_resets_durably() {
+fn every_packaged_backend_challenge_clears_and_resets_durably() {
     use molip_quest::{bundled_courses, github_player::GithubUser, issue_progress::*, progress_sync::ProgressStore, repository_course::{CourseManifest, Lesson}};
     const REPO: &str = "jhs512/mq3-course-redesigned-java-backend";
     let course = CourseManifest::parse(bundled_courses::course_source(REPO).unwrap()).unwrap();
@@ -193,7 +211,8 @@ fn every_packaged_backend_lesson_clears_by_its_challenge_alone_and_resets_durabl
     let path = directory.path().join("progress.sqlite3");
     let user = GithubUser { id: 7, login: "learner".into() };
     let lessons: Vec<_> = course.lessons.iter().filter(|r| !r.challenge_task.is_empty()).map(|r| (r.clone(), Lesson::parse(bundled_courses::lesson_source(r).unwrap(), r).unwrap())).collect();
-    assert_eq!(lessons.len(), course.lessons.len());
+    assert_eq!(lessons.len() + 8, course.lessons.len());
+    assert!(course.lessons.iter().filter(|r| r.challenge_task.is_empty()).all(|r| r.repository.starts_with("jhs512/mq3-lesson-redesigned-network-")));
     let key = |lesson: &str| ProgressKey { user_id: 7, course_id: course.id.clone(), lesson_id: lesson.into() };
     let pass = |reference: &molip_quest::repository_course::LessonRef, at: u64| {
         let mut event = LearningEvent::new(key(&reference.id), &reference.revision, StudyMode::Full, "direct", EventKind::Attempt);
