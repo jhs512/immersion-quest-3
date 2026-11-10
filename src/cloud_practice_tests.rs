@@ -160,39 +160,57 @@ fn bash_in(dir: &Path, env: &[(String, String)], script: &str) -> (bool, String,
     (out.status.success(), String::from_utf8_lossy(&out.stdout).replace("\r\n", "\n"), String::from_utf8_lossy(&out.stderr).into_owned())
 }
 
-/// The wrapper's argument guard, against a stand-in for the real CLI that only prints its argv.
+/// The wrapper's argument guard, against a stand-in docker that only prints its argv.
 #[test]
 fn aws_wrapper_guards_endpoint_profile_and_environment() {
     if bash_program().as_os_str() == "bash" && Command::new("bash").arg("--version").output().is_err() {
         return;
     }
     let dir = tempfile::tempdir().unwrap();
-    let real = dir.path().join("real aws");
-    std::fs::write(&real, "#!/bin/bash\nprintf 'ARG<%s>\\n' \"$@\"\necho \"ENV<$AWS_ENDPOINT_URL|$AWS_PROFILE|$AWS_ACCESS_KEY_ID>\"\n").unwrap();
-    let config = dir.path().join("empty config");
-    std::fs::write(&config, "").unwrap();
+    let docker = dir.path().join("fake docker");
+    std::fs::write(&docker, "#!/bin/bash
+printf 'ARG<%s>\n' \"$@\"
+").unwrap();
     let owned = "http://127.0.0.1:45555";
-    std::fs::write(dir.path().join("aws"), aws_wrapper(owned, &real, &config)).unwrap();
+    std::fs::write(dir.path().join("aws"), aws_wrapper(owned, &docker, dir.path())).unwrap();
     #[cfg(unix)]
-    for f in ["aws", "real aws"] {
+    for f in ["aws", "fake docker"] {
         use std::os::unix::fs::PermissionsExt;
         std::fs::set_permissions(dir.path().join(f), std::fs::Permissions::from_mode(0o755)).unwrap();
     }
+    let inner = inner_endpoint(dir.path());
+    let (network, _, _) = names(dir.path());
     let env = vec![("AWS_PROFILE".to_string(), "real-account".to_string()), ("AWS_ACCESS_KEY_ID".to_string(), "AKIAREAL".to_string())];
     let (ok, out, err) = bash_in(dir.path(), &env, "./aws ec2 describe-vpcs --query 'Vpcs[0]'");
     assert!(ok, "{out}{err}");
-    assert!(out.starts_with(&format!("ARG<--endpoint-url>\nARG<{owned}>\nARG<ec2>\nARG<describe-vpcs>\nARG<--query>\nARG<Vpcs[0]>\n")), "{out}");
-    assert!(out.contains(&format!("ENV<{owned}||test>")), "inherited profile/key must not reach the CLI: {out}");
-    // Exact owned endpoint, alone, in equals form, or repeated: one owned endpoint reaches the CLI.
+    let args: Vec<&str> = out.lines().map(|l| l.trim_start_matches("ARG<").trim_end_matches('>')).collect();
+    assert_eq!(&args[..5], ["run", "-i", "--rm", "--network", network.as_str()], "{out}");
+    assert!(out.ends_with(&format!("ARG<{AWS_CLI_IMAGE}>
+ARG<--endpoint-url>
+ARG<{inner}>
+ARG<ec2>
+ARG<describe-vpcs>
+ARG<--query>
+ARG<Vpcs[0]>
+")), "{out}");
+    for value in AWS_CONTAINER_ENV {
+        assert!(out.contains(&format!("ARG<-e>
+ARG<{value}>
+")), "{value}: {out}");
+    }
+    assert!(!out.contains("real-account") && !out.contains("AKIAREAL"), "the host account must not reach the CLI: {out}");
+    let mount = args.iter().position(|a| *a == "-v").map(|i| args[i + 1]).unwrap();
+    assert!(mount.ends_with(":/aws") && mount.len() > ":/aws".len(), "the current folder is mounted at /aws: {mount}");
+    // Exact owned endpoint, alone, in equals form, or repeated: only the inner endpoint reaches the CLI.
     for accepted in [
         format!("./aws --endpoint-url {owned} ec2 describe-vpcs"),
         format!("./aws --endpoint-url={owned} ec2 describe-vpcs"),
         format!("./aws --endpoint-url {owned} ec2 describe-vpcs --endpoint-url={owned}"),
     ] {
         let (ok, out, _) = bash_in(dir.path(), &env, &accepted);
-        assert!(ok && out.matches("ARG<--endpoint-url>").count() == 1 && out.matches(&format!("ARG<{owned}>")).count() == 1, "{accepted}: {out}");
+        assert!(ok && out.matches("ARG<--endpoint-url>").count() == 1 && !out.contains(owned) && out.contains(&format!("ARG<{inner}>")), "{accepted}: {out}");
     }
-    // The wrapper's stand-in CLI never runs for these, so nothing is contacted.
+    // The wrapper's docker stand-in never runs for these, so nothing is contacted.
     let rejected_cases = [
         "./aws --endpoint-url https://ec2.us-east-1.amazonaws.com ec2 describe-vpcs".to_string(),
         "./aws --endpoint-url=https://ec2.us-east-1.amazonaws.com ec2 describe-vpcs".to_string(),
@@ -214,9 +232,9 @@ fn aws_wrapper_guards_endpoint_profile_and_environment() {
     ];
     for rejected in &rejected_cases {
         let (ok, out, err) = bash_in(dir.path(), &env, rejected);
-        assert!(!ok && !out.contains("ARG<"), "{rejected} must be rejected before the CLI runs: {out}{err}");
+        assert!(!ok && !out.contains("ARG<"), "{rejected} must be rejected before docker runs: {out}{err}");
     }
-    println!("PASS wrapper: endpoint injected, inherited AWS_* replaced, external/other endpoint and profile rejected before exec");
+    println!("PASS wrapper: inner endpoint injected, only dummy keys passed, external/other endpoint and profile rejected before docker");
 }
 
 /// `client-request` trims a Windows `--output text` CRLF and surrounding blanks, nothing inside.
@@ -409,7 +427,7 @@ fn with_cidr(script: &str, from: &str, to: &str) -> String {
 }
 
 #[test]
-#[ignore = "Requires Docker Desktop Linux engine, Git Bash and AWS CLI v2; creates only labelled disposable resources"]
+#[ignore = "Requires Docker Desktop Linux engine, and Git Bash; creates only labelled disposable resources"]
 fn docker_cloud_representative_subnet_lifecycle() {
     guarded("representative", |owned| {
         let directory = tempfile::tempdir().unwrap();
@@ -504,7 +522,7 @@ fn docker_cloud_representative_subnet_lifecycle() {
 }
 
 #[test]
-#[ignore = "Requires Docker Desktop Linux engine, Git Bash and AWS CLI v2; creates only labelled disposable resources"]
+#[ignore = "Requires Docker Desktop Linux engine, and Git Bash; creates only labelled disposable resources"]
 fn docker_cloud_changed_fixture_and_choose_subnet() {
     guarded("fixtures", |owned| {
         let changed = GitPractice::new(representative("10.73.0.0/16", "10.73.2.0/24", "10.74.2.0/24")).unwrap();
@@ -784,7 +802,7 @@ fn feedback(report: &crate::runner::TestReport, wanted: &str) -> bool {
 }
 
 #[test]
-#[ignore = "Requires Docker Desktop Linux engine, Git Bash and AWS CLI v2; runs the published lesson's subnet steps"]
+#[ignore = "Requires Docker Desktop Linux engine, and Git Bash; runs the published lesson's subnet steps"]
 fn docker_cloud_lesson_subnet_steps() {
     let steps = lesson_steps();
     assert_eq!(steps.len(), 7);

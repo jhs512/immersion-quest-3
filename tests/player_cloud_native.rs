@@ -5,7 +5,7 @@
 /// The first cloud lesson in the real debug player: editor tabs, learner edits and commands graded by
 /// the owned local cloud API, the teacher in its own runtime, and 초기화, for every step.
 #[test]
-#[ignore="Requires an interactive desktop, Docker Desktop Linux engine, AWS CLI v2 and the built player; runs privileged Docker-in-Docker guests"]
+#[ignore="Requires an interactive desktop, Docker Desktop Linux engine and the built player; runs privileged Docker-in-Docker guests"]
 fn cloud_lesson_steps_grade_teach_and_reset_in_the_player() {
     let mode="cloud-vpc-subnet-ec2";
     let session=molip_quest::pilot_session::PilotSession::new().unwrap();

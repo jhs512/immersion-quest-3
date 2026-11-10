@@ -11,13 +11,15 @@ use std::io::{Read, Seek, SeekFrom};
 use std::net::Ipv4Addr;
 use std::time::{Duration, Instant};
 
-const RUNTIME_VERSION: u32 = 1;
+const RUNTIME_VERSION: u32 = 2;
 const LABEL: &str = "gg.molip.cloud-practice";
 const STATE_FILE: &str = "cloud-state.json";
 const FLOCI: &str =
     "floci/floci@sha256:5ee85db604c4aa74ac76e07ea5cc83086f37bb472bf3dbb97e34019e48efae9c";
 const DIND: &str = "docker@sha256:ecac43e78380d9b9d3bd24f0ab42b370f6391a1a06a66065c10a00b9d6d57a3e";
 const TEMURIN: &str = "public.ecr.aws/docker/library/eclipse-temurin@sha256:c7c3d0bdf7f2bbc5a05a6712ed334d198360105634ea9adf76fca94f381b1e3f";
+/// AWS CLI v2 runs from this pinned official image on the practice network: learners need no host install.
+const AWS_CLI_IMAGE: &str = "public.ecr.aws/aws-cli/aws-cli:2.39.7@sha256:73f81e380c7974c9f03ac7ccd520ef080f17f443e10582f024c828b970ac8b73";
 const SERVER_AMI: &str = "ami-0e0000000000a0025";
 const REGION: &str = "us-east-1";
 const HTTP_PORT: &str = "8080";
@@ -270,63 +272,33 @@ fn inner_ok(container: &str, args: &[&str], seconds: u64) -> Result<String, Stri
     if r.ok { Ok(r.out) } else { Err(format!("클라우드 실습 서버 환경을 준비하지 못했어요.\n{}", r.err.chars().take(1200).collect::<String>())) }
 }
 
-/// AWS CLI v2: MOLIP_AWS, then PATH and the installers' fixed locations (same style as Docker).
-pub(super) fn aws_cli() -> Result<PathBuf, String> {
-    // Only a verified path is cached; a missing CLI is looked up again next time.
-    static FOUND: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
-    if let Some(path) = FOUND.get() {
-        return Ok(path.clone());
-    }
-    let path = find_aws_cli()?;
-    Ok(FOUND.get_or_init(|| path).clone())
+/// Inside the practice network the owned runtime answers at its container name.
+fn inner_endpoint(root: &Path) -> String {
+    format!("http://{}:4566", names(root).1)
 }
-fn find_aws_cli() -> Result<PathBuf, String> {
-    let missing = "AWS CLI v2를 찾을 수 없어요. AWS CLI v2를 설치한 뒤 실습을 다시 여세요.";
-    let found = if let Some(path) = std::env::var_os("MOLIP_AWS") {
-        Some(PathBuf::from(path))
-    } else {
-        let file = if cfg!(windows) { "aws.exe" } else { "aws" };
-        #[allow(unused_mut)]
-        let mut directories: Vec<PathBuf> = std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).collect();
-        #[cfg(windows)]
-        for key in ["ProgramFiles", "ProgramW6432"] {
-            if let Some(root) = std::env::var_os(key) {
-                directories.push(PathBuf::from(root).join("Amazon/AWSCLIV2"));
-            }
-        }
-        #[cfg(target_os = "macos")]
-        directories.extend(["/usr/local/bin", "/opt/homebrew/bin"].map(PathBuf::from));
-        #[cfg(target_os = "linux")]
-        directories.extend(["/usr/local/bin", "/usr/bin"].map(PathBuf::from));
-        directories.into_iter().map(|d| d.join(file)).find(|p| p.is_file())
-    };
-    let path = found.filter(|p| p.is_file()).ok_or(missing)?;
-    let mut command = Command::new(&path);
-    clean_aws_env(&mut command, None);
-    command.arg("--version");
-    let version = run(command, 30, "AWS CLI")?;
-    if !version.ok || !(version.out.trim_start().starts_with("aws-cli/2.") || version.err.trim_start().starts_with("aws-cli/2.")) {
-        return Err(missing.into());
+/// The fixed environment of every AWS CLI container: dummy keys, no files from the host account.
+const AWS_CONTAINER_ENV: [&str; 8] = [
+    "AWS_ACCESS_KEY_ID=test", "AWS_SECRET_ACCESS_KEY=test", "AWS_DEFAULT_REGION=us-east-1", "AWS_REGION=us-east-1",
+    "AWS_EC2_METADATA_DISABLED=true", "AWS_PAGER=", "AWS_CONFIG_FILE=/dev/null", "AWS_SHARED_CREDENTIALS_FILE=/dev/null",
+];
+/// `docker run` arguments for one AWS CLI call on this practice's own network, mounting `mount` at `at`.
+fn aws_container_args(root: &Path, mount: &str, at: &str) -> Vec<String> {
+    let (network, _, _) = names(root);
+    let mut args: Vec<String> = ["run", "--rm", "--network", &network, "--label", &format!("{LABEL}={}", owner(root))].map(String::from).to_vec();
+    for value in AWS_CONTAINER_ENV {
+        args.extend(["-e".into(), value.into()]);
     }
-    Ok(path)
+    args.extend(["-v".into(), format!("{mount}:{at}"), "-w".into(), at.split(':').next().unwrap_or(at).into(), AWS_CLI_IMAGE.into()]);
+    args.extend(["--endpoint-url".into(), inner_endpoint(root)]);
+    args
 }
-fn clean_aws_env(command: &mut Command, config: Option<&Path>) {
-    for (key, _) in std::env::vars_os() {
-        if key.to_string_lossy().to_ascii_uppercase().starts_with("AWS_") {
-            command.env_remove(key);
-        }
+/// The pinned AWS CLI image is on this engine, pulled by digest if not.
+fn ensure_aws_image() -> Result<(), String> {
+    if docker(&["image", "inspect", AWS_CLI_IMAGE], 30)?.ok {
+        return Ok(());
     }
-    command.envs([
-        ("AWS_ACCESS_KEY_ID", "test"),
-        ("AWS_SECRET_ACCESS_KEY", "test"),
-        ("AWS_DEFAULT_REGION", REGION),
-        ("AWS_REGION", REGION),
-        ("AWS_EC2_METADATA_DISABLED", "true"),
-        ("AWS_PAGER", ""),
-    ]);
-    // Even --version must not fall back to the user's default AWS configuration.
-    let config = config.unwrap_or_else(|| Path::new(if cfg!(windows) { "NUL" } else { "/dev/null" }));
-    command.env("AWS_CONFIG_FILE", config).env("AWS_SHARED_CREDENTIALS_FILE", config);
+    let pulled = docker(&["pull", AWS_CLI_IMAGE], 900)?;
+    if pulled.ok { Ok(()) } else { Err("AWS CLI 실습 이미지를 받지 못했어요. 인터넷 연결과 Docker Desktop을 확인한 뒤 다시 여세요.".into()) }
 }
 fn empty_config(root: &Path) -> Result<PathBuf, String> {
     let path = root.join("cloud-aws-empty-config");
@@ -352,15 +324,12 @@ fn api(root: &Path, state: &State, args: &[&str]) -> Result<Api, String> {
     if state.port == 0 {
         return Err("클라우드 실습 주소가 없어요. 초기화하세요.".into());
     }
-    let url = endpoint(state);
-    let mut command = Command::new(aws_cli()?);
-    clean_aws_env(&mut command, Some(&empty_config(root)?));
-    command.args([
-        "--endpoint-url", &url, "--region", REGION, "--output", "json",
-        "--cli-connect-timeout", "5", "--cli-read-timeout", "30",
-    ]);
-    command.args(args);
-    let r = run(command, 90, "AWS CLI")?;
+    // The practice root is mounted read-only so prepared inputs such as user-data are readable as file:///mq/...
+    let mut all = aws_container_args(root, &root.to_string_lossy(), "/mq:ro");
+    all.extend(["--region", REGION, "--output", "json", "--cli-connect-timeout", "5", "--cli-read-timeout", "30"].map(String::from));
+    all.extend(args.iter().map(|a| a.to_string()));
+    let all: Vec<&str> = all.iter().map(String::as_str).collect();
+    let r = docker(&all, 90)?;
     if !r.ok && ["Could not connect", "Connect timeout", "Read timeout", "Connection was closed", "Connection reset"]
         .iter()
         .any(|m| r.err.contains(m))
@@ -451,7 +420,11 @@ fn posix(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
 }
 /// MQ's own `aws` entrypoint for the practice terminal: normal syntax, only the owned endpoint.
-fn aws_wrapper(endpoint: &str, real: &Path, config: &Path) -> String {
+/// The CLI itself runs in the pinned image on the practice network, with the current folder at /aws.
+fn aws_wrapper(endpoint: &str, docker: &Path, root: &Path) -> String {
+    let mut run: Vec<String> = aws_container_args(root, "HERE", "/aws").iter().map(|a| sq(a)).collect();
+    run.insert(1, "-i".into());
+    let run = run.join(" ").replace(&sq("HERE:/aws"), "\"$here:/aws\"");
     format!(
         r#"#!/bin/bash
 # MQ 실습용 aws: 이 실습의 로컬 주소로만 요청해요.
@@ -467,7 +440,7 @@ while [ $# -gt 0 ]; do
       echo "이 실습에서는 $1 옵션을 쓰지 않아요." >&2; exit 2 ;;
     --*)
       # AWS CLI accepts abbreviated global options. Reject those prefixes too:
-      # --endp must not override the owned endpoint passed to the real CLI.
+      # --endp must not override the owned endpoint passed to the CLI.
       opt="${{1%%=*}}"
       for guarded in --endpoint-url --profile --ca-bundle --no-verify-ssl --no-sign-request; do
         if [[ "$guarded" == "$opt"* ]]; then
@@ -479,16 +452,13 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
-for name in $(compgen -e); do case "$name" in [Aa][Ww][Ss]_*) unset "$name" ;; esac; done
-export AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION={region} AWS_REGION={region}
-export AWS_EC2_METADATA_DISABLED=true AWS_PAGER= AWS_CONFIG_FILE={config} AWS_SHARED_CREDENTIALS_FILE={config}
-export AWS_ENDPOINT_URL="$owned" MSYS_NO_PATHCONV=1
-exec {real} --endpoint-url "$owned" "${{args[@]}}"
+# Git Bash gives C:/... with -W; other shells' pwd is already a host path.
+here="$(pwd -W 2>/dev/null || pwd)"
+export MSYS_NO_PATHCONV=1
+exec {docker} {run} "${{args[@]}}"
 "#,
         owned = sq(endpoint),
-        region = REGION,
-        config = sq(&posix(config)),
-        real = sq(&posix(real)),
+        docker = sq(&posix(docker)),
     )
 }
 /// The prepared request command: the client guest's own HTTP request to one IPv4 address.
@@ -528,7 +498,7 @@ impl GitPractice {
         if require(&["info", "--format", "{{.OSType}}"], 20)?.trim() != "linux" {
             return Err("Docker Desktop을 Linux 컨테이너 모드로 실행하세요.".into());
         }
-        aws_cli()?;
+        ensure_aws_image()?;
         if root.join(STATE_FILE).exists() {
             let state = load(root)?;
             if !state.ready || state.version != RUNTIME_VERSION || state.fixture != exercise.fixture() {
@@ -682,7 +652,7 @@ impl GitPractice {
 
     fn launch(&self, state: &State, subnet: &str, user_data: bool) -> Result<Instance, String> {
         let root = self.root();
-        let data = format!("file://{}", root.join("cloud-input").join("server-user-data.sh").to_string_lossy());
+        let data = "file:///mq/cloud-input/server-user-data.sh".to_string();
         let mut args = vec!["ec2", "run-instances", "--image-id", SERVER_AMI, "--instance-type", "t3.micro", "--count", "1", "--subnet-id", subnet];
         if user_data {
             args.extend(["--user-data", data.as_str()]);
@@ -706,7 +676,7 @@ impl GitPractice {
         let config = empty_config(root)?;
         let bin = root.join("cloud-bin");
         std::fs::create_dir_all(&bin).map_err(|e| e.to_string())?;
-        std::fs::write(bin.join("aws"), aws_wrapper(&url, &aws_cli()?, &config)).map_err(|e| e.to_string())?;
+        std::fs::write(bin.join("aws"), aws_wrapper(&url, &docker_cli()?, root)).map_err(|e| e.to_string())?;
         let (_, container, _) = names(root);
         if let Some(client) = &state.client {
             std::fs::write(bin.join("client-request"), client_wrapper(&docker_cli()?, &container, &client.container)).map_err(|e| e.to_string())?;
@@ -1083,16 +1053,6 @@ mod config_file_regressions {
         std::fs::create_dir(&path).unwrap();
         assert!(empty_config(root.path()).is_err());
         assert!(path.is_dir());
-    }
-
-    #[test]
-    fn version_probe_explicitly_avoids_default_account_config() {
-        let mut command = Command::new("not-executed");
-        clean_aws_env(&mut command, None);
-        let config = Path::new(if cfg!(windows) { "NUL" } else { "/dev/null" });
-        for key in ["AWS_CONFIG_FILE", "AWS_SHARED_CREDENTIALS_FILE"] {
-            assert_eq!(command.get_envs().find(|(name, _)| *name == key).and_then(|(_, value)| value), Some(config.as_os_str()));
-        }
     }
 
     #[cfg(unix)]

@@ -21,7 +21,7 @@
 - network-http
 - docker-image-container
 - docker-network-ports
-- Docker Desktop의 Linux 컨테이너 엔진과 AWS CLI v2
+- Docker Desktop의 Linux 컨테이너 엔진(AWS CLI v2는 고정 공식 이미지로 실습 네트워크에서 실행)
 
 ## 제작 범위
 
@@ -246,5 +246,5 @@
 
 - PRD와 대표 문제의 승인을 함께 확인해요.
 - 승인된 범위 안의 수정은 가능해요. 목표나 교육 기법 변경은 다시 승인받아요.
-- 내용 식별 해시: 0d7c20a948734926aa3d84c384f47cff1f4f22037a301ab4605e7bf7c4cd72f2
+- 내용 식별 해시: 90b5a218cc1e1cffe9ccea0153d041f40eb0bc9a72f941c941fbd6d38684953b
 

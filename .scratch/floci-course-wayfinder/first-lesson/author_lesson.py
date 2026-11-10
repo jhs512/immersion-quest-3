@@ -493,7 +493,7 @@ CONSTRAINTS = ['자바 과정의 네트워크·Docker 수업을 마쳤다고 가
                '모든 aws 명령은 이 컴퓨터의 로컬 실습 주소로만 가요. 실제 AWS 계정은 쓰지 않아요.',
                '문제마다 새 실습 상태에서 시작해요. 앞 문제의 결과가 이어지지 않아요.',
                '로컬 실습 환경은 실제 AWS와 같다는 보장이 없어요. 라우팅 표·NAT·NACL·피어링·보안 그룹은 다루지 않아요.',
-               'Docker Desktop의 Linux 엔진과 AWS CLI v2가 필요해요. 서버 문제는 준비에 몇 분 걸릴 수 있어요.']
+               'Docker Desktop의 Linux 엔진이 필요해요. aws 명령은 실습 컨테이너에서 실행돼서 따로 설치하지 않아요. 서버 문제는 준비에 몇 분 걸릴 수 있어요.']
 QUESTION = 'VPC 범위 밖의 서브넷은 왜 만들 수 없을까요?'
 
 OPENINGS = ['이미 아는 CIDR로 VPC와 서브넷의 관계를 확인하고, 서버 한 대를 원하는 서브넷에 배치해요.',
@@ -566,7 +566,7 @@ def prd(preview):
         audience='자바 과정의 네트워크·Docker·Compose 수업을 마친 학습자. 자바 과정의 후속 클라우드 묶음 첫 수업이다.',
         objectives=LEARN,
         prerequisites=['network-ip', 'network-endpoints', 'network-routing', 'network-http', 'docker-image-container', 'docker-network-ports',
-                       'Docker Desktop의 Linux 컨테이너 엔진과 AWS CLI v2'],
+                       'Docker Desktop의 Linux 컨테이너 엔진(AWS CLI v2는 고정 공식 이미지로 실습 네트워크에서 실행)'],
         scope=[s['title'] for s in STEPS],
         out_of_scope=['중지·재시작·종료·스냅샷·삭제 순서(다음 수업), S3·RDS·DynamoDB·SQS·Lambda',
                       '라우팅 표·인터넷 게이트웨이·NAT·NACL·피어링·보안 그룹, 다른 VPC 간 격리',
@@ -592,7 +592,8 @@ def prd(preview):
         lesson_preview=preview,
         approval=dict(status='draft'),
         change_history=['2026-11-09 사용자 검토용 초안(.scratch/floci-course-wayfinder/first-lesson/prd.draft.md).',
-                        '2026-11-10 승인 범위 안의 정식 제작: 읽기 전용 VPC 조회(1.1.1)를 단원 전제와 첫 스텝 관찰로 옮겼다. 자바 게스트 게이트가 통과해 2장도 같은 자바 서버 이미지를 쓴다. 학생이 고치는 파일은 편집기에 둔다. 마지막 수행은 새 서브넷 ID 변수가 없으므로 subnet-id.sh가 범위로 ID를 찾는다. 학생의 「다시 시작」 표현은 실제 버튼 이름 「초기화」로 바꿨다.'],
+                        '2026-11-10 승인 범위 안의 정식 제작: 읽기 전용 VPC 조회(1.1.1)를 단원 전제와 첫 스텝 관찰로 옮겼다. 자바 게스트 게이트가 통과해 2장도 같은 자바 서버 이미지를 쓴다. 학생이 고치는 파일은 편집기에 둔다. 마지막 수행은 새 서브넷 ID 변수가 없으므로 subnet-id.sh가 범위로 ID를 찾는다. 학생의 「다시 시작」 표현은 실제 버튼 이름 「초기화」로 바꿨다.',
+                        '2026-11-10 사용자 결정(추천안 채택): 학생 컴퓨터에 AWS CLI를 설치하지 않도록 aws 명령과 채점기가 고정 공식 AWS CLI 이미지를 실습 네트워크에서 실행한다. 학생 명령·문제·채점 조건은 그대로다.'],
     )
     return approve(document, by='Claude Code: 사용자 승인 초안에 따른 본편·해설 제작',
                    evidence='2026-11-09 사용자가 예고·PRD·대표 문제 초안을 확인한 뒤 「고고」로 다음 제작 단계를 승인했다. 2026-11-10 사용자: 승인된 예고·PRD·대표 문제를 바탕으로 첫 수업을 완성해, 방향 확인을 반복해서 묻지 말고 구현·검증까지 계속 진행해. 생성된 정식 JSON이나 개별 문장을 사용자가 직접 검수했다고 주장하지 않는다.')
