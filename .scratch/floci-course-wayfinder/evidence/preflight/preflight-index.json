@@ -1,0 +1,78 @@
+{
+  "schema": "mq.floci.preflight-index.v1",
+  "date": "2026-11-09",
+  "complete_clean_run": "mq-floci-pf-20261109222727",
+  "all_ok": true,
+  "checks": {
+    "subnet": "19/19",
+    "java": "15/15"
+  },
+  "host_inventory_clean": {
+    "subnet": true,
+    "java": true
+  },
+  "java_version": "openjdk version \"25.0.5\" 2026-10-20 LTS",
+  "java_timing_s": {
+    "server_wrong.api_running_after_s": 1.88,
+    "server_wrong.http_ready_after_s": 13.67,
+    "server_right.api_running_after_s": 1.77,
+    "server_right.http_ready_after_s": 13.57
+  },
+  "attempts": [
+    {
+      "run": "mq-floci-pf-20261109221336",
+      "part": "subnet",
+      "outcome": "fatal: lane start (cap-drop blocked entrypoint chroot)",
+      "host_clean": false,
+      "later_ownership_cleanup": "ownership-cleanup.json (1 anonymous volume)"
+    },
+    {
+      "run": "mq-floci-pf-20261109221703",
+      "part": "subnet",
+      "outcome": "19/19",
+      "host_clean": false,
+      "later_ownership_cleanup": "ownership-cleanup.json (3 anonymous volumes)"
+    },
+    {
+      "run": "mq-floci-pf-20261109222304",
+      "part": "java",
+      "outcome": "12/14 (2 wrong criteria)",
+      "host_clean": false,
+      "later_ownership_cleanup": "ownership-cleanup.json (owned network + named volume)"
+    },
+    {
+      "run": "mq-floci-pf-20261109222523",
+      "part": "all",
+      "outcome": "subnet 19/19 then harness TypeError; java not run",
+      "host_clean": "recomputed true, not counted"
+    },
+    {
+      "run": "mq-floci-pf-20261109222727",
+      "part": "all",
+      "outcome": "subnet 19/19, java 15/15",
+      "host_clean": true
+    }
+  ],
+  "floci": {
+    "image": "floci/floci@sha256:5ee85db604c4aa74ac76e07ea5cc83086f37bb472bf3dbb97e34019e48efae9c",
+    "source_commit": "9be236e2890c2042a6bb819f1a9228be996acd90"
+  },
+  "not_proven": [
+    "MQ native integration",
+    "Mac",
+    "real AWS parity",
+    "external AWS endpoint block",
+    "privileged DIND/guest as security boundary",
+    "offline guest boot (Floci apk installs)",
+    "user-data output via CloudWatch Logs"
+  ],
+  "remaining_mq_gates": [
+    "CloudExercise field (src/git_practice.rs:25)",
+    "prepare_cloud env (src/git_practice.rs:461)",
+    "cloud-state.json owned record (src/network_practice.rs:36-44 pattern)",
+    "check dispatch (src/shell_practice.rs:278) + env_error reporting in TestReport",
+    "cleanup/reset hooks (src/network_practice.rs:301, src/git_practice.rs:95/179/641)",
+    "image policy decision without widening src/docker_lab.rs:561"
+  ],
+  "report": "docs/floci-first-lesson-preflight.md"
+}

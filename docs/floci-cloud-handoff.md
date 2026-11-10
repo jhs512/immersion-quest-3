@@ -62,7 +62,7 @@
 | `docker_cloud_lesson_subnet_steps` | **통과**(117초, 호스트 인벤토리 전후 동일) | 1: 초기 실패→준비 명령 통과. 2: 초기·준비 명령(InvalidSubnet.Range)·출력 위조 실패, **해설 레인**이 별도 자원에서 통과하고 학생 상태·파일 불변, 학생 수정 통과, VPC 10.73 변형에서 기본 답 거절·변형 답 통과. 3: 겹침(InvalidSubnet.Conflict) 거절, /24 실패, 해설 /25 통과, 다른 빈 /25 통과 |
 | `docker_cloud_lesson_server_steps` | **통과**(314초, 동일) | 4: 초기 실패→준비 명령 통과(10.91.2.10 running). 5: 준비 명령 A 배치 실패, A를 남긴 채 B 추가 「서버가 2대」 실패, **초기화**가 이전 런타임 제거·준비 파일 복원·초기 실패, 해설 통과. 6: 자리표시·출력 위조 실패, 해설 통과(채점기 HTTP: from 10.91.1.10, served-on 10.91.2.10, java 25.0.5). 7: 서버를 A에 두면 실패, 초기화 뒤 해설 통과(running 뒤 Connection refused 2회 → 200) |
 
-- 원자료: `target/cloud-native-evidence/lesson-run-1-*.log`, 명령별 `lesson-<스텝>-<lane>-<n>.txt`(git 제외).
+- 원자료: `target/cloud-native-evidence/lesson-run-1-*.log`, 명령별 `lesson-<스텝>-<lane>-<n>.txt`. 같은 내용을 [evidence/native](../.scratch/floci-course-wayfinder/evidence/native/)에 커밋했다.
 - 실행 뒤 바꾼 것은 해설의 말 문장뿐이다. 최종 수업의 명령·편집 순서가 실행한 순서와 같은지 대조했다(7개 스텝 모두 일치). 그래서 Docker 검사를 다시 돌리지 않았다.
 - 해설 문장의 결과 설명은 위 실측 출력(오류 코드, pending→running, CONNECT_FAIL, 응답 필드)에 맞췄다.
 
@@ -79,6 +79,15 @@
 | `cargo test --test lesson_registry` | 통과. 기대값을 실제 111개 / 1118 스텝으로 고쳤다(이전 102/1071은 네트워크 8개 추가 전부터 낡은 값) |
 | `bundled_courses`·`backend_journeys`·`challenges`·`network_foundations` | 통과(Java 수업 수 57) |
 | `cargo test --tests --no-fail-fast` | 125개 묶음: 400 통과 / **1 실패** / 177 ignored. 실패는 아래 기존 `redesigned_java_values` |
+
+## 작업 폴더 증거의 저장소 사본
+
+이 작업 폴더의 `target/`(git 제외)에만 있던 실행 증거를 `.scratch/floci-course-wayfinder/evidence/`에 복사해 커밋했다(230개, 약 4.7 MB).
+
+- `evidence/preflight/`: `target/floci-preflight/`의 사전 점검 실행 5회와 `preflight-index.json`. 내려받은 Floci 원본 소스(`_source/`, 약 130 MB, 외부 프로젝트 코드)는 넣지 않았다. 같은 커밋(`9be236e`)을 Floci 저장소에서 다시 받을 수 있다.
+- `evidence/native/`: `target/cloud-native-evidence/`의 네이티브 검사 로그·호스트 인벤토리(before/after)·수업 실행 명령별 출력.
+- 커밋 전 검사: 들어 있는 자격 값은 실습용 `test` 더미뿐이다. 실제 키 형식(AKIA·ASIA·ghp_ 등)은 없었다. 인벤토리는 컨테이너 Config·Env를 담지 않는다.
+- 앞으로 실행한 증거는 다시 `target/`에 쌓인다. 남길 실행만 이 폴더에 복사한다.
 
 ## 실패·미검증으로 남은 것
 

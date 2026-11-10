@@ -1,0 +1,624 @@
+[
+  {
+    "name": "initial_state_fails",
+    "expected_verdict": "fail",
+    "expected_codes": [
+      "no_subnet_in_owned_vpc"
+    ],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "no_subnet_in_owned_vpc"
+      ],
+      "feedback": [
+        "준비된 VPC에 서브넷이 없어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-7bf463d3",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {}
+  },
+  {
+    "name": "starter_outside_cidr_fails",
+    "expected_verdict": "fail",
+    "expected_codes": [
+      "no_subnet_in_owned_vpc"
+    ],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "no_subnet_in_owned_vpc"
+      ],
+      "feedback": [
+        "준비된 VPC에 서브넷이 없어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-7bf463d3",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {
+      "script_rc": 254,
+      "script_stderr": "An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.92.2.0/24' is invalid."
+    }
+  },
+  {
+    "name": "outside_cidr_10_0_fails",
+    "expected_verdict": "fail",
+    "expected_codes": [],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "no_subnet_in_owned_vpc"
+      ],
+      "feedback": [
+        "준비된 VPC에 서브넷이 없어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-7bf463d3",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {
+      "rc": 254,
+      "stderr": "An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.0.2.0/24' is invalid."
+    }
+  },
+  {
+    "name": "correct_one_line_edit_passes",
+    "expected_verdict": "pass",
+    "expected_codes": [],
+    "ok": true,
+    "check": {
+      "verdict": "pass",
+      "codes": [],
+      "feedback": [
+        "준비된 VPC 안에 10.91.2.0/24 서브넷이 하나 있어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-7bf463d3",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [
+          {
+            "SubnetId": "subnet-172596d9",
+            "VpcId": "vpc-7bf463d3",
+            "CidrBlock": "10.91.2.0/24",
+            "State": "available"
+          }
+        ],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {
+      "diff": [
+        "-  --cidr-block 10.92.2.0/24",
+        "+  --cidr-block 10.91.2.0/24"
+      ],
+      "script_rc": 0,
+      "script_stdout": "{\n    \"Subnet\": {\n        \"AvailabilityZoneId\": \"use1-az1\",\n        \"MapCustomerOwnedIpOnLaunch\": false,\n        \"OwnerId\": \"000000000000\",\n        \"AssignIpv6AddressOnCreation\": false,\n        \"Ipv6CidrBlockAssociationSet\": [],\n        \"Tags\": [],\n        \"SubnetArn\": \"arn:aws:ec2:us-east-1:000000000000:subnet/subnet-172596d9\",\n        \"EnableDns64\": false,\n        \"SubnetId\": \"subnet-172596d9\",\n        \"State\": \"available\",\n        \"VpcId\": \"vpc-7bf463d3\",\n        \"CidrBlock\": \"10.91.2.0/24\",\n        \"AvailableIpAddressCount\": 251,\n        \"AvailabilityZone\": \"us-east-1a\",\n        \"DefaultForAz\": false,\n        \"MapPublicIpOnLaunch\": false\n    }\n}\n"
+    }
+  },
+  {
+    "name": "same_command_twice_still_passes",
+    "expected_verdict": "pass",
+    "expected_codes": [],
+    "ok": true,
+    "check": {
+      "verdict": "pass",
+      "codes": [],
+      "feedback": [
+        "준비된 VPC 안에 10.91.2.0/24 서브넷이 하나 있어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-7bf463d3",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [
+          {
+            "SubnetId": "subnet-172596d9",
+            "VpcId": "vpc-7bf463d3",
+            "CidrBlock": "10.91.2.0/24",
+            "State": "available"
+          }
+        ],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {
+      "second_rc": 254,
+      "second_stderr": "An error occurred (InvalidSubnet.Conflict) when calling the CreateSubnet operation: The CIDR '10.91.2.0/24' conflicts with another subnet"
+    }
+  },
+  {
+    "name": "different_vpc_same_cidr_fails",
+    "expected_verdict": "fail",
+    "expected_codes": [
+      "no_subnet_in_owned_vpc",
+      "target_cidr_in_other_vpc"
+    ],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "no_subnet_in_owned_vpc",
+        "target_cidr_in_other_vpc"
+      ],
+      "feedback": [
+        "준비된 VPC에 서브넷이 없어요.",
+        "준비된 VPC가 아닌 곳에 만들었어요. 같은 숫자라도 다른 자리예요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-39b23bc9",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [],
+        "target_cidr_in_other_vpcs": [
+          {
+            "SubnetId": "subnet-9cf81528",
+            "VpcId": "vpc-c913524c",
+            "CidrBlock": "10.91.2.0/24"
+          }
+        ]
+      }
+    },
+    "evidence": {
+      "student_vpc": "vpc-c913524c",
+      "owned_vpc": "vpc-39b23bc9",
+      "script_rc": 0
+    }
+  },
+  {
+    "name": "other_in_range_cidr_fails",
+    "expected_verdict": "fail",
+    "expected_codes": [
+      "non_target_subnet_in_owned_vpc"
+    ],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "non_target_subnet_in_owned_vpc"
+      ],
+      "feedback": [
+        "10.91.2.0/24가 아닌 서브넷이 있어요: 10.91.3.0/24"
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-a6d5fe15",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [
+          {
+            "SubnetId": "subnet-237a4656",
+            "VpcId": "vpc-a6d5fe15",
+            "CidrBlock": "10.91.3.0/24",
+            "State": "available"
+          }
+        ],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {}
+  },
+  {
+    "name": "extra_subnet_fails",
+    "expected_verdict": "fail",
+    "expected_codes": [
+      "non_target_subnet_in_owned_vpc"
+    ],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "non_target_subnet_in_owned_vpc"
+      ],
+      "feedback": [
+        "10.91.2.0/24가 아닌 서브넷이 있어요: 10.91.3.0/24"
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-a6d5fe15",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [
+          {
+            "SubnetId": "subnet-237a4656",
+            "VpcId": "vpc-a6d5fe15",
+            "CidrBlock": "10.91.3.0/24",
+            "State": "available"
+          },
+          {
+            "SubnetId": "subnet-635bdad4",
+            "VpcId": "vpc-a6d5fe15",
+            "CidrBlock": "10.91.2.0/24",
+            "State": "available"
+          }
+        ],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {}
+  },
+  {
+    "name": "output_only_fake_fails",
+    "expected_verdict": "fail",
+    "expected_codes": [
+      "no_subnet_in_owned_vpc"
+    ],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "no_subnet_in_owned_vpc"
+      ],
+      "feedback": [
+        "준비된 VPC에 서브넷이 없어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-989e6143",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {
+      "stdout": "{\"Subnet\": {\"SubnetId\": \"subnet-fake\", \"VpcId\": \"vpc-989e6143\", \"CidrBlock\": \"10.91.2.0/24\", \"State\": \"available\"}}\n"
+    }
+  },
+  {
+    "name": "direct_api_equivalent_passes",
+    "expected_verdict": "pass",
+    "expected_codes": [],
+    "ok": true,
+    "check": {
+      "verdict": "pass",
+      "codes": [],
+      "feedback": [
+        "준비된 VPC 안에 10.91.2.0/24 서브넷이 하나 있어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-4a28ee0c",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [
+          {
+            "SubnetId": "subnet-6b45321d",
+            "VpcId": "vpc-4a28ee0c",
+            "CidrBlock": "10.91.2.0/24",
+            "State": "available"
+          }
+        ],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {}
+  },
+  {
+    "name": "delete_then_recreate_passes",
+    "expected_verdict": "pass",
+    "expected_codes": [],
+    "ok": true,
+    "check": {
+      "verdict": "pass",
+      "codes": [],
+      "feedback": [
+        "준비된 VPC 안에 10.91.2.0/24 서브넷이 하나 있어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-f9a990d8",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [
+          {
+            "SubnetId": "subnet-64cbd2ad",
+            "VpcId": "vpc-f9a990d8",
+            "CidrBlock": "10.91.2.0/24",
+            "State": "available"
+          }
+        ],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {}
+  },
+  {
+    "name": "reset_returns_fresh_state_and_starter",
+    "expected_verdict": "fail",
+    "expected_codes": [
+      "no_subnet_in_owned_vpc"
+    ],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "no_subnet_in_owned_vpc"
+      ],
+      "feedback": [
+        "준비된 VPC에 서브넷이 없어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-6837a773",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {
+      "vpc_before_reset": "vpc-f9a990d8",
+      "vpc_after_reset": "vpc-6837a773",
+      "vpcs_after_reset": [
+        [
+          "vpc-default-us-east-1",
+          "172.31.0.0/16",
+          true
+        ],
+        [
+          "vpc-6837a773",
+          "10.91.0.0/16",
+          false
+        ]
+      ],
+      "starter_restored": true
+    }
+  },
+  {
+    "name": "explanation_lane_preserves_student_state",
+    "expected_verdict": "fail",
+    "expected_codes": [
+      "non_target_subnet_in_owned_vpc"
+    ],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "non_target_subnet_in_owned_vpc"
+      ],
+      "feedback": [
+        "10.91.2.0/24가 아닌 서브넷이 있어요: 10.91.3.0/24"
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-6837a773",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [
+          {
+            "SubnetId": "subnet-688d2cc6",
+            "VpcId": "vpc-6837a773",
+            "CidrBlock": "10.91.3.0/24",
+            "State": "available"
+          }
+        ],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {
+      "explanation_check": {
+        "verdict": "pass",
+        "codes": [],
+        "feedback": [
+          "준비된 VPC 안에 10.91.2.0/24 서브넷이 하나 있어요."
+        ],
+        "observed": {
+          "owned_vpc": {
+            "VpcId": "vpc-f7d70c5d",
+            "CidrBlock": "10.91.0.0/16",
+            "State": "available"
+          },
+          "owned_subnets": [
+            {
+              "SubnetId": "subnet-77eef372",
+              "VpcId": "vpc-f7d70c5d",
+              "CidrBlock": "10.91.2.0/24",
+              "State": "available"
+            }
+          ],
+          "target_cidr_in_other_vpcs": []
+        }
+      },
+      "student_before": {
+        "owned_vpc": {
+          "VpcId": "vpc-6837a773",
+          "CidrBlock": "10.91.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [
+          {
+            "SubnetId": "subnet-688d2cc6",
+            "VpcId": "vpc-6837a773",
+            "CidrBlock": "10.91.3.0/24",
+            "State": "available"
+          }
+        ],
+        "target_cidr_in_other_vpcs": []
+      },
+      "student_endpoint": "http://127.0.0.1:58901",
+      "explanation_endpoint": "http://127.0.0.1:58905"
+    }
+  },
+  {
+    "name": "alt_fixture_initial_fails",
+    "expected_verdict": "fail",
+    "expected_codes": [
+      "no_subnet_in_owned_vpc"
+    ],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "no_subnet_in_owned_vpc"
+      ],
+      "feedback": [
+        "준비된 VPC에 서브넷이 없어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-50820f84",
+          "CidrBlock": "10.73.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {}
+  },
+  {
+    "name": "alt_fixture_starter_fails",
+    "expected_verdict": "fail",
+    "expected_codes": [],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "no_subnet_in_owned_vpc"
+      ],
+      "feedback": [
+        "준비된 VPC에 서브넷이 없어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-50820f84",
+          "CidrBlock": "10.73.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {}
+  },
+  {
+    "name": "alt_fixture_old_target_rejected",
+    "expected_verdict": "fail",
+    "expected_codes": [],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "no_subnet_in_owned_vpc"
+      ],
+      "feedback": [
+        "준비된 VPC에 서브넷이 없어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-50820f84",
+          "CidrBlock": "10.73.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {}
+  },
+  {
+    "name": "alt_fixture_correct_passes",
+    "expected_verdict": "pass",
+    "expected_codes": [],
+    "ok": true,
+    "check": {
+      "verdict": "pass",
+      "codes": [],
+      "feedback": [
+        "준비된 VPC 안에 10.73.2.0/24 서브넷이 하나 있어요."
+      ],
+      "observed": {
+        "owned_vpc": {
+          "VpcId": "vpc-50820f84",
+          "CidrBlock": "10.73.0.0/16",
+          "State": "available"
+        },
+        "owned_subnets": [
+          {
+            "SubnetId": "subnet-7e297dd1",
+            "VpcId": "vpc-50820f84",
+            "CidrBlock": "10.73.2.0/24",
+            "State": "available"
+          }
+        ],
+        "target_cidr_in_other_vpcs": []
+      }
+    },
+    "evidence": {}
+  },
+  {
+    "name": "owned_vpc_deleted_fails_not_env_error",
+    "expected_verdict": "fail",
+    "expected_codes": [
+      "owned_vpc_missing"
+    ],
+    "ok": true,
+    "check": {
+      "verdict": "fail",
+      "codes": [
+        "owned_vpc_missing"
+      ],
+      "observed": {},
+      "feedback": [
+        "준비된 VPC가 없어졌어요. 「다시 시작」으로 처음 상태를 다시 받으세요."
+      ]
+    },
+    "evidence": {}
+  },
+  {
+    "name": "runtime_down_is_env_error",
+    "expected_verdict": "env_error",
+    "expected_codes": [
+      "endpoint_unreachable"
+    ],
+    "ok": true,
+    "check": {
+      "verdict": "env_error",
+      "codes": [
+        "endpoint_unreachable"
+      ],
+      "detail": "Could not connect to the endpoint URL: \"http://127.0.0.1:58909/\"",
+      "feedback": [
+        "실습 환경에 연결하지 못했어요. 「다시 시작」을 눌러 보세요."
+      ]
+    },
+    "evidence": {}
+  }
+]
