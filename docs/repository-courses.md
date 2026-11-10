@@ -64,6 +64,8 @@ cargo test --locked --test repository_lessons -- --ignored --nocapture --test-th
 
 `state_goal.merge_in_progress`는 MERGE_HEAD의 존재를, `unmerged_paths`는 실제 미병합 경로 집합을 검사한다. 충돌 표시를 지우는 것과 add로 인덱스를 해결하는 것을 구분한다. `parent_count`는 현재 커밋의 정확한 부모 수이며, 두 부모 병합을 요구할 때 불필요한 추가 부모도 거절한다.
 
+워크트리 수업의 `state_goal.worktrees`는 실습 저장소 `work`에서 읽은 `git worktree list --porcelain`의 정확한 폴더 집합이다. 키는 `.`(실습 폴더)이나 `../이름`(실습 폴더 옆, 소유 실습 폴더 안)이고 값은 그 폴더가 꺼낸 브랜치다. 손으로 지워 기록만 남은 폴더(prunable)와 다른 위치의 폴더는 다른 항목으로 보여 실패한다. `branch_files`는 `refs/heads/<브랜치>` 트리의 전체 파일 목록과 바이트로, 다른 폴더에서 만든 커밋도 같은 저장소에서 읽는다. 시작 상태는 `setup`의 `git worktree add ../이름 브랜치`(인수 정확히 넷)로만 옆 폴더를 준비한다. 같은 브랜치를 두 번 요구하는 목표·`.`이 없는 목표·실습 폴더 밖의 경로는 제작 검증에서 거절한다. 이전 플레이어의 Git 목표 형식은 모르는 필드를 거절해(`deny_unknown_fields`) 이 수업을 읽지 못하므로, 지원 플레이어 릴리스 뒤에 게시한다(`tools/publish-git-worktree-lesson.py`).
+
 
 상호작용 문제는 선택 답안과 실행할 예제를 분리할 수 있다. 선택 문제에 `example_code`를 명시하면 `lesson_runner::run_example`으로 준비된 프로그램을 실행하고, 선택 답안은 기존 `check`로 따로 판정한다. 일반 `run`은 여전히 선택 답안을 실행하지 않는다. 빈 코드·64KB 초과·상호작용 없는 예제·Git 터미널과 중복된 예제를 거절한다. 현재 Java·Python·C·JavaScript 예제를 지원하는 런타임 경로이며, 새 화면 연결은 별도로 검증한다.
 

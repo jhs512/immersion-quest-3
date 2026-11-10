@@ -167,6 +167,7 @@
         ['reset', '리셋', 'git reset'], ['revert', '리버트', 'git revert HEAD'], ['stash', '스태시', 'git stash'], ['tag', '태그', 'git tag v1'],
         ['config', '컨피그', 'git config user.name'], ['rm', '알엠', 'git rm memo.txt'], ['mv', '엠브이', 'git mv a.txt b.txt'],
         ['cherry-pick', '체리픽', 'git cherry-pick abc123'], ['blame', '블레임', 'git blame memo.txt'], ['reflog', '리플로그', 'git reflog'],
+        ['worktree', '워크트리', 'git worktree add ../hotfix hotfix'],
       ],
     },
     {

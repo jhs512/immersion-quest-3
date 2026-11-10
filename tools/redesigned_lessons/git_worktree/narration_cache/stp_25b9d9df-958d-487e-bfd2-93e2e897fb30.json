@@ -1,0 +1,86 @@
+{
+  "by": "hand",
+  "source_sha256": "dd849ffe7d489824a3b5efe59c41891ba6d97245d1bfca7d5db9429af68c991d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "이번엔 remove 대신 폴더를 직접 지운 상황을 만들어요.",
+      "target": "text:누군가 파일 탐색기에서 hotfix 폴더를 지운 상황을 직접 만들어요."
+    },
+    {
+      "action": "bash_command",
+      "command": "rm -r ../hotfix",
+      "say": "rm -r로 hotfix 폴더를 지워요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "출력 없이 폴더가 사라졌어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "git_command",
+      "args": [
+        "worktree",
+        "list"
+      ],
+      "say": "저장소는 이 폴더를 어떻게 기억할까요?",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "hotfix 줄이 아직 있어요. 끝에 prunable이 붙었죠? 폴더는 없는데 기록만 남았다는 표시예요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "git_command",
+      "args": [
+        "worktree",
+        "add",
+        "../hotfix",
+        "hotfix"
+      ],
+      "say": "같은 자리에 다시 꺼내 볼게요.",
+      "target": "#git-demo-terminal",
+      "expected_exit": 128
+    },
+    {
+      "action": "say",
+      "text": "거절됐어요. 지운 폴더가 아직 등록돼 있다고 알려 줘요. 남은 기록이 그 자리를 붙잡고 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 폴더만 지우고 끝내면 그 기록이 남아 같은 자리에 다시 꺼낼 수 없어요. 지운 뒤엔 prune으로 정리하세요.",
+      "target": "text:git worktree prune은 폴더가 사라진 기록을 찾아 정리해요."
+    },
+    {
+      "action": "git_command",
+      "args": [
+        "worktree",
+        "prune"
+      ],
+      "say": "prune으로 남은 기록을 정리해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "출력 없이 끝났어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "git_command",
+      "args": [
+        "worktree",
+        "list"
+      ],
+      "say": "목록을 다시 봐요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "work 한 줄만 남았어요. hotfix 브랜치와 커밋은 지우지 않았어요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

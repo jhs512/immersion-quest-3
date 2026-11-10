@@ -67,6 +67,12 @@ pub struct GitStateGoal {
     #[serde(default,skip_serializing_if="Option::is_none")] pub working_files:Option<BTreeMap<String,String>>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub head_files:Option<BTreeMap<String,String>>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub parent_files:Option<BTreeMap<String,String>>,
+    /// The exact set of this repository's working folders (`git worktree list`): "." is the practice
+    /// folder and "../name" a folder beside it; each maps to its checked-out branch. A folder deleted
+    /// by hand whose record was not cleaned up counts as a different, stale entry.
+    #[serde(default,skip_serializing_if="Option::is_none")] pub worktrees:Option<BTreeMap<String,String>>,
+    /// Committed files of named local branches, wherever (in whichever working folder) they were committed.
+    #[serde(default,skip_serializing_if="Option::is_none")] pub branch_files:Option<BTreeMap<String,BTreeMap<String,String>>>,
 }
 #[derive(Clone,Debug,Serialize,Deserialize,PartialEq)]
 #[serde(tag="kind",rename_all="snake_case")]
@@ -285,7 +291,7 @@ impl GitExercise {
         if self.demo_setup.is_some(){self.demonstration().validate()?;}
         if self.files.len()>80||self.setup.len()>100||self.commands.len()>20{return Err("Git 실습의 준비 내용을 확인하세요.".into())}
         if let Some(goal)=&self.state_goal {
-            if goal.origin_url.is_none()&&goal.remote_tracking_current.is_none()&&goal.parent_count.is_none()&&goal.merge_in_progress.is_none()&&goal.unmerged_paths.is_none()&&goal.current_branch.is_none()&&goal.references.is_none()&&goal.head_exists.is_none()&&goal.commit_count.is_none()&&goal.clean.is_none()&&goal.index.is_none()&&goal.working_files.is_none()&&goal.head_files.is_none()&&goal.parent_files.is_none(){return Err("Git 목표 상태가 필요해요.".into())}
+            if goal.origin_url.is_none()&&goal.remote_tracking_current.is_none()&&goal.parent_count.is_none()&&goal.merge_in_progress.is_none()&&goal.unmerged_paths.is_none()&&goal.current_branch.is_none()&&goal.references.is_none()&&goal.head_exists.is_none()&&goal.commit_count.is_none()&&goal.clean.is_none()&&goal.index.is_none()&&goal.working_files.is_none()&&goal.head_files.is_none()&&goal.parent_files.is_none()&&goal.worktrees.is_none()&&goal.branch_files.is_none(){return Err("Git 목표 상태가 필요해요.".into())}
             if goal.origin_url.as_ref().is_some_and(|url|url.trim().is_empty()||url.len()>2048||url.chars().any(char::is_control)){return Err("목표 원격 주소를 확인하세요.".into())}
             if let Some(paths)=&goal.unmerged_paths {
                 if paths.len()>80||paths.iter().collect::<std::collections::BTreeSet<_>>().len()!=paths.len(){return Err("미병합 경로 목록을 확인하세요.".into())}
@@ -297,9 +303,18 @@ impl GitExercise {
                     return Err("목표 브랜치 참조를 확인하세요.".into());
                 }
             }
-            for files in [goal.index.as_ref(),goal.working_files.as_ref(),goal.head_files.as_ref(),goal.parent_files.as_ref()].into_iter().flatten() {
+            for files in [goal.index.as_ref(),goal.working_files.as_ref(),goal.head_files.as_ref(),goal.parent_files.as_ref()].into_iter().flatten().chain(goal.branch_files.iter().flat_map(|branches|branches.values())) {
                 if files.len()>80{return Err("Git 목표 파일이 너무 많아요.".into())}
                 for (path,content) in files {validate_file(path,content)?;}
+            }
+            if let Some(worktrees)=&goal.worktrees {
+                // One branch can be checked out in one working folder only, so an expected set
+                // that names a branch twice could never pass.
+                let branches=worktrees.values().collect::<std::collections::BTreeSet<_>>();
+                if !worktrees.contains_key(".")||worktrees.len()>10||branches.len()!=worktrees.len()||worktrees.iter().any(|(place,branch)|!(place=="."||sibling_folder(place))||!valid_branch_name(branch)){return Err("목표 작업 폴더 목록을 확인하세요.".into())}
+            }
+            if let Some(branches)=&goal.branch_files {
+                if branches.is_empty()||branches.len()>10||branches.keys().any(|name|!valid_branch_name(name)){return Err("목표 브랜치 파일을 확인하세요.".into())}
             }
         }
         if self.initial_history==GitInitialHistory::Uninitialized && (!self.files.is_empty()||!self.setup.is_empty()) {return Err("직접 시작하는 실습에는 파일이나 Git 이력을 미리 만들 수 없어요.".into())}
@@ -312,7 +327,10 @@ impl GitExercise {
             GitSetup::File{path,content}=>validate_file(path,content)?,
             GitSetup::MergeConflict{branch}=>{if !valid_branch_name(branch){return Err("충돌을 준비할 브랜치를 확인하세요.".into())}}
             GitSetup::Git{args}=>{
-                if args.len()>50 || (!(args.as_slice()==["push","origin","main"]||args.as_slice()==["fetch","origin"]) && !args.first().is_some_and(|arg|["add","commit","branch","checkout","switch","merge","rebase","cherry-pick","tag","reset"].contains(&arg.as_str()))) || args.iter().any(|arg|arg.len()>4000||arg=="-C"||(arg=="-c"&&args.first().is_none_or(|command|command!="switch"))||arg.starts_with("--git-dir")||arg.starts_with("--work-tree")||arg.starts_with("--config-env")) {return Err("Git 시작 명령을 확인하세요.".into())}
+                // A prepared second working folder is exactly `worktree add ../name branch`: it stays beside
+                // the practice folder inside the owned practice root.
+                let worktree=args.len()==4&&args[0]=="worktree"&&args[1]=="add"&&sibling_folder(&args[2])&&valid_branch_name(&args[3]);
+                if args.len()>50 || (!worktree&&!(args.as_slice()==["push","origin","main"]||args.as_slice()==["fetch","origin"]) && !args.first().is_some_and(|arg|["add","commit","branch","checkout","switch","merge","rebase","cherry-pick","tag","reset"].contains(&arg.as_str()))) || args.iter().any(|arg|arg.len()>4000||arg=="-C"||(arg=="-c"&&args.first().is_none_or(|command|command!="switch"))||arg.starts_with("--git-dir")||arg.starts_with("--work-tree")||arg.starts_with("--config-env")) {return Err("Git 시작 명령을 확인하세요.".into())}
             }
         }}
         if self.commands.iter().any(|args|args.is_empty()||args.len()>50||args.iter().any(|arg|arg.len()>4000)){return Err("검사할 Git 명령을 확인하세요.".into())}
@@ -321,6 +339,11 @@ impl GitExercise {
 }
 fn valid_branch_name(name:&str)->bool {
     !name.is_empty()&&name.len()<=200&&!name.starts_with('-')&&!name.starts_with('.')&&!name.ends_with('.')&&!name.ends_with('/')&&!name.ends_with(".lock")&&!name.contains("..")&&!name.contains("//")&&name.bytes().all(|c|c.is_ascii_alphanumeric()||b"/_-.".contains(&c))
+}
+/// "../name": a folder directly beside the practice folder, inside the owned practice root.
+fn sibling_folder(place:&str)->bool {
+    place.strip_prefix("../").is_some_and(|name|!name.is_empty()&&name.len()<=64&&!name.starts_with('-')&&name.bytes().all(|c|c.is_ascii_alphanumeric()||b"_-".contains(&c))
+        &&!["work","peer","home","step-starts"].contains(&name))
 }
 fn validate_file(path:&str,content:&str)->Result<(),String> {
     if !crate::repository_course::safe_file(path)||path.split('/').any(|part|part.eq_ignore_ascii_case(".git"))||content.len()>200_000 {return Err("Git 준비 파일 경로를 확인하세요.".into())}Ok(())
@@ -408,6 +431,31 @@ impl GitPractice {
             GitSetup::Git{args}=>{practice.checked_at(practice.work().as_path(),&args.iter().map(String::as_str).collect::<Vec<_>>())?;}
         }}
         Ok(practice)
+    }
+    /// This repository's working folders from `git worktree list --porcelain`, named relative to the
+    /// practice folder ("." or "../name") with their branch. A folder elsewhere keeps its full path and
+    /// a stale record (folder deleted by hand) is marked, so neither can match an expected place.
+    fn worktree_places(&self)->Result<(bool,BTreeMap<String,String>),String> {
+        let listed=self.execute(&self.work(),&["worktree","list","--porcelain"],false)?;
+        let work=canonical_directory(&self.work())?;let root=canonical_directory(self.root())?;
+        let mut places=BTreeMap::new();
+        for entry in String::from_utf8_lossy(&listed.stdout).replace("\r\n","\n").split("\n\n") {
+            let (mut path,mut branch,mut stale)=(None,"(분리된 HEAD)".to_owned(),false);
+            for line in entry.lines() {
+                if let Some(found)=line.strip_prefix("worktree "){path=Some(found.to_owned());}
+                else if let Some(name)=line.strip_prefix("branch refs/heads/"){branch=name.to_owned();}
+                else if line=="prunable"||line.starts_with("prunable "){stale=true;}
+            }
+            let Some(path)=path else{continue};
+            let place=match canonical_directory(Path::new(&path)) {
+                Ok(found) if !stale&&found==work=>".".to_owned(),
+                Ok(found) if !stale&&found.parent()==Some(root.as_path())=>format!("../{}",found.file_name().map(|name|name.to_string_lossy().into_owned()).unwrap_or_default()),
+                _ if stale=>format!("{path} (지운 폴더의 남은 기록)"),
+                _=>path,
+            };
+            places.insert(place,branch);
+        }
+        Ok((listed.status.success(),places))
     }
     fn merge_in_progress(&self)->Result<bool,String> {
         use std::io::Read;
@@ -622,6 +670,29 @@ impl GitPractice {
                 };
                 let passed=actual.as_deref()==Some(expected.as_bytes());
                 record(format!("{label} {path}"),passed,expected.clone(),actual.map(|bytes|String::from_utf8_lossy(&bytes).into_owned()).unwrap_or_else(||"파일 내용이 없거나 크기가 달라요.".into()));
+            }
+        }
+        if let Some(expected)=&goal.worktrees {
+            let (listed,actual)=self.worktree_places()?;
+            let show=|places:&BTreeMap<String,String>|places.iter().map(|(place,branch)|format!("{place} [{branch}]")).collect::<Vec<_>>().join(", ");
+            record("작업 폴더 목록".into(),listed&&actual==*expected,show(expected),show(&actual));
+        }
+        for (branch,files) in goal.branch_files.iter().flatten() {
+            // Read the branch from this repository, not from any folder's files: a commit made in
+            // another working folder is recorded in the same repository.
+            let tree=format!("refs/heads/{branch}");
+            let listed=self.execute(&self.work(),&["ls-tree","-r","--name-only","-z",&tree],false)?;
+            let actual=String::from_utf8_lossy(&listed.stdout).split('\0').filter(|s|!s.is_empty()).map(str::to_owned).collect::<BTreeSet<_>>();
+            let names=files.keys().cloned().collect::<BTreeSet<_>>();
+            record(format!("{branch} 브랜치 기록 목록"),listed.status.success()&&actual==names,names.into_iter().collect::<Vec<_>>().join(", "),actual.into_iter().collect::<Vec<_>>().join(", "));
+            for (path,expected) in files {
+                let object=format!("{tree}:{path}");
+                let size=self.execute(&self.work(),&["cat-file","-s",&object],false)?;
+                let actual=if size.status.success()&&String::from_utf8_lossy(&size.stdout).trim().parse::<usize>()==Ok(expected.len()) {
+                    let result=self.execute(&self.work(),&["show",&object],false)?;
+                    result.status.success().then_some(result.stdout)
+                }else{None};
+                record(format!("{branch} 브랜치 기록 {path}"),actual.as_deref()==Some(expected.as_bytes()),expected.clone(),actual.map(|bytes|String::from_utf8_lossy(&bytes).into_owned()).unwrap_or_else(||"파일 내용이 없거나 크기가 달라요.".into()));
             }
         }
         if !self.exercise.commands.is_empty(){cases.extend(self.check_commands()?.cases);}

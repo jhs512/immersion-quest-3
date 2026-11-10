@@ -22,7 +22,7 @@ fn play(p:&GitPractice,t:&Task,alternative:bool)->Result<(),String>{
             _=>continue,
         };
         if alternative&&command=="echo \"문의: 임시 창구\" >> guide.txt" {command="printf '%s\\n' '문의: 임시 창구' >> guide.txt".into();}
-        if a["expected_exit"]==1 {command=format!("{command} && exit 99; test $? -eq 1");}
+        if let Some(code)=a["expected_exit"].as_i64() {command=format!("{command} && exit 99; test $? -eq {code}");}
         lines.push(command);
         if kind=="read_memo" {if let Some(expected)=a["expected"].as_str(){lines.push(format!("test \"$(cat memo.txt)\" = {}",quote(expected.trim_end_matches('\n'))));}}
     }
@@ -69,7 +69,7 @@ fn main()->Result<(),Box<dyn std::error::Error>>{
     let root=std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let mut keys=std::env::args().skip(1).collect::<Vec<_>>();if keys.is_empty(){keys.push("git-remote".into());}
     for key in keys {
-        let pilot=match key.as_str(){"git-first"=>"k","git-branch"=>"l","git-remote"=>"어","git-branch-advanced"=>"굳",_=>return Err("unsupported Git lesson".into())};
+        let pilot=match key.as_str(){"git-first"=>"k","git-branch"=>"l","git-remote"=>"어","git-branch-advanced"=>"굳","git-worktree"=>"워",_=>return Err("unsupported Git lesson".into())};
         let raw=std::fs::read(root.join(format!("courses/redesigned/{key}.json")))?;
         let course=CourseManifest::parse(&std::fs::read_to_string(root.join(format!("tests/fixtures/player-pilot/{pilot}/course.json")))?)?;
         let digest=format!("{:x}",Sha256::digest(&raw));if digest!=course.lessons[0].sha256{return Err("fixture hash mismatch".into());}
