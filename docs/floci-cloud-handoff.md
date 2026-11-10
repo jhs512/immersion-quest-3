@@ -105,9 +105,24 @@
 - **고침(기존 실패)**: `tools/test_narration_openings.py`가 91개 수업에서 실패했다. 도입문을 넣기 전 고정 커밋 `8520082b`의 수업과 그대로 같아야 한다고 비교했는데, 그 뒤 정상적으로 바뀐 수업이 많았다. 이제 현재 원본(`content.json`)과 비교해 해설 말 이외의 필드·채점·동작이 그대로인지 확인한다. 전체 스텝 수도 1118로 고쳤다. 정답 필드나 명령 하나를 바꾸면 실패하는 것을 확인했다.
 - **고침(기존 실패)**: `tests/redesigned_java_values.rs`. 커밋 `1f22299d`가 java-values 마지막 문제를 우유·빵 합계로 바꿨는데 검사는 아직 `(quantity + added)`를 치환했다. 이제 `(milk + bread)`를 치환하고, 치환이 실제로 일어났는지도 확인한다. 통과.
 - **미검증**: 실제 음성 재생과 음성·강조의 동기화는 듣지 않았다(파일럿은 음성을 끈다).
-- **미검증**: Mac·arm64, 오프라인 준비(게스트 부팅 중 `apk` 설치에 인터넷 필요), 다중 사용자 격리.
+- **미검증**: Mac·arm64 Docker 실행(단위 검사만 통과, 아래 「맥 검증」), 오프라인 준비(게스트 부팅 중 `apk` 설치에 인터넷 필요), 다중 사용자 격리.
 - **분류**: 2026-11-10 사용자 결정 「클라우드 새로 만들고」로 자바 과정에 「클라우드」 분류를 새로 만들고 이 수업을 옮겼다. 다른 수업의 분류는 그대로다.
 - **배포 안 함**: 수업 저장소 게시·과정 매니페스트 배포·설치 앱 반영·push 외 원격 작업은 하지 않았다. 게시하려면 기존 게시 절차(`tools/publish-*.py` 계열)를 별도로 검토해야 한다.
+
+## 맥 검증 (2026-11-10)
+
+환경: macOS 26.5.1(25F80), Apple M4(arm64), Docker Desktop 4.87.0(엔진 29.7.2, linux/arm64), cargo/rustc 1.99.1. **AWS CLI 없음**(PATH·`/usr/local/bin`·`/opt/homebrew/bin` 모두 없음). 지시에 따라 설치하지 않았다. 새 clone(`~/projects/immersion-quest-3`, 커밋 `7c9aa89e`)에서 실행했다.
+
+| 검사 | 결과 |
+|---|---|
+| `cargo test --lib cloud_practice -- --test-threads=1` | **통과**: 13 통과 / 0 실패 / 10 ignored(빌드 포함 158초). Windows보다 1개 많은 것은 Unix 전용 `empty_config_refuses_a_link_without_touching_its_target`이다 |
+| `docker_cloud_lesson_subnet_steps` | **실패(준비물 없음)**, 5초. `prepare_cloud`가 자원을 만들기 전에 「AWS CLI v2를 찾을 수 없어요」로 멈췄다(`src/cloud_practice_tests.rs:795`). 수업·런타임 동작은 확인하지 못했다 |
+| `docker_cloud_lesson_server_steps` | **실패(준비물 없음)**, 5초. 같은 이유(`:887`). arm64 DIND·Java 25 게스트 경로는 **미검증**이다 |
+| `cargo test --test player_cloud_native` | **실행 안 함(미검증)**. 같은 `prepare_cloud`에서 막히므로 돌리지 않았다 |
+
+- 코드 결함이 아니라 준비물 부재라 코드는 고치지 않았다. 두 Docker 검사 모두 호스트 인벤토리 전후가 같았고, 끝난 뒤 `gg.molip.cloud-practice` 라벨 컨테이너·네트워크·볼륨·이미지는 0개였다.
+- 증거: [evidence/mac](../.scratch/floci-course-wayfinder/evidence/mac/)(테스트 로그, `cloud-native-evidence/`의 이번 실행 인벤토리).
+- 다음: 맥에 AWS CLI v2(`aws --version`이 `aws-cli/2.`)를 설치하거나 `MOLIP_AWS`로 지정한 뒤 위 두 Docker 검사와 파일럿을 직렬로 다시 돌린다.
 
 ## 재개 순서
 
