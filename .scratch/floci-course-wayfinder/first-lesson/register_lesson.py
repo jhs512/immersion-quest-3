@@ -57,7 +57,9 @@ def main():
 
     classes = load('tools/redesigned_courses/lesson-classification.json')
     lessons = classes['courses']['java']['lessons']
-    lessons[KEY] = {'category': 'network', 'track': None, 'status': 'approved', 'decided_by': '사용자 위임: 2026-11-10 클라우드 첫 수업 구현·검증 진행 지시(분류는 작성자 판단)', 'decided_on': '2026-11-10', 'title': '클라우드 · 주소 공간 안에 서버 한 대를 배치해요', 'evidence': {'category': 'VPC·서브넷은 가상 네트워크의 주소 범위예요. 새 클라우드 분류는 사용자 결정이 필요해서 기존 네트워크 분류에 둬요.', 'track': '새 트랙이나 진도 잠금은 만들지 않아요.'}}
+    if not any(c['id'] == 'cloud' for c in classes['courses']['java']['categories']):
+        classes['courses']['java']['categories'].append({'id': 'cloud', 'title': '클라우드'})
+    lessons[KEY] = {'category': 'cloud', 'track': None, 'status': 'approved', 'decided_by': '사용자(jhs512): 2026-11-10 「클라우드 새로 만들고」', 'decided_on': '2026-11-10', 'title': '클라우드 · 주소 공간 안에 서버 한 대를 배치해요', 'evidence': {'category': '사용자가 새 클라우드 분류를 지시했어요. VPC·서브넷·서버 배치와 이후 수명주기·S3 수업을 묶어요.', 'track': '새 트랙이나 진도 잠금은 만들지 않아요.'}}
     save('tools/redesigned_courses/lesson-classification.json', classes)
 
     release = load('tools/redesigned_courses/release.json')

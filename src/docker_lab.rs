@@ -337,7 +337,7 @@ pub fn engine(cli:&Path)->Result<String,String> {engine_details(cli,engine_info(
 
 /// A requested lesson starts installed Docker Desktop once and waits for its
 /// engine, then continues the same run without changing the learner's code.
-fn ensure_engine(cli:&Path)->Result<String,String> {
+pub(crate) fn ensure_engine(cli:&Path)->Result<String,String> {
     static STARTING:std::sync::Mutex<()>=std::sync::Mutex::new(());
     if let Ok(info)=engine_info(cli,5){return engine_details(cli,info)}
     let _starting=STARTING.lock().unwrap_or_else(|p|p.into_inner());

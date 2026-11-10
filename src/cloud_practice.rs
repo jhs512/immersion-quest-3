@@ -523,6 +523,8 @@ impl GitPractice {
         let Some(exercise) = &self.exercise.cloud else { return Ok(vec![]) };
         exercise.validate()?;
         let root = self.root();
+        // Like a Docker lesson: start installed local Docker Desktop once and wait for its engine.
+        crate::docker_lab::ensure_engine(&docker_cli()?)?;
         if require(&["info", "--format", "{{.OSType}}"], 20)?.trim() != "linux" {
             return Err("Docker Desktop을 Linux 컨테이너 모드로 실행하세요.".into());
         }

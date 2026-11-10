@@ -30,6 +30,7 @@
 
 - `CloudExercise.editable`(선택, 최대 4개): 편집기에 보여 줄 준비 파일 목록. 준비·해설 파일에 있어야 검증을 통과한다. Compose와 같은 `editable_files`/`save_editable` 경로를 쓴다. `git_terminal_ui`, `auto_review`, `player_ui` 라벨, 빌더의 강조 검사가 이 목록을 인식한다.
 - 채점 피드백의 「다시 시작」을 실제 버튼 이름 「초기화」로 고쳤다(`src/cloud_practice.rs`).
+- 클라우드 실습 준비가 Docker 수업과 같이 `docker_lab::ensure_engine`으로 꺼진 로컬 Docker Desktop을 한 번 켜고 엔진을 최대 120초 기다린다(2026-11-10 앱 검증 중 발견: 전에는 「Docker 엔진에 연결하지 못했어요」로 멈췄다).
 - 문서: [네이티브 연결·콘텐츠 계약](floci-cloud-native-runtime.md)에 `editable`을 추가했다.
 
 ### 3. 첫 수업 `cloud-vpc-subnet-ec2` 제작·등록
@@ -49,7 +50,7 @@
 - 7번은 새 서브넷의 ID 변수가 없으므로 `launch-server.sh`가 `subnet-id.sh <CIDR>`로 ID를 찾는다. 해설의 `patch_code`가 정적 값만 고칠 수 있기 때문이기도 하다. `LAB_SUBNET_B_ID`를 가정하지 않고 ID·주소를 하드코딩하지 않는다.
 - 해설은 동적 주소만 `aws ... --output text > server-address.txt`로 옮겨 적고 그 사실을 말한다. 5번 해설은 시연 화면에 초기화가 없어 처음 명령을 말로 짚고 바로 고친다. 그래야 해설 재생(자동 풀이와 같은 경로)이 시작 상태에서 통과 상태에 이른다.
 - 라우팅·NACL·NAT·피어링·보안 그룹을 가르치지 않고, 예고 제약에 「다루지 않아요」로 적었다.
-- 등록: Java 카탈로그(선택 수업, `cloud-vpc-subnet-ec2-1`, 검증 코스 `클`), `backend-sequence` 흐름(docker-compose-db 다음, 선수 6개, `cloud_rationale`), 마지막 문제 지정, 분류(기존 **네트워크** 분류, 작성자 판단. 아래 남은 사항), release 변경 기록, 해설 도입문, 의미 검토 기록.
+- 등록: Java 카탈로그(선택 수업, `cloud-vpc-subnet-ec2-1`, 검증 코스 `클`), `backend-sequence` 흐름(docker-compose-db 다음, 선수 6개, `cloud_rationale`), 마지막 문제 지정, 분류(사용자 결정으로 새 「클라우드」 분류), release 변경 기록, 해설 도입문, 의미 검토 기록.
 - 기존 수업·목표·진도 보존: 기존 수업의 ID·revision·순서·본문은 바뀌지 않았다. 과정 흐름이 바뀌어 네트워크 8개 예고의 `course_intent_sha256`과 정렬 해시만 다시 찍었다(`intent_restamped` 메모). 다시 찍기 전에 기존 해시가 맞았는지 먼저 확인했다. `build-redesigned-git.py --check`가 전체 수업에서 통과한다.
 - `network-`만 보던 정식 예고 경로를 `CANONICAL_PREVIEW_PREFIXES = ('network-', 'cloud-')`로 넓혔다.
 
@@ -78,7 +79,7 @@
 | `cargo test --lib` | `course_authoring_tests`의 Java 수업 수 56→57 갱신 뒤 통과 |
 | `cargo test --test lesson_registry` | 통과. 기대값을 실제 111개 / 1118 스텝으로 고쳤다(이전 102/1071은 네트워크 8개 추가 전부터 낡은 값) |
 | `bundled_courses`·`backend_journeys`·`challenges`·`network_foundations` | 통과(Java 수업 수 57) |
-| `cargo test --tests --no-fail-fast` | 125개 묶음: 400 통과 / **1 실패** / 177 ignored. 실패는 아래 기존 `redesigned_java_values` |
+| `cargo test --tests --no-fail-fast` | 125개 묶음: 400 통과 / **1 실패** / 177 ignored. 실패는 기존 `redesigned_java_values`였고 뒤에 고쳐 통과한다(아래 6) |
 
 ## 작업 폴더 증거의 저장소 사본
 
@@ -89,14 +90,23 @@
 - 커밋 전 검사: 들어 있는 자격 값은 실습용 `test` 더미뿐이다. 실제 키 형식(AKIA·ASIA·ghp_ 등)은 없었다. 인벤토리는 컨테이너 Config·Env를 담지 않는다.
 - 앞으로 실행한 증거는 다시 `target/`에 쌓인다. 남길 실행만 이 폴더에 복사한다.
 
+### 6. 실제 앱(개발 빌드)에서의 확인
+
+`tests/player_cloud_native.rs`가 디버그 플레이어를 파일럿 모드(검증 코스 `클`)로 띄우고 `tools/player-pilot-code-lesson.js`의 클라우드 분기를 실행한다. 설치 앱은 쓰지 않았다.
+
+- 결과: **7개 스텝 모두 통과**(1034초), 수업 완료 이벤트 1개, 통과 문제 7개. 기록: [evidence/native/pilot-run-2.log](../.scratch/floci-course-wayfinder/evidence/native/pilot-run-2.log), [결과 JSON](../.scratch/floci-course-wayfinder/evidence/native/pilot-cloud-vpc-subnet-ec2-result.json).
+- 스텝마다 확인: 편집기 탭이 `editable`과 같고 준비 파일을 보여 줌 → 시작 상태 제출 거절 → 해설의 편집·명령을 **학생 편집기와 터미널**에서 실행해 통과 → **해설 재생**(별도 런타임)이 모든 명령을 끝내고 학생 파일·상태를 바꾸지 않음 → 「초기화」가 새 런타임과 원래 파일을 주고 다시 거절.
+- 첫 시도(`pilot-run-1.log`)는 Docker Desktop이 꺼져 있어 클라우드 준비가 엔진 연결에서 멈췄다. 이를 고쳐(위 2) 두 번째 실행은 Docker Desktop이 꺼진 상태에서 시작해 앱이 켰다.
+- 실행 뒤 `gg.molip.cloud-practice` 라벨 컨테이너는 0개였다.
+- 이번 변경 뒤 다시 실행: `cargo test --lib` 142 통과, lesson_registry·bundled_courses·backend_journeys·challenges·network_foundations·redesigned_java_values 통과, `test_narration_openings.py` OK, `build-redesigned-git.py --check` 전체 통과.
+
 ## 실패·미검증으로 남은 것
 
-- **실패(기존)**: `python tools/test_narration_openings.py`가 91개 수업에서 실패한다. 깨끗한 `873fdc4b` 작업 사본에서도 같은 91개가 실패해 이번 변경과 무관하다. 새 수업은 실패 목록에 없다. 고치지 않았다.
-- **실패(기존)**: `tests/redesigned_java_values.rs:16` 「Memorized total must fail」. 커밋 `1f22299d`가 java-values 마지막 문제를 우유·빵 합계로 바꿨는데 검사는 아직 `(quantity + added)`를 치환한다. 치환이 일어나지 않아 「외운 답」이 정답과 같아진다. 이 수업·검사는 이번 작업이 건드리지 않았고 고치지 않았다.
-- **미검증**: 앱 화면(편집기 탭·자동 저장·「초기화」 뒤 편집기 갱신·해설의 편집기 강조와 음성 동기화)을 실제 앱으로 열어 보지 않았다. 편집기 경로는 Compose와 같은 코드이고 단위 검사로 목록·저장 제한만 확인했다.
-- **미검증**: 해설을 앱의 해설 모드로 재생하지 않았다. 같은 명령·편집을 테스트에서 재생해 결과만 확인했다. 실제 음성 재생도 하지 않았다.
+- **고침(기존 실패)**: `tools/test_narration_openings.py`가 91개 수업에서 실패했다. 도입문을 넣기 전 고정 커밋 `8520082b`의 수업과 그대로 같아야 한다고 비교했는데, 그 뒤 정상적으로 바뀐 수업이 많았다. 이제 현재 원본(`content.json`)과 비교해 해설 말 이외의 필드·채점·동작이 그대로인지 확인한다. 전체 스텝 수도 1118로 고쳤다. 정답 필드나 명령 하나를 바꾸면 실패하는 것을 확인했다.
+- **고침(기존 실패)**: `tests/redesigned_java_values.rs`. 커밋 `1f22299d`가 java-values 마지막 문제를 우유·빵 합계로 바꿨는데 검사는 아직 `(quantity + added)`를 치환했다. 이제 `(milk + bread)`를 치환하고, 치환이 실제로 일어났는지도 확인한다. 통과.
+- **미검증**: 실제 음성 재생과 음성·강조의 동기화는 듣지 않았다(파일럿은 음성을 끈다).
 - **미검증**: Mac·arm64, 오프라인 준비(게스트 부팅 중 `apk` 설치에 인터넷 필요), 다중 사용자 격리.
-- **사용자 결정 필요**: 분류는 기존 「네트워크」로 두었다(테스트가 빈 분류를 막는다). 「클라우드」 분류를 새로 둘지는 사용자 결정이다.
+- **분류**: 2026-11-10 사용자 결정 「클라우드 새로 만들고」로 자바 과정에 「클라우드」 분류를 새로 만들고 이 수업을 옮겼다. 다른 수업의 분류는 그대로다.
 - **배포 안 함**: 수업 저장소 게시·과정 매니페스트 배포·설치 앱 반영·push 외 원격 작업은 하지 않았다. 게시하려면 기존 게시 절차(`tools/publish-*.py` 계열)를 별도로 검토해야 한다.
 
 ## 재개 순서
