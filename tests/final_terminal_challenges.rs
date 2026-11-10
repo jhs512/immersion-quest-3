@@ -108,15 +108,19 @@ fn teacher(task:&Task)->GitPractice {
     let demo=GitPractice::new(task.git_terminal.clone().unwrap().demonstration()).unwrap();
     match kind(task) {
         Kind::Git=>{
+            // One shell session, as in the demonstration terminal: a narrated `cd ../hotfix` carries
+            // to the next command. Every command must end with its recorded exit code (default 0).
+            let mut script=vec![];
             for a in &task.narration {
                 let line=match a["action"].as_str().unwrap() {
                     "git_command"=>format!("git {}",a["args"].as_array().unwrap().iter().map(|v|quote(v.as_str().unwrap())).collect::<Vec<_>>().join(" ")),
                     "bash_command"=>a["command"].as_str().unwrap().to_owned(),
                     _=>continue,
                 };
-                let ok=bash(&demo,&line);
-                assert_eq!(ok,a["expected_exit"]!=1,"{}: teacher command {line}",task.title);
+                let code=a["expected_exit"].as_i64().unwrap_or(0);
+                script.push(format!("{line}\nif [ $? -ne {code} ]; then exit 90; fi"));
             }
+            assert!(bash(&demo,&script.join("\n")),"{}: a teacher command ended with another exit code",task.title);
         },
         _=>{
             let mut pty=Pty::open(&demo,matches!(kind(task),Kind::Vim));
@@ -198,3 +202,4 @@ fn verify(key:&str) {
 #[test] fn git_branch_final_challenge(){verify("git-branch");}
 #[test] fn git_remote_final_challenge(){verify("git-remote");}
 #[test] fn git_branch_advanced_final_challenge(){verify("git-branch-advanced");}
+#[test] fn git_worktree_final_challenge(){verify("git-worktree");}

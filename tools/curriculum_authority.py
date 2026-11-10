@@ -1,6 +1,6 @@
 """Authoring contract: course intent -> lesson preview -> PRD -> executable work.
 
-Canonical previews bind only the network series and the cloud lessons. Existing courses'
+Canonical previews bind only the network series, the cloud lessons and the Git worktree lesson. Existing courses'
 other preview sources remain unchanged. Structural checks do not replace review.
 """
 import hashlib
@@ -16,7 +16,7 @@ def digest(value):
 
 
 # Lessons whose learner-facing preview is a canonical, reviewed file bound to the course intent.
-CANONICAL_PREVIEW_PREFIXES = ('network-', 'cloud-')
+CANONICAL_PREVIEW_PREFIXES = ('network-', 'cloud-', 'git-worktree')
 
 
 def course_intent(course):

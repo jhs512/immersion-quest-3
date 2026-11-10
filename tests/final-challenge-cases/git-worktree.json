@@ -1,0 +1,68 @@
+{
+  "step": "stp_766d9f5c-ed41-48c5-bd20-7cf8246b240d",
+  "sources": {},
+  "accept": [
+    {
+      "steps": [
+        "git worktree add ../hotfix hotfix",
+        "cd ../hotfix && echo \"운영: 평일 9시부터\" >> guide.txt && git add guide.txt && git commit -m \"운영 시간 안내\"",
+        "git log --oneline hotfix",
+        "git worktree remove ../hotfix",
+        "git worktree list",
+        "git status"
+      ],
+      "reason": "teacher commands"
+    },
+    {
+      "steps": [
+        "git worktree add ../hotfix",
+        "printf '%s\\n' '운영: 평일 9시부터' >> ../hotfix/guide.txt",
+        "git -C ../hotfix commit -am 운영",
+        "rm -r ../hotfix",
+        "git worktree prune"
+      ],
+      "reason": "branch named after the folder, commit with -C, folder deleted by hand and pruned"
+    }
+  ],
+  "reject": [
+    {
+      "steps": [
+        "echo \"운영: 평일 9시부터\" >> guide.txt",
+        "git commit -am 운영"
+      ],
+      "reason": "committed on main with the half-written search line"
+    },
+    {
+      "steps": [
+        "git worktree add ../hotfix hotfix",
+        "cd ../hotfix && echo \"운영: 평일 9시부터\" >> guide.txt && git commit -am 운영"
+      ],
+      "reason": "hotfix committed but the folder left in place"
+    },
+    {
+      "steps": [
+        "git worktree add ../hotfix hotfix",
+        "cd ../hotfix && echo \"운영: 평일 9시부터\" >> guide.txt && git commit -am 운영",
+        "rm -r ../hotfix"
+      ],
+      "reason": "folder deleted by hand, record left"
+    },
+    {
+      "steps": [
+        "git switch -f hotfix",
+        "echo \"운영: 평일 9시부터\" >> guide.txt",
+        "git commit -am 운영",
+        "git switch main"
+      ],
+      "reason": "forced switch discards the search line"
+    },
+    {
+      "steps": [
+        "git worktree add ../hotfix hotfix",
+        "cd ../hotfix && echo \"운영: 평일 9시부터\" >> guide.txt",
+        "git worktree remove --force ../hotfix"
+      ],
+      "reason": "hotfix line written but discarded with the forced removal"
+    }
+  ]
+}
