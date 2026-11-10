@@ -971,3 +971,28 @@ fn docker_cloud_lesson_server_steps() {
         println!("PASS lesson server steps 4-7");
     });
 }
+
+/// Step 6's explanation lane while the learner's own runtime of that step is running, as in the player.
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine; runs two privileged Docker-in-Docker runtimes with Java guests"]
+fn docker_cloud_lesson_request_demo_beside_student() {
+    let steps = lesson_steps();
+    guarded("lesson-request-demo", |owned| {
+        let student = GitPractice::new(steps[5].exercise.clone()).unwrap();
+        owned.push(owner(student.root()));
+        let started = Instant::now();
+        student.prepare_cloud().unwrap();
+        println!("  student ready in {:?}", started.elapsed());
+        let teacher = GitPractice::new(steps[5].exercise.demonstration()).unwrap();
+        owned.push(owner(teacher.root()));
+        let started = Instant::now();
+        let prepared = teacher.prepare_cloud();
+        println!("  teacher prepare in {:?}: {:?}", started.elapsed(), prepared.as_ref().map(|_| "ok"));
+        let env = prepared.unwrap();
+        let out = replay(&teacher, &env, &steps[5], "demo-beside");
+        has(&out, 4, &["HTTP/1.1 200 OK"]);
+        assert!(teacher.check_exercise().unwrap().passed);
+        teacher.release_network_demo();
+        student.cleanup_cloud().unwrap();
+    });
+}

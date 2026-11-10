@@ -42,6 +42,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     let mut java_source=use_signal(||None::<String>);
     let is_vim=exercise.vim.is_some();
     let is_docker=exercise.docker.is_some();
+    let is_cloud=exercise.cloud.is_some();
     // A Compose step: the files of the terminal's folder in an editor above the terminal.
     let is_compose=exercise.docker.as_ref().is_some_and(|d|d.compose.is_some());
     let is_gitlab=exercise.gitlab.is_some();
@@ -56,7 +57,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     let gitlab_session=try_use_context::<molip_quest::git_practice::GitlabLessonSession>();
     let mut docker_note=use_signal(||None::<String>);
     // Starting Docker Desktop or pulling a prepared image can take a while before the prompt.
-    let mut docker_preparing=use_signal(move||is_docker||is_gitlab);
+    let mut docker_preparing=use_signal(move||is_docker||is_gitlab||is_cloud);
     let graph_enabled=!is_shell&&!is_java&&!is_vim;
     let graph_requested=use_hook(||Arc::new(std::sync::atomic::AtomicBool::new(true)));
     let graph_request=graph_requested.clone();
@@ -247,6 +248,8 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     rsx!{div {class:if is_java{"git-terminal-shell java-build-workspace"}else if has_editors{"git-terminal-shell java-build-workspace compose-workspace"}else{"git-terminal-shell"},
         if is_gitlab&&!demo {p {class:"practice-start-notice",role:"status",if docker_preparing(){"로컬 GitLab을 준비하고 있어요. 최초 실행에는 몇 분 걸릴 수 있어요."}else{"로컬 GitLab · 실습 계정 자동 연결"}}}
         if restored_start() {p {class:"practice-start-notice",role:"status","앞 단계의 파일과 Git 상태를 준비했어요. 현재 문제의 작업은 직접 진행하세요."}}
+        // A cloud step starts its own local cloud (and, for servers, guests) before the prompt: minutes, not seconds.
+        if is_cloud&&docker_preparing() {p {class:"practice-start-notice",role:"status",if demo{"해설용 클라우드 실습 환경을 따로 준비하고 있어요. 서버 문제는 몇 분 걸릴 수 있어요."}else{"클라우드 실습 환경을 준비하고 있어요. Docker가 꺼져 있으면 자동으로 켜요. 서버 문제는 처음에 몇 분 걸릴 수 있어요."}}}
         if is_docker {div {class:"docker-notes",
             if docker_preparing()&&!demo {p {class:"practice-start-notice",role:"status","Docker를 준비하고 있어요. 꺼져 있으면 자동으로 켜요."}}
             if let Some(note)=docker_note() {p {class:"practice-start-notice",role:"status","{note} 현재 문제의 명령은 직접 입력하세요."}}

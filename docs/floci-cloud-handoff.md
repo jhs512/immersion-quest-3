@@ -100,6 +100,14 @@
 - 실행 뒤 `gg.molip.cloud-practice` 라벨 컨테이너는 0개였다.
 - 이번 변경 뒤 다시 실행: `cargo test --lib` 142 통과, lesson_registry·bundled_courses·backend_journeys·challenges·network_foundations·redesigned_java_values 통과, `test_narration_openings.py` OK, `build-redesigned-git.py --check` 전체 통과.
 
+### 7. AWS CLI 컨테이너 실행과 해설 대기 버그 (2026-11-10, 사용자 결정 「추천대로」)
+
+- 학생 컴퓨터에 AWS CLI를 설치하지 않는다. 학생의 `aws`와 채점기가 고정 공식 이미지 `public.ecr.aws/aws-cli/aws-cli:2.39.7@sha256:73f81e…`(amd64·arm64)를 실습 네트워크에서 실행한다(`82a156e0`). 수업 JSON은 바이트까지 같아 게시된 수업 태그가 그대로 유효하다. Windows 실제 실행: 서브넷 133초, 서버 333초 통과. aws 호출 하나가 약 0.7초→1.2초로 늘었다.
+- **앱 버그(고침)**: 「해설 재생」이 해설 화면 준비를 45초까지만 기다리고 「해설 시연을 준비하지 못했어요」로 끝냈다(`src/player_ui.rs`). 서버 문제의 해설용 클라우드 준비는 45초를 넘을 수 있다(6번 실측 45.5~45.7초, 맥은 더 길다). 클라우드 실습만 15분으로 늘렸고 다른 수업은 45초 그대로다.
+- **안내 추가**: 클라우드 실습 준비 중 학생·해설 화면에 준비 안내를 띄운다(`src/git_terminal_ui.rs`).
+- 파일럿 보강: 해설 시작 15분 대기, `MOLIP_PILOT_FROM`(특정 스텝부터 시작), 앱 로그 보존(`target/pilot-<수업>-app.log`).
+- 결과: 앱 파일럿 실패 2회(`pilot-run-3/4`, 6번 해설 시작) → 원인 재현(`pilot-run-5-from6`, 해설 터미널이 ready 전에 닫힘) → 수정 뒤 6번부터 통과(`pilot-run-6-from6`) → **전체 7/7 통과**(`pilot-run-7`, 1110초, 남은 라벨 자원 0). 해설 옆 학생 환경 재현 검사 `docker_cloud_lesson_request_demo_beside_student` 통과(학생 46.6초, 해설 46.5초).
+
 ## 실패·미검증으로 남은 것
 
 - **고침(기존 실패)**: `tools/test_narration_openings.py`가 91개 수업에서 실패했다. 도입문을 넣기 전 고정 커밋 `8520082b`의 수업과 그대로 같아야 한다고 비교했는데, 그 뒤 정상적으로 바뀐 수업이 많았다. 이제 현재 원본(`content.json`)과 비교해 해설 말 이외의 필드·채점·동작이 그대로인지 확인한다. 전체 스텝 수도 1118로 고쳤다. 정답 필드나 명령 하나를 바꾸면 실패하는 것을 확인했다.

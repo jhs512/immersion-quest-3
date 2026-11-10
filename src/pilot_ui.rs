@@ -61,7 +61,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             let row=molip_quest::lesson_registry::find("sql-first").unwrap();
             format!("window.mqSqlPilot={};{}",serde_json::json!({"version":row.pilot.to_string(),"lesson":serde_json::from_str::<serde_json::Value>(row.lesson).unwrap()}),include_str!("../tools/player-pilot-sql-browser.js"))
         } else if let Some(script)=std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref().and_then(molip_quest::lesson_registry::self_test_script) {
-            script
+            // MOLIP_PILOT_FROM: start a lesson pilot at this step index to reproduce one step quickly.
+            format!("window.mq3PilotFrom={};{script}",std::env::var("MOLIP_PILOT_FROM").ok().and_then(|v|v.parse::<usize>().ok()).unwrap_or(0))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("interaction-example") {include_str!("../tools/player-pilot-example.js").to_owned()} else {format!("window.mq3FirstGitOnly={};window.mq3IncludeGitBranch={};{}",matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("git-first"|"git-lessons")),std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()!=Some("git-first"),include_str!("../tools/player-pilot-native.js"))};
         let mut bridge = document::eval(&script);
         let mut progress_lock:Option<rusqlite::Connection>=None;

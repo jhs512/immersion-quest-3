@@ -83,6 +83,7 @@
    return flows.length?`${flows.length} traced steps on lines ${flowSeeks.map(seen=>`${seen.at.line} (${seen.at.step}/${seen.at.steps}, ${seen.stack.join(' > ')})`).join(', ')}`:'';
   };
   for(const [index,task] of pilot.tasks.entries()){
+   if(index<(window.mq3PilotFrom||0)){molipShortcuts.move('next');await new Promise(r=>setTimeout(r,300));continue;}
    if(task.git_terminal?.cloud){
     // A cloud step grades the owned local EC2 API state. The learner's answer is the narration's own
     // edits and commands, made in the learner's editor and terminal; the teacher uses its own runtime.
@@ -119,7 +120,8 @@
     }
     const solved=await files();
     await submit('passed','learner cloud state accepted');
-    await click('해설 재생');await wait(()=>molipAgent.running,'cloud teacher begins');
+    // The teacher prepares its own cloud first; server steps take minutes before narration starts.
+    await click('해설 재생');await wait(()=>molipAgent.running,'cloud teacher begins',minutes(15));
     await wait(()=>!molipAgent.running&&document.querySelector('.repository-task')?.dataset.narrating==='false','cloud teacher ends',minutes(30));
     verifyTeacher(task);
     if(teacherResult.includes('중단했습니다')||teacherResult.includes('해설을 멈췄어요')||teacherResult.split('bash_command:').length-1!==task.narration.filter(a=>a.action==='bash_command').length)throw Error(`Cloud teacher did not finish: ${teacherResult}`);

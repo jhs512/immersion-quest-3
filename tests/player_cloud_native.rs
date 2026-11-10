@@ -13,11 +13,15 @@ fn cloud_lesson_steps_grade_teach_and_reset_in_the_player() {
     native_player::configure(&session,&mut command,mode);
     command.env("MOLIP_PILOT_SELF_TEST",mode);
     let status=native_player::wait(&mut command.spawn().unwrap(),5700,mode);
+    // The player log (stage marks, errors) lives in the session folder, removed with it: keep a copy.
+    let _=std::fs::copy(session.directory().join(format!("{mode}.log")),format!("target/pilot-{mode}-app.log"));
+    let from=std::env::var("MOLIP_PILOT_FROM").ok().and_then(|v|v.parse::<usize>().ok()).unwrap_or(0);
     let raw=std::fs::read_to_string("target/pilot-native-result.json").unwrap();
     std::fs::write(format!("target/pilot-{mode}-result.json"),&raw).unwrap();
     let result:serde_json::Value=serde_json::from_str(&raw).unwrap();
     assert!(status.success()&&result["passed"]==true,"{result}");
-    assert_eq!(result["checked"].as_array().unwrap().len(),7,"{result}");
+    assert_eq!(result["checked"].as_array().unwrap().len(),7-from,"{result}");
+    if from>0 {return;}
     let store:serde_json::Value=serde_json::from_slice(&std::fs::read(session.directory().join("pilot-remote.json")).unwrap()).unwrap();
     let events:Vec<_>=store["comments"].as_array().unwrap().iter().flat_map(|comment|molip_quest::issue_progress::parse_events(comment["body"].as_str().unwrap())).collect();
     use molip_quest::issue_progress::EventKind;
