@@ -302,6 +302,14 @@ fn ami_architecture_comes_from_the_docker_image() {
     assert_eq!(ami_architecture(""), None);
 }
 
+#[test]
+fn guest_base_is_x86_64_for_the_lessons_t3_micro_and_floci_is_native() {
+    // Floci launches the guest with the AMI's platform, and t3.micro accepts only x86_64.
+    assert_eq!(image_platform(TEMURIN), "linux/amd64");
+    let native = if cfg!(target_arch = "aarch64") { "linux/arm64" } else { "linux/amd64" };
+    assert_eq!(image_platform(FLOCI), native);
+}
+
 // -- Docker-gated native tests ------------------------------------------------------------
 fn evidence_dir() -> PathBuf {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/cloud-native-evidence");

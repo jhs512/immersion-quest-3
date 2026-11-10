@@ -113,24 +113,35 @@
 - **고침(기존 실패)**: `tools/test_narration_openings.py`가 91개 수업에서 실패했다. 도입문을 넣기 전 고정 커밋 `8520082b`의 수업과 그대로 같아야 한다고 비교했는데, 그 뒤 정상적으로 바뀐 수업이 많았다. 이제 현재 원본(`content.json`)과 비교해 해설 말 이외의 필드·채점·동작이 그대로인지 확인한다. 전체 스텝 수도 1118로 고쳤다. 정답 필드나 명령 하나를 바꾸면 실패하는 것을 확인했다.
 - **고침(기존 실패)**: `tests/redesigned_java_values.rs`. 커밋 `1f22299d`가 java-values 마지막 문제를 우유·빵 합계로 바꿨는데 검사는 아직 `(quantity + added)`를 치환했다. 이제 `(milk + bread)`를 치환하고, 치환이 실제로 일어났는지도 확인한다. 통과.
 - **미검증**: 실제 음성 재생과 음성·강조의 동기화는 듣지 않았다(파일럿은 음성을 끈다).
-- **미검증**: Mac·arm64 Docker 실행(단위 검사만 통과, 아래 「맥 검증」), 오프라인 준비(게스트 부팅 중 `apk` 설치에 인터넷 필요), 다중 사용자 격리.
+- **맥**: Docker 서브넷·서버 검사는 통과, 앱 파일럿은 미검증(아래 「맥 검증」). **미검증**: 오프라인 준비(게스트 부팅 중 `apk` 설치에 인터넷 필요), 다중 사용자 격리.
 - **분류**: 2026-11-10 사용자 결정 「클라우드 새로 만들고」로 자바 과정에 「클라우드」 분류를 새로 만들고 이 수업을 옮겼다. 다른 수업의 분류는 그대로다.
 - **배포 안 함**: 수업 저장소 게시·과정 매니페스트 배포·설치 앱 반영·push 외 원격 작업은 하지 않았다. 게시하려면 기존 게시 절차(`tools/publish-*.py` 계열)를 별도로 검토해야 한다.
 
 ## 맥 검증 (2026-11-10)
 
-환경: macOS 26.5.1(25F80), Apple M4(arm64), Docker Desktop 4.87.0(엔진 29.7.2, linux/arm64), cargo/rustc 1.99.1. **AWS CLI 없음**(PATH·`/usr/local/bin`·`/opt/homebrew/bin` 모두 없음). 지시에 따라 설치하지 않았다. 새 clone(`~/projects/immersion-quest-3`, 커밋 `7c9aa89e`)에서 실행했다.
+환경: macOS 26.5.1(25F80), Apple M4(arm64), Docker Desktop 4.87.0(엔진 29.7.2, linux/arm64, containerd 이미지 저장소), cargo/rustc 1.99.1. **AWS CLI 없음**, 설치하지 않았다. 실행 위치: worktree `~/.paseo/worktrees/30z2wfxb/feat-floci-cloud-first-lesson-20261109`.
+
+### run-1 (커밋 `7c9aa89e`, 새 clone)
+
+단위 13/0/10 통과. 두 Docker 검사는 호스트 AWS CLI가 없어 준비 단계에서 멈췄고(5초), 파일럿은 실행하지 않았다. 증거: [evidence/mac](../.scratch/floci-course-wayfinder/evidence/mac/).
+
+### run-2 (커밋 `82a156e0` + 아래 맥 수정, 고정 AWS CLI 컨테이너)
 
 | 검사 | 결과 |
 |---|---|
-| `cargo test --lib cloud_practice -- --test-threads=1` | **통과**: 13 통과 / 0 실패 / 10 ignored(빌드 포함 158초). Windows보다 1개 많은 것은 Unix 전용 `empty_config_refuses_a_link_without_touching_its_target`이다 |
-| `docker_cloud_lesson_subnet_steps` | **실패(준비물 없음)**, 5초. `prepare_cloud`가 자원을 만들기 전에 「AWS CLI v2를 찾을 수 없어요」로 멈췄다(`src/cloud_practice_tests.rs:795`). 수업·런타임 동작은 확인하지 못했다 |
-| `docker_cloud_lesson_server_steps` | **실패(준비물 없음)**, 5초. 같은 이유(`:887`). arm64 DIND·Java 25 게스트 경로는 **미검증**이다 |
-| `cargo test --test player_cloud_native` | **실행 안 함(미검증)**. 같은 `prepare_cloud`에서 막히므로 돌리지 않았다 |
+| `cargo test --lib cloud_practice -- --test-threads=1` | 수정 전 **통과** 12/0/10(빌드 포함 233초). 수정 후 **통과** 13/0/10(13초, 추가 검사 1개) |
+| `docker_cloud_lesson_subnet_steps` | 수정 전 **통과**(168.6초), 수정 후 다시 **통과**(176.3초) |
+| `docker_cloud_lesson_server_steps` | 수정 전 **실패**(50초): RunInstances가 「arm64 이미지는 t3.micro와 맞지 않음」으로 거절. 수정 후 **통과**(391초, 게스트 Java 25.0.5가 다른 서브넷 요청에 응답) |
+| `cargo test --test player_cloud_native` | **실패 2회**. 아래 참고. 앱 파일럿 7스텝 통과는 **미검증** |
 
-- 코드 결함이 아니라 준비물 부재라 코드는 고치지 않았다. 두 Docker 검사 모두 호스트 인벤토리 전후가 같았고, 끝난 뒤 `gg.molip.cloud-practice` 라벨 컨테이너·네트워크·볼륨·이미지는 0개였다.
-- 증거: [evidence/mac](../.scratch/floci-course-wayfinder/evidence/mac/)(테스트 로그, `cloud-native-evidence/`의 이번 실행 인벤토리).
-- 다음: 맥에 AWS CLI v2(`aws --version`이 `aws-cli/2.`)를 설치하거나 `MOLIP_AWS`로 지정한 뒤 위 두 Docker 검사와 파일럿을 직렬로 다시 돌린다.
+**맥 수정(`src/cloud_practice.rs`)**: 게스트 기반 이미지(Temurin)를 호스트와 상관없이 `linux/amd64`로 받고 빌드한다(`GUEST_PLATFORM`, `image_platform`). Floci는 카탈로그 `architecture`로 게스트를 `--platform`과 함께 실행하고 x86_64 전용 `t3.micro`에 arm64 AMI를 거절한다. 라벨만 `x86_64`로 바꾸는 시도는 Floci가 arm64 이미지를 `linux/amd64`로 실행하려다 404로 실패해 되돌렸다(`diag-attempt-3/`). Apple Silicon에서는 게스트가 Docker Desktop의 x86_64 에뮬레이션으로 돈다(게스트 `uname -m` = `x86_64`). amd64 호스트(Windows)에서는 원래 기본 플랫폼이라 받는 이미지·빌드·카탈로그 값이 같다. 수업 내용(`t3.micro`)은 바꾸지 않았다. 단위 검사 `guest_base_is_x86_64_for_the_lessons_t3_micro_and_floci_is_native`를 더했다.
+
+- 서버 검사 4번째 시도는 내부 엔진의 Temurin pull이 한 번 실패해 캐시 전송으로 넘어갔고, 호스트에 amd64 Temurin이 없어 실패했다. 같은 코드로 바로 다시 돌린 실행은 pull이 성공해 통과했다. pull 실패 원인은 확인하지 못했다(일시적 레지스트리 오류로 추정). Apple Silicon에서 캐시 전송 대체 경로는 호스트에 amd64 Temurin이 있어야 하고, 실행하지 않았다.
+- 파일럿 1회(152초): 1번 스텝 학생 채점은 통과했고, 「해설 재생」 뒤 `cloud teacher begins` 60초 대기에서 실패했다. 해설 런타임이 준비 중에 남아 라벨 컨테이너·네트워크 1개씩을 정리했다.
+- 파일럿 2회(5718초): 로컬에서 파일럿의 해설 시작 대기만 15분으로 늘려(커밋 안 함) 다시 돌렸다. 전체 제한 5700초에 걸려 결과 JSON 없이 끝났다. 마지막 활동은 12:13 KST의 서버 스텝 런타임이었고, 그 게스트는 x86_64에서 Java 서버가 8080으로 떠 있었다. 원인은 Windows 작업자가 찾은 앱 쪽 해설 준비 45초 제한으로 보인다(`1aa46ab5`에서 고침). 남은 라벨 자원(컨테이너 5·네트워크 5·볼륨 2)은 앱 종료를 확인한 뒤 정리했다.
+- Docker 검사는 모두 호스트 인벤토리 전후가 같았다. 마지막에 `gg.molip.cloud-practice` 라벨 컨테이너·네트워크·볼륨·이미지 0개.
+- 증거: [evidence/mac/run-2](../.scratch/floci-course-wayfinder/evidence/mac/run-2/)(검사 로그, 실패 시도 로그, `cloud-native-evidence/` 이번 실행분, 진단 Floci 로그, 파일럿 로그·결과).
+- 다음: `1aa46ab5` 위에서 단위 검사와 앱 파일럿을 다시 돌린다(run-3).
 
 ## 재개 순서
 

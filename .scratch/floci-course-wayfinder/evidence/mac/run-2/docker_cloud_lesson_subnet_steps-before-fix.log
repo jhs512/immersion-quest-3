@@ -1,0 +1,411 @@
+warning: function `prepare_c` is never used
+   --> src/lesson_runner.rs:110:21
+    |
+110 | pub(crate) async fn prepare_c()->Result<String,String> {c_compiler().await?;inspect_c().await}
+    |                     ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `DOCKERFILE` is never used
+  --> src/native_trace.rs:28:7
+   |
+28 | const DOCKERFILE:&str=include_str!("../assets/native-trace/Dockerfile");
+   |       ^^^^^^^^^^
+
+warning: constant `OWNER_LABEL` is never used
+  --> src/native_trace.rs:29:7
+   |
+29 | const OWNER_LABEL:&str="mq.owner=mq-native-trace";
+   |       ^^^^^^^^^^^
+
+warning: method `terminal_projects` is never used
+   --> src/docker_lab/terminal.rs:296:19
+    |
+233 | impl LessonSession {
+    | ------------------ method in this implementation
+...
+296 |     pub(crate) fn terminal_projects(&self)->Vec<String> {self.0.terminals.lock().unwrap().values().map(|s|s.lab.project.clone()).co...
+    |                   ^^^^^^^^^^^^^^^^^
+
+warning: `molip-quest` (lib test) generated 4 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.66s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (target/debug/deps/molip_quest-57db716de220c36c)
+
+running 1 test
+test git_practice::cloud_practice::tests::docker_cloud_lesson_subnet_steps ...     [o] 준비된 VPC의 범위: "vpc-cf4dc60b" "10.91.0.0/16"
+    [x] 목표 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ aws ec2 describe-vpcs --endpoint-url "$LAB_ENDPOINT" --vpc-ids "$LAB_VPC_ID"
+    rc_ok=true {
+    "Vpcs": [
+        {
+            "OwnerId": "000000000000",
+            "InstanceTenancy": "default",
+            "Ipv6CidrBlockAssociationSet": [],
+            "CidrBlockAssociationSet": [
+                {
+                    "AssociationId": "vpc-cidr-assoc-4cf4e87d",
+                    "CidrBlock": "10.91.0.0/16",
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "IsDefault": false,
+            "Tags": [],
+            "VpcId": "vpc-cf4dc60b",
+            "State": "available",
+            "CidrBlock": "10.91.0.0/16",
+            "DhcpOptionsId": "dopt-default"
+        }
+    ]
+}
+  $ bash list-subnets.sh
+    rc_ok=true {
+    "Subnets": []
+}
+  $ bash create-subnet.sh
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-f253245a",
+        "EnableDns64": false,
+        "SubnetId": "subnet-f253245a",
+        "State": "available",
+        "VpcId": "vpc-cf4dc60b",
+        "CidrBlock": "10.91.1.0/24",
+        "AvailableIpAddressCount": 251,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+  $ bash list-subnets.sh
+    rc_ok=true {
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-f253245a",
+            "EnableDns64": false,
+            "SubnetId": "subnet-f253245a",
+            "State": "available",
+            "VpcId": "vpc-cf4dc60b",
+            "CidrBlock": "10.91.1.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}
+    [o] 준비된 VPC의 범위: "vpc-cf4dc60b" "10.91.0.0/16"
+    [o] 목표 서브넷: 10.91.1.0/24 서브넷이 있어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+    [o] 준비된 VPC의 범위: "vpc-50828341" "10.91.0.0/16"
+    [x] 목표 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ bash create-subnet.sh
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.92.2.0/24' is invalid.
+  $ echo '{"Subnet":{"CidrBlock":"10.91.2.0/24","State":"available"}}'
+    rc_ok=true {"Subnet":{"CidrBlock":"10.91.2.0/24","State":"available"}}
+    [o] 준비된 VPC의 범위: "vpc-50828341" "10.91.0.0/16"
+    [x] 목표 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ bash create-subnet.sh
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.92.2.0/24' is invalid.
+  $ bash list-subnets.sh
+    rc_ok=true {
+    "Subnets": []
+}
+  $ bash create-subnet.sh
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-cbbe037a",
+        "EnableDns64": false,
+        "SubnetId": "subnet-cbbe037a",
+        "State": "available",
+        "VpcId": "vpc-2638bc17",
+        "CidrBlock": "10.91.2.0/24",
+        "AvailableIpAddressCount": 251,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+  $ bash list-subnets.sh
+    rc_ok=true {
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-cbbe037a",
+            "EnableDns64": false,
+            "SubnetId": "subnet-cbbe037a",
+            "State": "available",
+            "VpcId": "vpc-2638bc17",
+            "CidrBlock": "10.91.2.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}
+    [o] 준비된 VPC의 범위: "vpc-50828341" "10.91.0.0/16"
+    [x] 목표 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ bash create-subnet.sh
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.92.2.0/24' is invalid.
+  $ bash list-subnets.sh
+    rc_ok=true {
+    "Subnets": []
+}
+  $ bash create-subnet.sh
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-ed43cc85",
+        "EnableDns64": false,
+        "SubnetId": "subnet-ed43cc85",
+        "State": "available",
+        "VpcId": "vpc-50828341",
+        "CidrBlock": "10.91.2.0/24",
+        "AvailableIpAddressCount": 251,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+  $ bash list-subnets.sh
+    rc_ok=true {
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-ed43cc85",
+            "EnableDns64": false,
+            "SubnetId": "subnet-ed43cc85",
+            "State": "available",
+            "VpcId": "vpc-50828341",
+            "CidrBlock": "10.91.2.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}
+    [o] 준비된 VPC의 범위: "vpc-50828341" "10.91.0.0/16"
+    [o] 목표 서브넷: 10.91.2.0/24 서브넷이 있어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ bash create-subnet.sh
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.74.2.0/24' is invalid.
+  $ bash create-subnet.sh
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.91.2.0/24' is invalid.
+    [o] 준비된 VPC의 범위: "vpc-be26ab32" "10.73.0.0/16"
+    [x] 목표 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ bash create-subnet.sh
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-318b347e",
+        "EnableDns64": false,
+        "SubnetId": "subnet-318b347e",
+        "State": "available",
+        "VpcId": "vpc-be26ab32",
+        "CidrBlock": "10.73.2.0/24",
+        "AvailableIpAddressCount": 251,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+    [o] 준비된 VPC의 범위: "vpc-be26ab32" "10.73.0.0/16"
+    [o] 목표 서브넷: 10.73.2.0/24 서브넷이 있어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+    [o] 준비된 VPC의 범위: "vpc-0a0c7374" "10.91.0.0/16"
+    [o] 준비된 서브넷: 준비된 서브넷이 그대로 있어요.
+    [x] 새 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+  $ bash create-subnet.sh
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Conflict) when calling the CreateSubnet operation: The CIDR '10.91.1.128/25' conflicts with another subnet
+  $ bash create-subnet.sh
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-8026d152",
+        "EnableDns64": false,
+        "SubnetId": "subnet-8026d152",
+        "State": "available",
+        "VpcId": "vpc-0a0c7374",
+        "CidrBlock": "10.91.2.0/24",
+        "AvailableIpAddressCount": 251,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+    [o] 준비된 VPC의 범위: "vpc-0a0c7374" "10.91.0.0/16"
+    [o] 준비된 서브넷: 준비된 서브넷이 그대로 있어요.
+    [x] 새 서브넷: /25 크기가 아니에요: 10.91.2.0/24
+  $ bash list-subnets.sh
+    rc_ok=true {
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-a4887f19",
+            "EnableDns64": false,
+            "SubnetId": "subnet-a4887f19",
+            "State": "available",
+            "VpcId": "vpc-bb3c4095",
+            "CidrBlock": "10.91.1.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}
+  $ bash create-subnet.sh
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Conflict) when calling the CreateSubnet operation: The CIDR '10.91.1.128/25' conflicts with another subnet
+  $ bash create-subnet.sh
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-4b4039af",
+        "EnableDns64": false,
+        "SubnetId": "subnet-4b4039af",
+        "State": "available",
+        "VpcId": "vpc-bb3c4095",
+        "CidrBlock": "10.91.2.0/25",
+        "AvailableIpAddressCount": 123,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+  $ bash list-subnets.sh
+    rc_ok=true {
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-4b4039af",
+            "EnableDns64": false,
+            "SubnetId": "subnet-4b4039af",
+            "State": "available",
+            "VpcId": "vpc-bb3c4095",
+            "CidrBlock": "10.91.2.0/25",
+            "AvailableIpAddressCount": 123,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        },
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-a4887f19",
+            "EnableDns64": false,
+            "SubnetId": "subnet-a4887f19",
+            "State": "available",
+            "VpcId": "vpc-bb3c4095",
+            "CidrBlock": "10.91.1.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}
+    [o] 준비된 VPC의 범위: "vpc-bb3c4095" "10.91.0.0/16"
+    [o] 준비된 서브넷: 준비된 서브넷이 그대로 있어요.
+    [o] 새 서브넷: 10.91.2.0/25 서브넷이 있어요.
+  $ bash create-subnet.sh
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-df5862ae",
+        "EnableDns64": false,
+        "SubnetId": "subnet-df5862ae",
+        "State": "available",
+        "VpcId": "vpc-b2629927",
+        "CidrBlock": "10.91.3.0/25",
+        "AvailableIpAddressCount": 123,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+    [o] 준비된 VPC의 범위: "vpc-b2629927" "10.91.0.0/16"
+    [o] 준비된 서브넷: 준비된 서브넷이 그대로 있어요.
+    [o] 새 서브넷: 10.91.3.0/25 서브넷이 있어요.
+PASS lesson subnet steps 1-3
+PASS lesson-subnets-1794277263036: host containers/networks/volumes/context identical before and after
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 195 filtered out; finished in 168.55s
+

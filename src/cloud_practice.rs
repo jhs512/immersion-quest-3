@@ -21,6 +21,11 @@ const TEMURIN: &str = "public.ecr.aws/docker/library/eclipse-temurin@sha256:c7c3
 /// AWS CLI v2 runs from this pinned official image on the practice network: learners need no host install.
 const AWS_CLI_IMAGE: &str = "public.ecr.aws/aws-cli/aws-cli:2.39.7@sha256:73f81e380c7974c9f03ac7ccd520ef080f17f443e10582f024c828b970ac8b73";
 const SERVER_AMI: &str = "ami-0e0000000000a0025";
+/// The guest server is always an x86_64 image, because the lesson launches `t3.micro` (an x86_64
+/// instance type) and Floci runs the guest with the platform of the AMI's architecture. On an amd64
+/// host this is the native platform, so nothing changes there; an arm64 host (Apple Silicon) runs the
+/// guest under Docker Desktop's x86_64 emulation. Floci itself stays on the host's native platform.
+const GUEST_PLATFORM: &str = "linux/amd64";
 const REGION: &str = "us-east-1";
 const HTTP_PORT: &str = "8080";
 const USER_DATA: &str = include_str!("../assets/cloud-lab/server-user-data.sh");
@@ -603,7 +608,7 @@ impl GitPractice {
         // the digest itself after a registry pull, or the verified image ID after a cache transfer.
         let mut local = BTreeMap::new();
         for image in [FLOCI, TEMURIN] {
-            let reference = if inner(container, &["pull", image], 600)?.ok {
+            let reference = if inner(container, &["pull", "--platform", image_platform(image), image], 600)?.ok {
                 pulled_reference(container, image)?
             } else {
                 let loaded = transfer_image(container, image)?;
@@ -625,7 +630,7 @@ impl GitPractice {
         }
         require(&["cp", &input.to_string_lossy(), &format!("{container}:/mq-input")], 60)?;
         let tag = format!("mq-cloud/java25-http-guest:{}", owner(root));
-        inner_ok(container, &["build", "--pull=false", "-t", &tag, "/mq-input"], 600)?;
+        inner_ok(container, &["build", "--pull=false", "--platform", GUEST_PLATFORM, "-t", &tag, "/mq-input"], 600)?;
         let id = inner_ok(container, &["image", "inspect", "--format", "{{.Id}}", &tag], 30)?.trim().to_string();
         // The AMI architecture is what the built guest image actually is, not the app's own build.
         let built = inner_ok(container, &["image", "inspect", "--format", "{{.Architecture}}", &tag], 30)?;
@@ -920,7 +925,7 @@ fn transferred_reference(container: &str, image: &str, load_output: &str) -> Res
             "workdir": v["Config"]["WorkingDir"], "user": v["Config"]["User"],
         }))
     };
-    let host = measure(&require(&["image", "inspect", image], 30)?).ok_or_else(unverified)?;
+    let host = measure(&require(&["image", "inspect", "--platform", image_platform(image), image], 30)?).ok_or_else(unverified)?;
     let raw = inner_ok(container, &["image", "inspect", &loaded], 30)?;
     let inner_image = measure(&raw).ok_or_else(unverified)?;
     if host["layers"].as_array().is_none_or(|l| l.is_empty()) || host != inner_image {
@@ -936,6 +941,12 @@ fn transferred_reference(container: &str, image: &str, load_output: &str) -> Res
     Ok(tag)
 }
 
+/// The platform the nested engine uses for a pinned image: the guest base is always x86_64, and
+/// everything else (Floci) is the host's native platform.
+fn image_platform(image: &str) -> &'static str {
+    if image == TEMURIN { GUEST_PLATFORM } else if cfg!(target_arch = "aarch64") { "linux/arm64" } else { "linux/amd64" }
+}
+
 /// Copy the host's cached pinned image into the nested engine (registry unavailable inside it).
 /// Both ends are bounded; on any failure both owned processes are killed and reaped.
 fn transfer_image(container: &str, image: &str) -> Result<String, String> {
@@ -944,7 +955,7 @@ fn transfer_image(container: &str, image: &str) -> Result<String, String> {
 fn transfer_image_within(container: &str, image: &str, limit: Duration) -> Result<String, String> {
     let failed = || "준비 이미지를 실습 엔진에 넣지 못했어요. 인터넷 연결이나 Docker 이미지 캐시를 확인하세요.".to_string();
     let cli = docker_cli()?;
-    let platform = if cfg!(target_arch = "aarch64") { "linux/arm64" } else { "linux/amd64" };
+    let platform = image_platform(image);
     let mut output = tempfile::tempfile().map_err(|e| e.to_string())?;
     let mut save = Command::new(&cli);
     save.env("PATH", crate::docker_lab::search_path(&cli)).args(["save", "--platform", platform, image])
