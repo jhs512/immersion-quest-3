@@ -155,6 +155,15 @@
 - 증거: [evidence/mac/run-3](../.scratch/floci-course-wayfinder/evidence/mac/run-3/)(단위·파일럿 로그, 결과 JSON, 앱 로그).
 - 맥에서 남은 미검증: 캐시 전송(오프라인) 대체 경로, 실제 음성 재생.
 
+## 공개 (2026-11-11)
+
+사용자 공개 승인(2026-11-10 「다 공개할게」「다 수락할게」, 2026-11-11 음성 재지시)에 따라 진행했다.
+
+- main fast-forward: `0d551472` → `d1213728`. 공식 「MQ3 desktop release」 실행 42849006201 성공(windows·macos arm64·principles·release).
+- 앱 릴리스: [v0.1.0-build.182](https://github.com/jhs512/immersion-quest-3/releases/tag/v0.1.0-build.182)(정식·초안 아님, 태그 커밋 `d1213728`, Windows x64 설치 파일·macOS arm64 DMG·SHA256SUMS).
+- 수업 게시: `tools/publish-cloud-first-lesson.py --publish --player-release v0.1.0-build.182 --source-commit d1213728…`. 운영 자바 과정 58 → 59수업, 클라우드 수업(`cloud-vpc-subnet-ec2-1`, 분류 `cloud`)이 `docker-compose-db` 다음. 다른 운영 참조는 유지. `--verify-only`로 다시 확인했다.
+- 학생 화면에서 보려면 앱을 build.182 이상으로 업데이트해야 한다. 설치 앱 업데이트 후 화면 확인은 아직 하지 않았다.
+
 ## 재개 순서
 
 1. 앱에서 이 수업을 열어 편집기·초기화·해설 재생을 확인한다(설치 앱이 아닌 개발 빌드). 문제가 있으면 `author_lesson.py`를 고치고 다시 실행한 뒤 `build-redesigned-git.py --lesson cloud-vpc-subnet-ec2`로 빌드한다. 해설이 바뀌면 `narration_review.py record`로 다시 검토를 남긴다.
