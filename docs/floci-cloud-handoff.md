@@ -185,6 +185,18 @@
 - 증거: [evidence/mac/run-3](../.scratch/floci-course-wayfinder/evidence/mac/run-3/)(단위·파일럿 로그, 결과 JSON, 앱 로그).
 - 맥에서 남은 미검증: 캐시 전송(오프라인) 대체 경로, 실제 음성 재생.
 
+### lifecycle run-1 (2026-11-12, 맥 에이전트 「맥 검증: 클라우드 수명주기 수업」, MAC1_MAIN 체크아웃)
+
+| 검사 | 결과 |
+|---|---|
+| `cargo test --lib cloud_practice`, `--test cloud_lesson_schema` | **통과** |
+| `docker_cloud_lifecycle_lesson_steps` | 6스텝 **통과**(`PASS lifecycle lesson steps 1-6`, 699초). 끝의 전역 잔여 검사만 실패: 검사 전부터 있던 사용자 앱 런타임 3개(라벨 동일)를 센 것. 검사가 만든 자원은 모두 정리돼 기준 목록과 같다 |
+| 앱 파일럿 1차(273387f7) | **실패**: 「복사」 버튼 검사 시간 초과. 진단: 맥 WebView에서 `execCommand('copy')`=false, `navigator.clipboard`=NotAllowedError. **실제 버그**(맥 사용자는 build.188의 복사 버튼이 동작하지 않음) |
+| 수정 `1f9a482d` | 복사 버튼이 「수업 링크 복사」처럼 네이티브 클립보드(arboard)를 쓴다. Windows 6번 스텝 파일럿 통과 |
+| 앱 파일럿 2차(1f9a482d) | 1번 스텝 복사·학생 채점 **통과** 뒤 「해설 재생」 시작 대기에서 시간 초과. 첫 수업 7번 스텝만 돌린 진단도 준비 대기에서 시간 초과. 두 번 모두 맥 앞 창이 Paseo·원격 데스크톱(사용자가 맥을 쓰는 중)이라 파일럿 창이 가려져 WebKit이 화면 갱신을 멈춘 것으로 본다. **미검증**: 맥 화면 파일럿은 맥을 쓰지 않을 때 다시 돌린다 |
+
+증거: 맥 체크아웃의 `.scratch/floci-course-wayfinder/evidence/mac/lifecycle/`(로컬, 아직 커밋 안 됨).
+
 ## 공개 (2026-11-11)
 
 사용자 공개 승인(2026-11-10 「다 공개할게」「다 수락할게」, 2026-11-11 음성 재지시)에 따라 진행했다.
