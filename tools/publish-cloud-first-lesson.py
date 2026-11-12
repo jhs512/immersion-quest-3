@@ -110,7 +110,10 @@ def require_player_release(tag,commit):
     if obj['type']!='commit' or obj['sha']!=commit:raise ValueError('Player tag does not match deployment source commit')
     for path in ('src/cloud_practice.rs','assets/cloud-lab/HelloServer.java','assets/cloud-lab/HttpCheck.java','assets/cloud-lab/Dockerfile','assets/cloud-lab/server-user-data.sh'):
         code=gh(f'repos/{SOURCE_REPO}/contents/{path}?ref={commit}')
-        if base64.b64decode(code['content'])!=(ROOT/path).read_bytes():
+        # Compare committed bytes: a Windows checkout may hold CRLF copies of the same LF blob.
+        if subprocess.run(['git','diff','--quiet','HEAD','--',path],cwd=ROOT).returncode!=0:
+            raise ValueError('Uncommitted change in the verified cloud runtime: '+path)
+        if base64.b64decode(code['content'])!=subprocess.check_output(['git','show',f'HEAD:{path}'],cwd=ROOT):
             raise ValueError('Released player cloud runtime differs from the verified source: '+path)
     return release['html_url']
 
