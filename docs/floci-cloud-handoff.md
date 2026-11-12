@@ -5,7 +5,7 @@
 ## 작업 위치와 범위
 
 - 브랜치: `feat/floci-cloud-first-lesson-20261109`
-- 작업 폴더: `C:/Users/jangk/Documents/Codex/2026-10-12/immersion-quest-cloud-first-lesson-20261109`
+- 작업 폴더: `C:/Users/jangk/Documents/Codex/2026-10-12/immersion-quest-cloud-first-lesson-20261109` (첫 수업). 2026-11-12부터는 P3_WIN1의 git 워크트리 `C:/Users/jangk/Paseo-Projects/P3_WIN1-cloud-lesson-2`(같은 브랜치)에서 작업한다. P3_WIN1 본 폴더는 다른 브랜치의 커밋 안 한 작업이 있어 건드리지 않는다.
 - 이전 체크포인트: `873fdc4b`(실행기 + 승인 설계, 단위 9 통과·1 실패·8 ignored)
 - 원래 `immersion-quest-3` 작업 폴더의 코드·설정은 수정하지 않았다. 정책은 [스냅샷](../.scratch/floci-course-wayfinder/policy-snapshot/index.json)을 PRD에 내장해 적용했고, 이 브랜치의 전역 정책 파일은 바꾸지 않았다.
 
@@ -126,6 +126,16 @@
 - 검증: 단위 12/0/11, lib 142, 실제 Docker 서브넷·서버 스텝 통과, 앱 파일럿 7/7(복사 버튼, 편집기 없는 스텝, 읽기 전용 탭, 레이아웃, 해설 분리, 초기화).
 - 남은 것: 발음 검토 기록(`docs/speech-pronunciation-review.json`)이 여러 수업(Rust 오류 코드, 네트워크·클라우드 약어 등)에서 밀려 있다(기존). 앱 비정상 종료 시 클라우드 컨테이너 잔류. 「실행 결과」 영역 기본 높이.
 
+### 10. 두 번째 수업 `cloud-ec2-lifecycle` 제작 (2026-11-12, 사용자 결정 「너의 추천대로 가자」)
+
+- 사전 측정: [lifecycle-preflight/run-1.log](../.scratch/floci-course-wayfinder/evidence/lifecycle-preflight/run-1.log). stop(약 20초 뒤 stopped)·start(같은 사설 주소, user-data 미재실행으로 응답 없음)·reboot·terminate(다시 start 거절), 서버가 남은 서브넷·VPC의 DependencyViolation.
+- 초안: [예고](../.scratch/floci-course-wayfinder/second-lesson/lesson-preview.draft.json)·[PRD](../.scratch/floci-course-wayfinder/second-lesson/prd.draft.md)·[대표 문제](../.scratch/floci-course-wayfinder/second-lesson/representative-problem.draft.md). 사용자가 6스텝 구성(reboot 제외)을 승인했다.
+- 실행기: `CloudGoal`에 `stop_server`·`start_server`·`terminate_server`·`delete_subnet`·`delete_vpc`를 더했다(`check_lifecycle`). 수명주기 목표는 준비 서버가 멈춰 있어도 환경 오류로 보지 않는다. `start_server`는 응답을 확인한 서버를 준비 단계에서 멈춘다. 수명주기 목표에서만 `LAB_SERVER_IP`를 준다. 다른 목표의 동작은 그대로다.
+- 앱 버전 경계: 수업 형식은 4 그대로다. build.188 이하 앱은 모르는 목표 때문에 코스 업데이트 전체를 거절하고 설치된 코스를 그대로 쓴다(build.181 이하가 형식 4를 만났을 때와 같다). 검사: `tests/cloud_lesson_schema.rs`.
+- 수업: `tools/redesigned_lessons/cloud_ec2_lifecycle/`(작성 스크립트 `.scratch/floci-course-wayfinder/second-lesson/author_lesson.py`·`register_lesson.py`). 자바 과정에서 `cloud-vpc-subnet-ec2` 다음, 분류 `cloud`, 파일럿 ID `멈`, 수업 버전 `cloud-ec2-lifecycle-1`. 명령은 직접 입력하고 옵션은 복사 블록, `list-servers.sh`는 읽기 전용 탭이다.
+- 검증(Windows, Docker Desktop 29.8.1): `docker_cloud_lifecycle_lesson_steps` **통과**(955초). 6스텝 모두 공개 수업 JSON의 해설 명령을 그대로 재생해 통과했고, 대표 오답(종료·클라이언트 멈춤·멈추기만·서브넷 하나만 삭제·출력 위조)이 실패하고 「초기화」 뒤 다시 풀렸다. `aws ec2 wait instance-*`가 Floci에서 동작하고, terminated 직후 서브넷 삭제도 됐다. 호스트 Docker 전후 같음. 로그: [lifecycle-native/run-1.log](../.scratch/floci-course-wayfinder/evidence/lifecycle-native/run-1.log). 단위 `cargo test --lib` 143 통과, 등록·번들·스키마 검사 통과(수업 113개·스텝 1131개).
+- 미완료: 앱 파일럿(아래 결과로 갱신), 맥 검증, 릴리스·게시(사용자 승인 필요).
+
 ## 실패·미검증으로 남은 것
 
 - **고침(기존 실패)**: `tools/test_narration_openings.py`가 91개 수업에서 실패했다. 도입문을 넣기 전 고정 커밋 `8520082b`의 수업과 그대로 같아야 한다고 비교했는데, 그 뒤 정상적으로 바뀐 수업이 많았다. 이제 현재 원본(`content.json`)과 비교해 해설 말 이외의 필드·채점·동작이 그대로인지 확인한다. 전체 스텝 수도 1118로 고쳤다. 정답 필드나 명령 하나를 바꾸면 실패하는 것을 확인했다.
@@ -196,7 +206,7 @@ python tools/build-redesigned-course-bundle.py --check
 cargo test --test lesson_registry
 ```
 
-3. 다음 수업(EC2 수명주기·삭제 의존성)은 별도 예고·PRD 승인부터 시작한다. 2026-11-12: 사전 측정([lifecycle-preflight](../.scratch/floci-course-wayfinder/evidence/lifecycle-preflight/run-1.log))과 [예고](../.scratch/floci-course-wayfinder/second-lesson/lesson-preview.draft.json)·[PRD](../.scratch/floci-course-wayfinder/second-lesson/prd.draft.md)·[대표 문제](../.scratch/floci-course-wayfinder/second-lesson/representative-problem.draft.md) 초안을 만들었다. **사용자 승인 대기.** 작업 위치는 P3_WIN1의 Paseo 워크스페이스 「클라우드 수업 2 (수명주기)」. S3·SQS·DB·Lambda는 그 뒤 묶음이다([추천 순서](../.scratch/floci-course-wayfinder/service-teaching-plan.md)).
+3. 두 번째 수업은 10절. 남은 것은 맥 검증과, 사용자 승인 뒤 앱 릴리스 → 수업 게시(첫 수업과 같은 순서: 앱이 먼저 새 목표를 알아야 한다). 그다음 S3 묶음은 별도 예고·PRD 승인부터 시작한다([추천 순서](../.scratch/floci-course-wayfinder/service-teaching-plan.md)).
 
 ## 이전 기록
 
