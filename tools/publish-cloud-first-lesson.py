@@ -27,6 +27,20 @@ spec=importlib.util.spec_from_file_location('cloud_content_publisher',ROOT/'tool
 publisher=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(publisher)
 gh=publisher.gh
+revision_spec=importlib.util.spec_from_file_location('cloud_revision_publisher',ROOT/'tools/publish-coding-conversions.py')
+revisions=importlib.util.module_from_spec(revision_spec)
+revision_spec.loader.exec_module(revisions)
+
+
+def stage(rows,remote):
+    """Publish each immutable lesson tag. A known earlier live revision is replaced only from its exact bytes."""
+    live={r['repository']:r for r in remote['lessons']}
+    for ref,raw in rows:
+        old=live.get(ref['repository'])
+        if old is not None and old['revision'] in REPLACES:
+            revisions.publish_lesson(old,ref,raw,'Require the cloud runtime (lesson schema 4)')
+        else:
+            publisher.publish_file(ref['repository'],'lesson.json',raw,ref['revision'])
 
 
 def prepared():
@@ -126,14 +140,14 @@ def main():
     user=gh('user')
     if (user['login'],user['id'])!=('jhs512',4741844):raise ValueError('Unexpected publication account')
     if args.stage_lessons:
-        for ref,raw in rows:publisher.publish_file(ref['repository'],'lesson.json',raw,ref['revision'])
+        stage(rows,remote)
         verify_lessons(rows)
         print('STAGED the immutable cloud lesson; live course unchanged',flush=True)
         return
     if not args.player_release or not args.source_commit:raise ValueError('Publishing/verification requires a compatible player release and source commit')
     release_url=require_player_release(args.player_release,args.source_commit)
     if args.publish:
-        for ref,raw in rows:publisher.publish_file(ref['repository'],'lesson.json',raw,ref['revision'])
+        stage(rows,remote)
         for _ in range(3):
             current=gh(endpoint+'?ref=main');remote=json.loads(base64.b64decode(current['content']));merged=merge_course(remote,local)
             if merged==remote:break
