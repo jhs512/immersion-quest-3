@@ -1,0 +1,101 @@
+   Compiling molip-quest v0.1.0 (C:\Users\jangk\Documents\Codex\2026-10-12\immersion-quest-cloud-first-lesson-20261109)
+warning: constant `RUST_TOOLCHAIN` is never used
+  --> src\native_trace.rs:32:7
+   |
+32 | const RUST_TOOLCHAIN:&str="1.95.0";
+   |       ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `RUSTUP_VERSION` is never used
+  --> src\native_trace.rs:33:7
+   |
+33 | const RUSTUP_VERSION:&str="1.29.2";
+   |       ^^^^^^^^^^^^^^
+
+warning: constant `RUSTUP_SHA256` is never used
+  --> src\native_trace.rs:34:7
+   |
+34 | const RUSTUP_SHA256:&[(&str,&str)]=&[
+   |       ^^^^^^^^^^^^^
+
+warning: method `terminal_projects` is never used
+   --> src\docker_lab\terminal.rs:296:19
+    |
+233 | impl LessonSession {
+    | ------------------ method in this implementation
+...
+296 |     pub(crate) fn terminal_projects(&self)->Vec<String> {self.0.terminals.lock().unwrap().values().map(|s|s.lab.project.clone()).co...
+    |                   ^^^^^^^^^^^^^^^^^
+
+warning: `molip-quest` (lib test) generated 4 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.52s
+     Running unittests src\lib.rs (target\debug\deps\molip_quest-dfeb3679405ad82e.exe)
+
+running 1 test
+test git_practice::cloud_practice::tests::docker_cloud_lifecycle_preflight ...   $ aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text; client-request "$(aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text | awk '{print $2}' | tr -d '')" | head -1
+    rc_ok=true running	10.91.2.10	subnet-d57eb0f8
+from=10.91.1.10
+  [guest initial] running=true ips=Some([String("172.17.0.3"), String("10.91.2.10")])
+  $ aws ec2 delete-subnet --subnet-id "$LAB_SUBNET_B_ID"
+    rc_ok=false aws: [ERROR]: An error occurred (DependencyViolation) when calling the DeleteSubnet operation: The subnet 'subnet-d57eb0f8' has dependencies and cannot be deleted.
+  $ aws ec2 delete-vpc --vpc-id "$LAB_VPC_ID"
+    rc_ok=false aws: [ERROR]: An error occurred (DependencyViolation) when calling the DeleteVpc operation: The vpc 'vpc-059b5413' has dependencies and cannot be deleted.
+  $ aws ec2 stop-instances --instance-ids "$LAB_SERVER_ID" --query 'StoppingInstances[0].[PreviousState.Name,CurrentState.Name]' --output text
+    rc_ok=true running	stopping
+  $ for i in $(seq 1 60); do s=$(aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text | tr -d ''); case "$s" in stopped*) echo "after ${i}x2s: $s"; break;; esac; sleep 2; done; aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text
+    rc_ok=true after 10x2s: stopped	10.91.2.10	subnet-d57eb0f8
+stopped	10.91.2.10	subnet-d57eb0f8
+  [guest stopped] running=false ips=Some([String(""), String("")])
+  $ client-request "$(aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text | awk '{print $2}' | tr -d '')" | head -1
+    rc_ok=true CONNECT_FAIL java.net.SocketTimeoutException: Connect timed out
+  $ aws ec2 delete-subnet --subnet-id "$LAB_SUBNET_B_ID"
+    rc_ok=false aws: [ERROR]: An error occurred (DependencyViolation) when calling the DeleteSubnet operation: The subnet 'subnet-d57eb0f8' has dependencies and cannot be deleted.
+  $ aws ec2 start-instances --instance-ids "$LAB_SERVER_ID" --query 'StartingInstances[0].[PreviousState.Name,CurrentState.Name]' --output text
+    rc_ok=true stopped	pending
+  $ for i in $(seq 1 60); do s=$(aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text | tr -d ''); case "$s" in running*) echo "after ${i}x2s: $s"; break;; esac; sleep 2; done; aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text
+    rc_ok=true after 1x2s: running	10.91.2.10	subnet-d57eb0f8
+running	10.91.2.10	subnet-d57eb0f8
+  [guest restarted] running=true ips=Some([String("172.17.0.3"), String("10.91.2.10")])
+  $ ip=$(aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text | awk '{print $2}' | tr -d ''); for i in $(seq 1 45); do if client-request "$ip" 2>/dev/null | head -1 | grep -q 200; then echo "answered after ${i}x2s"; break; fi; sleep 2; done; client-request "$ip" | head -1
+    rc_ok=true CONNECT_FAIL java.net.ConnectException: Connection refused (connect failed)
+  $ aws ec2 reboot-instances --instance-ids "$LAB_SERVER_ID"; sleep 5
+    rc_ok=true 
+  $ aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text; ip=$(aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text | awk '{print $2}' | tr -d ''); for i in $(seq 1 45); do if client-request "$ip" 2>/dev/null | head -1 | grep -q 200; then echo "answered after ${i}x2s"; break; fi; sleep 2; done
+    rc_ok=true running	10.91.2.10	subnet-d57eb0f8
+  [guest rebooted] running=true ips=Some([String("172.17.0.3"), String("10.91.2.10")])
+  $ aws ec2 terminate-instances --instance-ids "$LAB_SERVER_ID" --query 'TerminatingInstances[0].[PreviousState.Name,CurrentState.Name]' --output text
+    rc_ok=true running	shutting-down
+  $ for i in $(seq 1 60); do s=$(aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text | tr -d ''); case "$s" in terminated*) echo "after ${i}x2s: $s"; break;; esac; sleep 2; done; aws ec2 describe-instances --instance-ids "$LAB_SERVER_ID" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text
+    rc_ok=true after 1x2s: terminated	10.91.2.10	subnet-d57eb0f8
+terminated	10.91.2.10	subnet-d57eb0f8
+  [guest terminated] absent
+  $ aws ec2 start-instances --instance-ids "$LAB_SERVER_ID"
+    rc_ok=false aws: [ERROR]: An error occurred (IncorrectInstanceState) when calling the StartInstances operation: The instance 'i-c2a5bc8019baac1a5' is not in a state from which it can be started.
+  $ sleep 20; aws ec2 describe-instances --query 'Reservations[].Instances[].[InstanceId,State.Name]' --output text
+    rc_ok=true i-fb106a58a6c10e760	running
+i-c2a5bc8019baac1a5	terminated
+  $ aws ec2 delete-subnet --subnet-id "$LAB_SUBNET_B_ID" && echo deleted-B
+    rc_ok=true deleted-B
+  $ aws ec2 describe-subnets --filters Name=vpc-id,Values="$LAB_VPC_ID" --query 'Subnets[].CidrBlock' --output text
+    rc_ok=true 10.91.1.0/24
+  $ aws ec2 delete-vpc --vpc-id "$LAB_VPC_ID"
+    rc_ok=false aws: [ERROR]: An error occurred (DependencyViolation) when calling the DeleteVpc operation: The vpc 'vpc-059b5413' has dependencies and cannot be deleted.
+  $ aws ec2 terminate-instances --instance-ids "$LAB_CLIENT_ID" > /dev/null; for i in $(seq 1 60); do s=$(aws ec2 describe-instances --instance-ids "$LAB_CLIENT_ID" --query 'Reservations[0].Instances[0].State.Name' --output text | tr -d ''); [ "$s" = terminated ] && break; sleep 2; done; echo client=$s; aws ec2 delete-subnet --subnet-id "$LAB_SUBNET_A_ID" && echo deleted-A; aws ec2 delete-vpc --vpc-id "$LAB_VPC_ID" && echo deleted-vpc
+    rc_ok=true client=terminated
+deleted-A
+deleted-vpc
+
+thread 'git_practice::cloud_practice::tests::docker_cloud_lifecycle_preflight' (38884) panicked at src\cloud_practice_tests.rs:440:39:
+called `Result::unwrap()` on an `Err` value: "준비된 서버가 멈췄어요. 초기화해서 새 환경을 만드세요."
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    git_practice::cloud_practice::tests::docker_cloud_lifecycle_preflight
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 199 filtered out; finished in 403.66s
+
+error: test failed, to rerun pass `--lib`

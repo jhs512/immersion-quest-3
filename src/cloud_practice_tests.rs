@@ -1015,3 +1015,57 @@ fn docker_cloud_lesson_request_demo_beside_student() {
         student.cleanup_cloud().unwrap();
     });
 }
+
+/// Preflight for the lifecycle lesson (measurement only, prints observations).
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine; runs privileged Docker-in-Docker with real Java 25 EC2 guests"]
+fn docker_cloud_lifecycle_preflight() {
+    guarded("lifecycle-preflight", |owned| {
+        let mut spec = cloud(CloudGoal::RequestServer, "10.91.0.0/16");
+        spec.subnets = vec![subnet("A", "10.91.1.0/24"), subnet("B", "10.91.2.0/24")];
+        spec.client_subnet = Some("A".into());
+        spec.server_subnet = Some("B".into());
+        spec.address_file = Some("server-address.txt".into());
+        let practice = GitPractice::new(exercise(spec, &[("server-address.txt", "10.91.2.99\n")])).unwrap();
+        owned.push(owner(practice.root()));
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let env = practice.prepare_cloud().unwrap();
+            let (_, runtime, _) = names(practice.root());
+            let id = load(practice.root()).unwrap().server.unwrap().id;
+            let state = "aws ec2 describe-instances --instance-ids \"$LAB_SERVER_ID\" --query 'Reservations[0].Instances[0].[State.Name,PrivateIpAddress,SubnetId]' --output text";
+            let poll = |want: &str| format!("for i in $(seq 1 60); do s=$({state} | tr -d '\r'); case \"$s\" in {want}*) echo \"after ${{i}}x2s: $s\"; break;; esac; sleep 2; done; {state}");
+            let guest = |label: &str| {
+                let c = guest_container(&runtime, &id).unwrap();
+                println!("  [guest {label}] {}", c.map(|v| format!("running={} ips={:?}", v["State"]["Running"], v["NetworkSettings"]["Networks"].as_object().map(|n| n.values().map(|x| x["IPAddress"].clone()).collect::<Vec<_>>()))).unwrap_or("absent".into()));
+            };
+            sh(&practice, &env, &format!("{state}; client-request \"$({state} | awk '{{print $2}}' | tr -d '\r')\" | head -1"));
+            guest("initial");
+            sh(&practice, &env, "aws ec2 delete-subnet --subnet-id \"$LAB_SUBNET_B_ID\"");
+            sh(&practice, &env, "aws ec2 delete-vpc --vpc-id \"$LAB_VPC_ID\"");
+            sh(&practice, &env, "aws ec2 stop-instances --instance-ids \"$LAB_SERVER_ID\" --query 'StoppingInstances[0].[PreviousState.Name,CurrentState.Name]' --output text");
+            sh(&practice, &env, &poll("stopped"));
+            guest("stopped");
+            sh(&practice, &env, &format!("client-request \"$({state} | awk '{{print $2}}' | tr -d '\r')\" | head -1"));
+            sh(&practice, &env, "aws ec2 delete-subnet --subnet-id \"$LAB_SUBNET_B_ID\"");
+            sh(&practice, &env, "aws ec2 start-instances --instance-ids \"$LAB_SERVER_ID\" --query 'StartingInstances[0].[PreviousState.Name,CurrentState.Name]' --output text");
+            sh(&practice, &env, &poll("running"));
+            guest("restarted");
+            sh(&practice, &env, &format!("ip=$({state} | awk '{{print $2}}' | tr -d '\r'); for i in $(seq 1 45); do if client-request \"$ip\" 2>/dev/null | head -1 | grep -q 200; then echo \"answered after ${{i}}x2s\"; break; fi; sleep 2; done; client-request \"$ip\" | head -1"));
+            sh(&practice, &env, "aws ec2 reboot-instances --instance-ids \"$LAB_SERVER_ID\"; sleep 5");
+            sh(&practice, &env, &format!("{state}; ip=$({state} | awk '{{print $2}}' | tr -d '\r'); for i in $(seq 1 45); do if client-request \"$ip\" 2>/dev/null | head -1 | grep -q 200; then echo \"answered after ${{i}}x2s\"; break; fi; sleep 2; done"));
+            guest("rebooted");
+            sh(&practice, &env, "aws ec2 terminate-instances --instance-ids \"$LAB_SERVER_ID\" --query 'TerminatingInstances[0].[PreviousState.Name,CurrentState.Name]' --output text");
+            sh(&practice, &env, &poll("terminated"));
+            guest("terminated");
+            sh(&practice, &env, "aws ec2 start-instances --instance-ids \"$LAB_SERVER_ID\"");
+            sh(&practice, &env, "sleep 20; aws ec2 describe-instances --query 'Reservations[].Instances[].[InstanceId,State.Name]' --output text");
+            sh(&practice, &env, "aws ec2 delete-subnet --subnet-id \"$LAB_SUBNET_B_ID\" && echo deleted-B");
+            sh(&practice, &env, "aws ec2 describe-subnets --filters Name=vpc-id,Values=\"$LAB_VPC_ID\" --query 'Subnets[].CidrBlock' --output text");
+            sh(&practice, &env, "aws ec2 delete-vpc --vpc-id \"$LAB_VPC_ID\"");
+            sh(&practice, &env, "aws ec2 terminate-instances --instance-ids \"$LAB_CLIENT_ID\" > /dev/null; for i in $(seq 1 60); do s=$(aws ec2 describe-instances --instance-ids \"$LAB_CLIENT_ID\" --query 'Reservations[0].Instances[0].State.Name' --output text | tr -d '\r'); [ \"$s\" = terminated ] && break; sleep 2; done; echo client=$s; aws ec2 delete-subnet --subnet-id \"$LAB_SUBNET_A_ID\" && echo deleted-A; aws ec2 delete-vpc --vpc-id \"$LAB_VPC_ID\" && echo deleted-vpc");
+            println!("  report after teardown: passed={}", report(&practice).passed);
+        }));
+        let _ = practice.cleanup_cloud();
+        if let Err(p) = outcome { std::panic::resume_unwind(p); }
+    });
+}
