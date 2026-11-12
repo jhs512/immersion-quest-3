@@ -196,7 +196,7 @@ python tools/build-redesigned-course-bundle.py --check
 cargo test --test lesson_registry
 ```
 
-3. 다음 수업(EC2 수명주기·삭제 의존성)은 별도 예고·PRD 승인부터 시작한다. S3·SQS·DB·Lambda는 그 뒤 묶음이다([추천 순서](../.scratch/floci-course-wayfinder/service-teaching-plan.md)).
+3. 다음 수업(EC2 수명주기·삭제 의존성)은 별도 예고·PRD 승인부터 시작한다. 2026-11-12: 사전 측정([lifecycle-preflight](../.scratch/floci-course-wayfinder/evidence/lifecycle-preflight/run-1.log))과 [예고](../.scratch/floci-course-wayfinder/second-lesson/lesson-preview.draft.json)·[PRD](../.scratch/floci-course-wayfinder/second-lesson/prd.draft.md)·[대표 문제](../.scratch/floci-course-wayfinder/second-lesson/representative-problem.draft.md) 초안을 만들었다. **사용자 승인 대기.** 작업 위치는 P3_WIN1의 Paseo 워크스페이스 「클라우드 수업 2 (수명주기)」. S3·SQS·DB·Lambda는 그 뒤 묶음이다([추천 순서](../.scratch/floci-course-wayfinder/service-teaching-plan.md)).
 
 ## 이전 기록
 
