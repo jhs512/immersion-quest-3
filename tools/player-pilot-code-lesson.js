@@ -126,10 +126,25 @@
      layout.push({name,lines,shown,scrolls:(scroller?.scrollHeight||0)>(scroller?.clientHeight||0)+2,lastLineVisible:rect.length===lines&&rect.at(-1).bottom<=(scroller?.getBoundingClientRect().bottom||0)+1});
     }
     checked.push(`layout step ${index+1} window ${innerWidth}x${innerHeight} terminal ${Math.round(document.querySelector('#git-student-terminal')?.getBoundingClientRect().height||0)}px ${JSON.stringify(layout)}`);
-    gridOk('#git-student-terminal','learner');
+    // Every code block of the problem (copyable options, starting commands) has a working 「복사」 button.
+    const fences=(task.goal.match(/```/g)||[]).length/2,blocks=[...document.querySelectorAll('.problem-pane .markdown pre')];
+    if(blocks.length!==fences||blocks.some(b=>!b.querySelector(':scope > .code-copy')))throw Error(`Cloud step ${index+1}: ${blocks.length}/${fences} code blocks with a copy button`);
+    if(blocks.length){blocks[0].querySelector('.code-copy').click();await wait(()=>blocks[0].querySelector('.code-copy').textContent==='복사했어요','copy button copies',5000);}
+    // Tabs: the editable files, then the read-only prepared helpers. A step with neither has no editor.
+    const readonly=task.git_terminal.readonly_files??[],shownTabs=[...editable,...readonly];
+    if(shownTabs.length)gridOk('#git-student-terminal','learner');
+    else if(document.querySelector('.compose-source'))throw Error(`Cloud step ${index+1} shows an editor without files`);
     const tabs=[...document.querySelectorAll('[data-editor-tab]')].filter(t=>t.getClientRects().length).map(t=>t.dataset.editorTab);
-    if(JSON.stringify(tabs)!==JSON.stringify(editable))throw Error(`Cloud editor tabs ${tabs} differ from ${editable}`);
+    if(JSON.stringify(tabs)!==JSON.stringify(shownTabs))throw Error(`Cloud editor tabs ${tabs} differ from ${shownTabs}`);
     for(const [name,text] of Object.entries(await files()))if(text!==start[name])throw Error(`${name} does not show the prepared file`);
+    for(const name of readonly){
+     // A read-only helper is plain text in the editor area: its content, and no editor that could change it.
+     tab(name).click();
+     const block=()=>document.querySelector(`pre[data-readonly-file="${CSS.escape(name)}"]`);
+     await wait(()=>block()?.textContent===start[name],`${name} shows the prepared helper`,10000);
+     if(document.querySelector(`textarea[data-editor-file="${CSS.escape(name)}"]`))throw Error(`${name} is editable`);
+    }
+    if(readonly.length)tab(editable[0]??readonly[0]).click();
     await submit('incorrect','cloud start state rejected');
     for(const action of task.narration){
      if(action.action==='patch_code'){
@@ -148,7 +163,7 @@
     // The teacher prepares its own cloud first; server steps take minutes before narration starts.
     await click('해설 재생');await wait(()=>molipAgent.running,'cloud teacher begins',minutes(15));
     await wait(()=>document.querySelector('#git-demo-terminal')&&window.molipGitTutor?.owner===document.querySelector('#git-demo-terminal')?.dataset.terminalSession,'teacher terminal shown',minutes(15));
-    await new Promise(r=>setTimeout(r,600));gridOk('#git-demo-terminal','teacher');
+    await new Promise(r=>setTimeout(r,600));if(shownTabs.length)gridOk('#git-demo-terminal','teacher');
     await wait(()=>!molipAgent.running&&document.querySelector('.repository-task')?.dataset.narrating==='false','cloud teacher ends',minutes(30));
     verifyTeacher(task);
     if(teacherResult.includes('중단했습니다')||teacherResult.includes('해설을 멈췄어요')||teacherResult.split('bash_command:').length-1!==task.narration.filter(a=>a.action==='bash_command').length)throw Error(`Cloud teacher did not finish: ${teacherResult}`);

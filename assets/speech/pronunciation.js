@@ -205,6 +205,8 @@
         ['Linux', '리눅스', 'Linux'], ['Ubuntu', '우분투', 'Ubuntu'], ['WSL', '더블유에스엘', 'WSL'], ['PowerShell', '파워셸', 'PowerShell'],
         ['CLI', '씨엘아이', 'CLI'], ['PR', '피알', 'PR을 열어요'], ['IP', '아이피', 'IP 주소'], ['TCP', '티씨피', 'TCP'], ['UDP', '유디피', 'UDP'],
         ['DNS', '디엔에스', 'DNS'], ['SSH', '에스에스에이치', 'SSH'], ['CPU', '씨피유', 'CPU'], ['localhost', '로컬호스트', 'localhost'],
+        // Cloud lesson (2026-11-12): the voice read CIDR as 사이저 (owner report).
+        ['CIDR', '사이더', 'CIDR 범위'], ['VPC', '브이피씨', 'VPC 안의 서브넷'], ['EC2', '이씨투', 'EC2 인스턴스'], ['AWS', '에이더블유에스', 'AWS CLI'],
       ],
     },
     {
@@ -520,6 +522,8 @@
       for (let i = 0; i < 3; i++) text = text.replace(/([A-Za-z_][\w.]*)<([A-Z?][\w.?]*(?:(?:\s*,\s*|\s+)[A-Z?][\w.?]*)*)>/g, '$1 $2');
       text = text
         .replace(/(?<![\w<])<([A-Z]\w*(?:\s*,\s*[A-Z]\w*)*)>(?!=)/g, '$1')
+        // CIDR notation (10.91.2.0/24) reads its prefix the same in code and in prose (cloud lesson, 2026-11-12).
+        .replace(/(?<![\w.])(\d{1,3}(?:\.\d{1,3}){3})\/(\d{1,2})(?![\w./])/g, '$1 슬래시 $2')
         .replace(/(?<![\w./])\/(\d{1,2})(?![\w./])/g, ' 슬래시 $1')
         .replace(/([A-Za-z0-9_)\]]+)( *)\*\*\2([A-Za-z0-9_]+)/g, '$1의 $3 제곱')
         .replace(/(\d)>&(\d)/g, ' $1 꺾쇠 앰퍼샌드 $2 ')

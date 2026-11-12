@@ -46,7 +46,9 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     // A Compose step: the files of the terminal's folder in an editor above the terminal.
     let is_compose=exercise.docker.as_ref().is_some_and(|d|d.compose.is_some());
     let is_gitlab=exercise.gitlab.is_some();
-    let has_editors=is_compose||exercise.gitlab.as_ref().is_some_and(|g|!g.editable.is_empty())||exercise.cloud.as_ref().is_some_and(|c|!c.editable.is_empty());
+    let has_editors=is_compose||exercise.gitlab.as_ref().is_some_and(|g|!g.editable.is_empty())||exercise.cloud.as_ref().is_some_and(|c|!c.editable.is_empty())||!exercise.readonly_files.is_empty();
+    // Prepared helper files a cloud step shows beside the editable ones, never saved from the editor.
+    let readonly_names=exercise.readonly_files.clone();
     let mut editor_files=use_signal(Vec::<(String,String)>::new);
     let mut editor_tab=use_signal(||0usize);
     let mut editor_version=use_signal(||0u64);
@@ -111,7 +113,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         restored_start.set(!demo&&practice.lock().unwrap_or_else(|e|e.into_inner()).restored_step_start());
         if is_java {let source=practice.lock().unwrap_or_else(|e|e.into_inner()).java_source();match source{Ok(source)=>java_source.set(Some(source)),Err(e)=>error.set(e)}}
         if has_editors {
-            let files={let p=practice.lock().unwrap_or_else(|e|e.into_inner());p.editable_files().into_iter().map(|name|{let text=p.read_editable(&name).unwrap_or_default();(name,text)}).collect::<Vec<_>>()};
+            let files={let p=practice.lock().unwrap_or_else(|e|e.into_inner());p.editable_files().into_iter().chain(p.readonly_files()).map(|name|{let text=p.read_shown(&name).unwrap_or_default();(name,text)}).collect::<Vec<_>>()};
             *disk_known.lock().unwrap_or_else(|e|e.into_inner())=files.iter().cloned().collect();
             editor_files.set(files);
             // The terminal may change a file too (vim, echo >>). The editor then shows the real file.
@@ -128,7 +130,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
                         let p=source.lock().unwrap_or_else(|e|e.into_inner());
                         let mut known=record.lock().unwrap_or_else(|e|e.into_inner());
                         let mut changed=false;
-                        for name in p.editable_files() {if let Ok(text)=p.read_editable(&name){if known.get(&name)!=Some(&text){known.insert(name,text);changed=true;}}}
+                        for name in p.editable_files().into_iter().chain(p.readonly_files()) {if let Ok(text)=p.read_shown(&name){if known.get(&name)!=Some(&text){known.insert(name,text);changed=true;}}}
                         changed.then(||known.clone())
                     }).await else{continue};
                     if let Some(known)=changed {
@@ -265,19 +267,25 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
                     for (index,(file,_)) in editor_files().into_iter().enumerate() {
                         button {r#type:"button",role:"tab","data-editor-tab":file.clone(),aria_selected:(index==editor_tab()).to_string(),onclick:move |_|editor_tab.set(index),"{file}"}
                     }
-                    span {class:"editor-file-note","터미널 폴더에 자동 저장"}
+                    span {class:"editor-file-note",if readonly_names.contains(&name){"읽기 전용 · 준비된 명령"}else{"터미널 폴더에 자동 저장"}}
                 }
-                textarea {class:"code-editor","data-code-editor":editor_language(&name),"data-compose-editor":rendered_owner.clone(),"data-editor-file":name.clone(),"data-editor-value":text.clone(),"data-editor-reset":format!("{rendered_owner}:{name}:{}",editor_version()),initial_value:text,aria_label:format!("실습 {name}"),spellcheck:false,
-                    oninput:{let name=name.clone();let owned=edit_owned.clone();let known=save_known.clone();move |event:FormEvent|{
-                        let value=event.value().replace("\r\n","\n");
-                        // Save and record as one step under the practice lock (see the disk poll).
-                        if let Some(session)=owned.lock().unwrap_or_else(|e|e.into_inner()).as_ref(){
-                            let practice=session.practice.lock().unwrap_or_else(|e|e.into_inner());
-                            if let Err(e)=practice.save_editable(&name,&value){error.set(e);return;}
-                            known.lock().unwrap_or_else(|e|e.into_inner()).insert(name.clone(),value.clone());
-                        }
-                        editor_files.with_mut(|files|if let Some(file)=files.iter_mut().find(|(n,_)|*n==name){file.1=value.clone();});
-                    }}}
+                // A read-only helper is shown as plain text, not in the code editor: nothing to edit or save,
+                // and no mount-time attribute race (the editor reads readOnly once, when it mounts).
+                if readonly_names.contains(&name) {
+                    pre {class:"readonly-file","data-readonly-file":name.clone(),aria_label:format!("실습 {name} (읽기 전용)"),code {"{text}"}}
+                } else {
+                    textarea {class:"code-editor","data-code-editor":editor_language(&name),"data-compose-editor":rendered_owner.clone(),"data-editor-file":name.clone(),"data-editor-value":text.clone(),"data-editor-reset":format!("{rendered_owner}:{name}:{}",editor_version()),initial_value:text,aria_label:format!("실습 {name}"),spellcheck:false,
+                        oninput:{let name=name.clone();let owned=edit_owned.clone();let known=save_known.clone();move |event:FormEvent|{
+                            let value=event.value().replace("\r\n","\n");
+                            // Save and record as one step under the practice lock (see the disk poll).
+                            if let Some(session)=owned.lock().unwrap_or_else(|e|e.into_inner()).as_ref(){
+                                let practice=session.practice.lock().unwrap_or_else(|e|e.into_inner());
+                                if let Err(e)=practice.save_editable(&name,&value){error.set(e);return;}
+                                known.lock().unwrap_or_else(|e|e.into_inner()).insert(name.clone(),value.clone());
+                            }
+                            editor_files.with_mut(|files|if let Some(file)=files.iter_mut().find(|(n,_)|*n==name){file.1=value.clone();});
+                        }}}
+                }
             }
             div {class:"split-handle split-row split-java-source",role:"separator",tabindex:0,aria_label:"에디터와 터미널 높이 조절",aria_orientation:"horizontal",title:"드래그로 높이 조절, 더블 클릭으로 되돌리기"}
         }

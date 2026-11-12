@@ -1,6 +1,6 @@
 {
   "by": "hand",
-  "source_sha256": "ff38098d2fada4dbab1ceca39f5400075d3b38b42f22b91f1a906b34e8b9d32f",
+  "source_sha256": "227270fde0be8eb3c826e15b4a089a5b9ece13e25a075a41985fc188df3b308b",
   "entry": [
     {
       "action": "say",
@@ -9,7 +9,7 @@
     },
     {
       "action": "bash_command",
-      "command": "bash list-subnets.sh",
+      "command": "aws ec2 describe-subnets --endpoint-url \"$LAB_ENDPOINT\" --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"",
       "say": "준비된 서브넷부터 볼게요.",
       "target": "#git-demo-terminal",
       "wait_seconds": 60
@@ -21,12 +21,12 @@
     },
     {
       "action": "say",
-      "text": "준비 값 10.91.1.128/25는 VPC 안이에요. 그런데 10.91.1.128부터 255까지라 기존 범위의 안쪽이에요.",
-      "target": "code:10.91.1.128/25"
+      "text": "주어진 값 10.91.1.128/25는 VPC 안이에요. 그런데 10.91.1.128부터 255까지라 기존 범위의 안쪽이에요.",
+      "target": "text:아래는 /25 서브넷 하나를 만드는 명령이에요."
     },
     {
       "action": "bash_command",
-      "command": "bash create-subnet.sh",
+      "command": "aws ec2 create-subnet --endpoint-url \"$LAB_ENDPOINT\" --vpc-id \"$LAB_VPC_ID\" --cidr-block 10.91.1.128/25",
       "say": "그대로 실행해 볼게요.",
       "target": "#git-demo-terminal",
       "wait_seconds": 60,
@@ -43,16 +43,9 @@
       "target": "text:여러분이 만든 서브넷이 아니에요."
     },
     {
-      "action": "patch_code",
-      "before": "--cidr-block 10.91.1.128/25",
-      "after": "--cidr-block 10.91.2.0/25",
-      "say": "셋째 칸을 2로 바꿔 10.91.2.0/25를 골라요.",
-      "file": "create-subnet.sh"
-    },
-    {
       "action": "bash_command",
-      "command": "bash create-subnet.sh",
-      "say": "고른 범위로 다시 실행해요.",
+      "command": "aws ec2 create-subnet --endpoint-url \"$LAB_ENDPOINT\" --vpc-id \"$LAB_VPC_ID\" --cidr-block 10.91.2.0/25",
+      "say": "셋째 칸을 2로 바꿔 10.91.2.0/25로 다시 실행해요.",
       "target": "#git-demo-terminal",
       "wait_seconds": 60
     },
@@ -63,7 +56,7 @@
     },
     {
       "action": "bash_command",
-      "command": "bash list-subnets.sh",
+      "command": "aws ec2 describe-subnets --endpoint-url \"$LAB_ENDPOINT\" --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"",
       "say": "두 서브넷의 범위를 나란히 볼게요.",
       "target": "#git-demo-terminal",
       "wait_seconds": 60

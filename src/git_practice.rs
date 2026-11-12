@@ -28,6 +28,9 @@ pub struct GitExercise {
     #[serde(skip)] pub cloud_demonstration:bool,
     /// Local emulated AWS (Floci) practice graded by its owned VPC/subnet/instance state.
     #[serde(default,skip_serializing_if="Option::is_none")] pub cloud:Option<CloudExercise>,
+    /// Prepared helper files shown read-only beside the editable ones (cloud steps). Kept on GitExercise,
+    /// which tolerates unknown fields: an older player ignores it instead of rejecting the whole lesson.
+    #[serde(default,skip_serializing_if="Vec::is_empty")] pub readonly_files:Vec<String>,
     #[serde(skip)] pub java_demonstration:bool,
     #[serde(skip)] pub github_demonstration:bool,
     #[serde(default,skip_serializing_if="Option::is_none")] pub github_pr:Option<GithubPrStage>,
@@ -286,6 +289,13 @@ impl GitExercise {
             // The editor shows prepared files only, so a reset or a demonstration restores them too.
             let shell=self.shell.as_ref().unwrap();
             if cloud.editable.iter().any(|f|!shell.start.as_ref().is_some_and(|s|s.files.contains_key(f))||!shell.demo.files.contains_key(f)){return Err("클라우드 실습에서 고칠 파일을 준비하세요.".into())}
+        }
+        if !self.readonly_files.is_empty() {
+            let editable=self.cloud.as_ref().map(|c|c.editable.clone()).unwrap_or_default();
+            let prepared=|f:&String|self.shell.as_ref().is_some_and(|s|s.start.as_ref().is_some_and(|s|s.files.contains_key(f))&&s.demo.files.contains_key(f));
+            if self.cloud.is_none()||self.readonly_files.len()>4||self.readonly_files.iter().enumerate().any(|(i,f)|!crate::repository_course::safe_file(f)||f.contains('/')||!prepared(f)||editable.contains(f)||self.readonly_files[..i].contains(f)){
+                return Err("읽기 전용으로 보여 줄 준비 파일을 확인하세요.".into())
+            }
         }
         if let Some(shell)=&self.shell {shell.validate_commands(self.network.is_some()||self.cloud.is_some())?;if self.initial_history!=GitInitialHistory::Uninitialized||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Bash 실습의 시작 상태를 확인하세요.".into())}}
         if self.demo_setup.is_some(){self.demonstration().validate()?;}

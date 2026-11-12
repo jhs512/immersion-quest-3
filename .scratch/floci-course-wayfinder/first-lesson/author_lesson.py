@@ -30,18 +30,6 @@ TERM = '#git-demo-terminal'
 VPC = '10.91.0.0/16'
 
 # -- prepared files ------------------------------------------------------------------------
-def create_subnet(block):
-    return ('# 준비된 VPC 안에 서브넷 하나를 만드는 명령이에요.\n'
-            '# --vpc-id는 어느 VPC에, --cidr-block은 그 안의 어느 범위에 만들지 정해요.\n'
-            'aws ec2 create-subnet \\\n'
-            '  --endpoint-url "$LAB_ENDPOINT" \\\n'
-            '  --vpc-id "$LAB_VPC_ID" \\\n'
-            f'  --cidr-block {block}\n')
-
-LIST_SUBNETS = ('# 준비된 VPC에 있는 서브넷 목록을 보여 주는 명령이에요.\n'
-                'aws ec2 describe-subnets \\\n'
-                '  --endpoint-url "$LAB_ENDPOINT" \\\n'
-                '  --filters Name=vpc-id,Values="$LAB_VPC_ID"\n')
 LIST_SERVERS = ('# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n'
                 '# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\n'
                 'aws ec2 describe-instances \\\n'
@@ -74,12 +62,40 @@ DESCRIBE_VPC = 'aws ec2 describe-vpcs --endpoint-url "$LAB_ENDPOINT" --vpc-ids "
 REQUEST = 'client-request "$(cat server-address.txt)"'
 
 
-def terminal(step, cloud, files, editable):
-    cloud = dict(cloud, editable=editable)
+ENDPOINT_OPT = '--endpoint-url "$LAB_ENDPOINT"'
+VPC_OPT = '--vpc-id "$LAB_VPC_ID"'
+FILTER_OPT = '--filters Name=vpc-id,Values="$LAB_VPC_ID"'
+LIST_SUBNETS_CMD = f'aws ec2 describe-subnets {ENDPOINT_OPT} {FILTER_OPT}'
+
+
+def create_cmd(block):
+    return f'aws ec2 create-subnet {ENDPOINT_OPT} {VPC_OPT} --cidr-block {block}'
+
+
+def fence(text):
+    return '```\n' + text + '\n```'
+
+
+# Options the learner pastes at any time (each block has a 「복사」 button in the player).
+COPY_SUBNET = ('**복사해서 쓰는 옵션**\n\n'
+               '실습 주소와 준비된 VPC는 아래 블록에서 언제든 복사해 붙여 넣을 수 있어요.\n\n'
+               + fence(ENDPOINT_OPT) + '\n\n' + fence(VPC_OPT) + '\n\n' + fence(FILTER_OPT))
+COPY_SERVER = ('**복사해서 쓰는 옵션**\n\n'
+               '실습 주소와 준비된 VPC는 아래 블록에서 언제든 복사해 붙여 넣을 수 있어요.\n\n'
+               + fence(ENDPOINT_OPT) + '\n\n' + fence(FILTER_OPT))
+DEFAULT_VPC = ('실습 환경에도 실제 AWS 계정처럼 기본 VPC(172.31.0.0/16)와 그 서브넷이 따로 있어요. '
+               '그래서 서브넷 목록은 `--filters`로 준비된 VPC의 것만 봐요.')
+
+
+def terminal(step, cloud, files, editable, readonly=()):
+    cloud = dict(cloud, editable=list(editable))
     snapshot = {'files': files, 'directories': [], 'cwd': ''}
-    return {'initial_history': 'uninitialized', 'cloud': cloud,
-            'shell': {'step_id': step, 'start': copy.deepcopy(snapshot), 'demo': copy.deepcopy(snapshot),
-                      'goal': {'files': {}, 'directories': [], 'cwd': ''}, 'commands': []}}
+    value = {'initial_history': 'uninitialized', 'cloud': cloud,
+             'shell': {'step_id': step, 'start': copy.deepcopy(snapshot), 'demo': copy.deepcopy(snapshot),
+                       'goal': {'files': {}, 'directories': [], 'cwd': ''}, 'commands': []}}
+    if readonly:
+        value['readonly_files'] = list(readonly)
+    return value
 
 
 def say(text, target):
@@ -97,53 +113,55 @@ def patch(before, after, line, file):
     return {'action': 'patch_code', 'before': before, 'after': after, 'say': line, 'file': file}
 
 
+LIST_SERVERS_NOTE = '편집기의 `list-servers.sh` 탭(읽기 전용)은 서버의 ID·서브넷 ID·사설 IP 주소·상태를 표로 보여 주는 준비 명령이에요.'
+
 # -- steps -------------------------------------------------------------------------------
 STEPS = []
 
 STEPS.append(dict(
-    id=ST[0], title='준비된 명령으로 VPC 안에 서브넷을 만드세요',
+    id=ST[0], title='VPC 안에 서브넷을 만드세요',
     objectives=['서브넷은 VPC 안의 더 작은 주소 범위이고, 만든 서브넷은 그 VPC에 속해요.'],
     goal='VPC는 주소 공간 하나를 선언한 자원이에요. 서브넷(subnet)은 그 VPC 안의 더 작은 주소 범위예요. 서버는 나중에 서브넷 안에 놓여요.\n\n'
-         '이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 범위가 10.91.0.0/16인 VPC 하나만 만들어 뒀어요. 서브넷은 아직 없어요. '
+         '이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 범위가 10.91.0.0/16인 VPC 하나를 만들어 뒀어요. 그 VPC에 서브넷은 아직 없어요. '
          '`LAB_ENDPOINT`는 이 컴퓨터의 로컬 실습 주소이고, `LAB_VPC_ID`는 준비된 VPC의 ID예요. 실제 AWS에는 접속하지 않아요.\n\n'
-         '편집기의 `create-subnet.sh`는 이 VPC 안에 서브넷 하나를 만드는 준비 명령이에요. 이번에는 고치지 않고 그대로 실행해요. '
-         '터미널 폴더의 `list-subnets.sh`는 이 VPC의 서브넷 목록을 보여 줘요.\n\n'
+         '`aws ec2 create-subnet`은 서브넷을 만드는 명령이에요. `--vpc-id`는 어느 VPC에, `--cidr-block`은 그 안의 어느 범위에 만들지 정해요. '
+         + DEFAULT_VPC + '\n\n'
+         + COPY_SUBNET + '\n\n'
          '**할 일**\n\n'
          f'1. 터미널에 `{DESCRIBE_VPC}`를 입력하고 Enter를 누르세요. `CidrBlock`이 VPC의 주소 공간이에요.\n'
-         '2. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 아직 서브넷이 없는지 확인하세요.\n'
-         '3. 편집기에서 `create-subnet.sh`의 `--vpc-id`와 `--cidr-block` 값을 읽으세요.\n'
-         '4. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 출력에서 새 서브넷의 `SubnetId`와 `CidrBlock`을 읽으세요.\n'
-         '5. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 새 서브넷의 `VpcId`가 준비된 VPC의 ID와 같은지 확인하세요.\n'
-         '6. 서브넷이 생긴 것을 확인했으면 제출 버튼을 누르세요.',
-    solution='# 준비 명령을 그대로 실행해요. 준비된 VPC 안에 10.91.1.0/24 서브넷이 생겨요.\nbash create-subnet.sh\n# 목록에서 새 서브넷의 VpcId와 CidrBlock을 확인해요.\nbash list-subnets.sh',
-    terminal=terminal(ST[0], {'goal': 'create_subnet', 'vpc_cidr': VPC, 'target_cidr': '10.91.1.0/24'},
-                      {'create-subnet.sh': create_subnet('10.91.1.0/24'), 'list-subnets.sh': LIST_SUBNETS},
-                      ['create-subnet.sh']),
+         f'2. 터미널에 `{LIST_SUBNETS_CMD}`를 입력하고 Enter를 누르세요. 아직 서브넷이 없는지 확인하세요.\n'
+         f'3. 터미널에 `{create_cmd("10.91.1.0/24")}`를 입력하고 Enter를 누르세요. 출력에서 새 서브넷의 `SubnetId`와 `CidrBlock`을 읽으세요.\n'
+         f'4. 터미널에 `{LIST_SUBNETS_CMD}`를 다시 입력하고 Enter를 누르세요. 새 서브넷의 `VpcId`가 준비된 VPC의 ID와 같은지 확인하세요.\n'
+         '5. 서브넷이 생긴 것을 확인했으면 제출 버튼을 누르세요.',
+    solution=f'# 준비된 VPC 안에 10.91.1.0/24 서브넷을 만들어요.\n{create_cmd("10.91.1.0/24")}\n# 준비된 VPC의 서브넷 목록에서 VpcId와 CidrBlock을 확인해요.\n{LIST_SUBNETS_CMD}',
+    terminal=terminal(ST[0], {'goal': 'create_subnet', 'vpc_cidr': VPC, 'target_cidr': '10.91.1.0/24'}, {}, []),
     narration=[
         say('준비된 VPC는 10.91.0.0/16이고 서브넷은 아직 없어요. 먼저 그 VPC를 API로 직접 읽어 볼게요.',
-            'text:실습 환경이 범위가 10.91.0.0/16인 VPC 하나만 만들어 뒀어요.'),
+            'text:실습 환경이 범위가 10.91.0.0/16인 VPC 하나를 만들어 뒀어요.'),
         run(DESCRIBE_VPC, 'describe-vpcs로 준비된 VPC를 조회해요.', wait=120),
         say('CidrBlock이 10.91.0.0/16이에요. /16이라 앞 두 칸 10.91이 이 VPC의 주소 공간을 정해요.', TERM),
         say('조심하세요. 다른 터미널의 aws에서 --endpoint-url을 빼면 실제 AWS 주소로 요청해요. 이 실습 터미널만 로컬 실습 주소로 보내 줘요.',
             'text:실제 AWS에는 접속하지 않아요.'),
-        run('bash list-subnets.sh', '서브넷 목록부터 볼게요.'),
+        say('서브넷 목록에는 --filters를 붙여요. 기본 VPC의 서브넷이 섞이지 않게 준비된 VPC의 것만 봐요.',
+            'text:그래서 서브넷 목록은 --filters로 준비된 VPC의 것만 봐요.'),
+        run(LIST_SUBNETS_CMD, '준비된 VPC의 서브넷 목록부터 볼게요.'),
         say('Subnets가 빈 목록이에요. 이 VPC에는 아직 서브넷이 없어요.', TERM),
-        say('준비 명령은 이 VPC 안의 10.91.1.0/24를 쓰겠다고 선언해요. 10.91로 시작하니 VPC 범위 안이에요.',
-            'code:--cidr-block 10.91.1.0/24'),
-        run('bash create-subnet.sh', '준비 명령을 그대로 실행해요.'),
+        say('이제 create-subnet을 직접 입력해요. --vpc-id로 준비된 VPC를, --cidr-block으로 그 안의 10.91.1.0/24를 정해요.',
+            'text:--vpc-id는 어느 VPC에, --cidr-block은 그 안의 어느 범위에 만들지 정해요.'),
+        run(create_cmd('10.91.1.0/24'), '서브넷을 만드는 명령을 입력해요.'),
         say('새 서브넷이 생겼어요. 출력의 CidrBlock은 10.91.1.0/24이고 VpcId는 준비된 VPC의 ID예요.', TERM),
-        run('bash list-subnets.sh', '목록을 다시 볼게요.'),
+        run(LIST_SUBNETS_CMD, '목록을 다시 볼게요.'),
         say('목록에도 같은 서브넷이 하나 보여요. 채점도 이 목록 같은 실제 상태를 읽어요.', TERM),
     ],
     core='수업 예고의 1·2번째 경험이다. 읽기 전용 VPC 조회(예고 1)는 채점하지 않고 이 스텝의 첫 관찰과 단원 전제로 둔다.\n\n'
-         '시작: VPC 10.91.0.0/16 하나, 서브넷 0개. 준비 명령은 이미 올바른 10.91.1.0/24.\n'
-         '행동: describe-vpcs로 CidrBlock을 읽고, 준비 create-subnet을 그대로 실행한 뒤 목록을 읽는다.\n'
+         '시작: VPC 10.91.0.0/16 하나(그 밖에 Floci의 기본 VPC 172.31.0.0/16), 준비 VPC의 서브넷 0개. 준비 파일 없음.\n'
+         '행동: describe-vpcs로 CidrBlock을 읽고, create-subnet을 직접 입력한 뒤 VPC 필터를 붙인 목록을 읽는다.\n'
          '관찰 근거: 새 서브넷의 VpcId·CidrBlock.\n'
-         '판정: 초기 상태(서브넷 0개) 실패, 준비 명령 실행 뒤 통과. 학생이 만든 다른 VPC의 같은 CIDR은 실패.\n'
-         '주의: 정상 명령 자체가 실패했다고 쓰지 않는다. 실행 전 상태가 실패이고 실행하면 통과하는 실행 과제다.',
+         '판정: 초기 상태(서브넷 0개) 실패, 명령 실행 뒤 통과. 학생이 만든 다른 VPC의 같은 CIDR은 실패.\n'
+         '주의: 자주 쓰는 옵션은 본문의 복사 블록으로 준다(2026-11-12 사용자 결정: 파일에 의존하지 않고 직접 입력).',
     complexity=dict(new_concepts=['서브넷 = VPC 안의 하위 주소 범위'], prerequisite_experience='network-ip의 CIDR 범위 판단, Docker로 서버를 실행한 경험.',
-                    changed_condition='고칠 값 없음. 준비 명령을 실제로 실행한다.', observable_evidence='describe-vpcs의 CidrBlock, create-subnet과 describe-subnets의 VpcId·CidrBlock.',
-                    learner_edited_lines=0, new_external_services=1),
+                    changed_condition='준비 파일 없이 명령을 직접 입력한다.', observable_evidence='describe-vpcs의 CidrBlock, create-subnet과 describe-subnets의 VpcId·CidrBlock.',
+                    learner_edited_lines=1, new_external_services=1),
 ))
 
 STEPS.append(dict(
@@ -151,46 +169,45 @@ STEPS.append(dict(
     objectives=['VPC 범위 밖의 서브넷은 거절되고, 범위를 VPC 안으로 고치면 만들어져요.'],
     goal='서브넷은 VPC 주소 공간의 일부여야 해요. VPC 밖의 범위로는 서브넷을 만들 수 없어요.\n\n'
          '이번 문제도 새 실습 상태에서 시작해요. 앞 문제에서 만든 서브넷은 없어요. 준비된 VPC의 범위는 10.91.0.0/16이에요.\n\n'
-         '편집기의 `create-subnet.sh`는 서브넷을 만드는 준비 명령인데, `--cidr-block` 값이 틀렸어요. '
-         '이 VPC 안에 10.91.2.0/24 서브넷 하나를 만들어야 해요. `--endpoint-url`과 `--vpc-id`는 그대로 두세요.\n\n'
+         '아래는 서브넷을 만드는 명령인데, `--cidr-block` 값이 틀렸어요. 이 VPC 안에 10.91.2.0/24 서브넷 하나를 만들어야 해요. '
+         '`--endpoint-url`과 `--vpc-id`는 그대로 두세요.\n\n'
+         + fence(create_cmd('10.92.2.0/24')) + '\n\n'
+         + COPY_SUBNET + '\n\n'
          '**할 일**\n\n'
-         '1. 편집기에서 `create-subnet.sh`의 `--cidr-block` 값을 VPC 범위 10.91.0.0/16과 비교하세요.\n'
-         '2. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 오류 메시지를 읽으세요.\n'
-         '3. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 서브넷이 생기지 않았는지 확인하세요.\n'
-         '4. 편집기에서 `--cidr-block` 값 한 곳만 `10.91.2.0/24`로 고치세요.\n'
-         '5. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 이번 출력의 `CidrBlock`과 `VpcId`를 읽으세요.\n'
-         '6. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 고친 범위의 서브넷이 하나 있는지 확인하세요.\n'
-         '7. 고친 뒤 상태를 확인했으면 제출 버튼을 누르세요.',
-    solution='# create-subnet.sh의 --cidr-block을 10.92.2.0/24에서 10.91.2.0/24로 고쳐요.\n# /16 VPC 10.91.0.0/16 안이려면 앞 두 칸이 10.91이어야 해요.\nbash create-subnet.sh\nbash list-subnets.sh',
-    terminal=terminal(ST[1], {'goal': 'create_subnet', 'vpc_cidr': VPC, 'target_cidr': '10.91.2.0/24'},
-                      {'create-subnet.sh': create_subnet('10.92.2.0/24'), 'list-subnets.sh': LIST_SUBNETS},
-                      ['create-subnet.sh']),
+         '1. 위 명령의 `--cidr-block` 값을 VPC 범위 10.91.0.0/16과 비교하세요.\n'
+         '2. 위 명령을 복사해 터미널에 붙여 넣고 Enter를 누르세요. 오류 메시지를 읽으세요.\n'
+         f'3. 터미널에 `{LIST_SUBNETS_CMD}`를 입력하고 Enter를 누르세요. 서브넷이 생기지 않았는지 확인하세요.\n'
+         '4. 키보드의 ↑ 키로 2번의 명령을 다시 불러와 `--cidr-block` 값 한 곳만 `10.91.2.0/24`로 고친 뒤 Enter를 누르세요. 이번 출력의 `CidrBlock`과 `VpcId`를 읽으세요.\n'
+         f'5. 터미널에 `{LIST_SUBNETS_CMD}`를 입력하고 Enter를 누르세요. 고친 범위의 서브넷이 하나 있는지 확인하세요.\n'
+         '6. 고친 뒤 상태를 확인했으면 제출 버튼을 누르세요.',
+    solution=f'# --cidr-block을 10.92.2.0/24에서 10.91.2.0/24로 고쳐요. /16 VPC 10.91.0.0/16 안이려면 앞 두 칸이 10.91이어야 해요.\n{create_cmd("10.91.2.0/24")}\n{LIST_SUBNETS_CMD}',
+    terminal=terminal(ST[1], {'goal': 'create_subnet', 'vpc_cidr': VPC, 'target_cidr': '10.91.2.0/24'}, {}, []),
     narration=[
         say('VPC는 10.91.0.0/16이고, 그 안에 10.91.2.0/24를 만들어야 해요.',
             'text:이 VPC 안에 10.91.2.0/24 서브넷 하나를 만들어야 해요.'),
-        say('준비 값은 10.92.2.0/24예요. 둘째 칸이 92라서 10.91로 시작하는 VPC 밖이에요.', 'code:10.92.2.0/24'),
-        run('bash create-subnet.sh', '고치기 전에 그대로 실행해 볼게요.', fails=True),
+        say('주어진 명령의 값은 10.92.2.0/24예요. 둘째 칸이 92라서 10.91로 시작하는 VPC 밖이에요.',
+            'text:아래는 서브넷을 만드는 명령인데, --cidr-block 값이 틀렸어요.'),
+        run(create_cmd('10.92.2.0/24'), '고치기 전에 그대로 실행해 볼게요.', fails=True),
         say('InvalidSubnet.Range 오류예요. VPC 밖의 범위라서 API가 거절했어요.', TERM),
-        run('bash list-subnets.sh', '거절된 뒤의 목록을 볼게요.'),
+        run(LIST_SUBNETS_CMD, '거절된 뒤의 목록을 볼게요.'),
         say('Subnets가 비어 있어요. 거절된 명령은 아무것도 만들지 않았어요.', TERM),
         say('조심하세요. 끝의 2.0/24만 맞춰 보고 둘째 칸을 놓치기 쉬워요. /16 VPC 안이려면 앞 두 칸이 같아야 해요.',
-            'code:10.92.2.0/24'),
-        patch('--cidr-block 10.92.2.0/24', '--cidr-block 10.91.2.0/24', '92를 91로 고쳐 VPC 안의 범위로 옮겨요.', 'create-subnet.sh'),
-        run('bash create-subnet.sh', '고친 명령을 실행해요.'),
+            'text:위 명령의 --cidr-block 값을 VPC 범위 10.91.0.0/16과 비교하세요.'),
+        run(create_cmd('10.91.2.0/24'), '92를 91로 한 곳만 고쳐 다시 실행해요.'),
         say('이번에는 서브넷이 생겼어요. CidrBlock은 10.91.2.0/24이고 VpcId는 준비된 VPC예요.', TERM),
-        run('bash list-subnets.sh', '고친 뒤 목록을 확인해요.'),
-        say('목록에 10.91.2.0/24 서브넷이 하나 있어요. 고친 곳은 --cidr-block 한 줄뿐이에요.', 'code:--cidr-block 10.91.2.0/24'),
+        run(LIST_SUBNETS_CMD, '고친 뒤 목록을 확인해요.'),
+        say('목록에 10.91.2.0/24 서브넷이 하나 있어요. 바꾼 곳은 --cidr-block 값 하나뿐이에요.', TERM),
         say('조심하세요. VPC를 새로 만들어 같은 숫자의 서브넷을 만들면 준비된 VPC가 아니라서 통과하지 않아요.',
             'text:--endpoint-url과 --vpc-id는 그대로 두세요.'),
     ],
     core='수업 예고의 3번째 경험이자 대표 문제다.\n\n'
-         '시작: VPC 10.91.0.0/16만 있음, 서브넷 0개. 준비 명령의 CIDR이 10.92.2.0/24.\n'
-         '행동: 원본 실행(InvalidSubnet.Range 거절) → --cidr-block 한 곳을 10.91.2.0/24로 수정 → 재실행 → 목록.\n'
+         '시작: VPC 10.91.0.0/16만 있음, 서브넷 0개. 본문에 CIDR이 10.92.2.0/24인 시작 명령을 준다(파일 없음).\n'
+         '행동: 시작 명령 실행(InvalidSubnet.Range 거절) → ↑로 불러와 --cidr-block 한 곳을 10.91.2.0/24로 수정 → 재실행 → 목록.\n'
          '관찰 근거: 원본의 실제 오류, 수정 뒤 CidrBlock·VpcId.\n'
-         '판정: 준비 코드 실패, 정답 통과, 출력 위조 실패, 다른 VPC의 같은 CIDR 실패, 범위 안의 다른 CIDR 실패, 추가 서브넷 실패, 직접 명령·삭제 후 재생성 통과, VPC 10.73.0.0/16 변형 통과.\n'
+         '판정: 시작 명령 실패, 정답 통과, 출력 위조 실패, 다른 VPC의 같은 CIDR 실패, 범위 안의 다른 CIDR 실패, 추가 서브넷 실패, VPC 10.73.0.0/16 변형 통과.\n'
          '주의: 비트 계산을 다시 가르치지 않는다.',
     complexity=dict(new_concepts=['VPC 범위 밖 서브넷의 거절'], prerequisite_experience='network-ip의 범위 안/밖 판단, 앞 스텝의 서브넷 생성.',
-                    changed_condition='준비 명령의 CIDR이 VPC 밖이다.', observable_evidence='InvalidSubnet.Range 오류, 수정 뒤 CidrBlock·VpcId.',
+                    changed_condition='시작 명령의 CIDR이 VPC 밖이다.', observable_evidence='InvalidSubnet.Range 오류, 수정 뒤 CidrBlock·VpcId.',
                     learner_edited_lines=1, new_external_services=0),
 ))
 
@@ -200,45 +217,43 @@ STEPS.append(dict(
     goal='같은 VPC 안의 서브넷끼리는 범위가 겹칠 수 없어요. 범위가 VPC 안에 있어도 이미 있는 서브넷과 겹치면 거절돼요.\n\n'
          '이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 VPC 10.91.0.0/16 안에 서브넷 10.91.1.0/24를 미리 만들어 뒀어요. '
          '여러분이 만든 서브넷이 아니에요. 이 서브넷의 ID는 `LAB_SUBNET_A_ID`에 있어요.\n\n'
-         '편집기의 `create-subnet.sh`는 /25 서브넷 하나를 만드는 준비 명령이에요. 준비된 서브넷은 그대로 두세요. '
+         '아래는 /25 서브넷 하나를 만드는 명령이에요. 준비된 서브넷은 그대로 두세요. '
          'VPC 안에서 준비된 서브넷과 겹치지 않는 /25 범위 하나를 직접 골라 만드세요.\n\n'
+         + fence(create_cmd('10.91.1.128/25')) + '\n\n'
+         + COPY_SUBNET + '\n\n'
          '**할 일**\n\n'
-         '1. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 준비된 서브넷의 `CidrBlock`을 읽으세요.\n'
-         '2. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 오류 메시지를 읽으세요.\n'
-         '3. 편집기에서 `--cidr-block` 값 한 곳을 VPC 안이면서 준비된 서브넷과 겹치지 않는 /25 범위로 고치세요.\n'
-         '4. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 새 서브넷의 `CidrBlock`을 읽으세요.\n'
-         '5. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 두 서브넷의 범위가 겹치지 않는지 확인하세요.\n'
-         '6. 두 서브넷을 확인했으면 제출 버튼을 누르세요.',
-    solution='# create-subnet.sh의 --cidr-block을 10.91.1.128/25에서 겹치지 않는 /25로 고쳐요.\n# 예: 10.91.2.0/25. VPC 안의 다른 빈 /25도 통과해요.\nbash create-subnet.sh\nbash list-subnets.sh',
-    terminal=terminal(ST[2], {'goal': 'choose_subnet', 'vpc_cidr': VPC, 'subnets': [{'name': 'A', 'cidr': '10.91.1.0/24'}], 'new_prefix': 25},
-                      {'create-subnet.sh': create_subnet('10.91.1.128/25'), 'list-subnets.sh': LIST_SUBNETS},
-                      ['create-subnet.sh']),
+         f'1. 터미널에 `{LIST_SUBNETS_CMD}`를 입력하고 Enter를 누르세요. 준비된 서브넷의 `CidrBlock`을 읽으세요.\n'
+         '2. 위 명령을 복사해 터미널에 붙여 넣고 Enter를 누르세요. 오류 메시지를 읽으세요.\n'
+         '3. ↑ 키로 2번의 명령을 다시 불러와 `--cidr-block` 값 한 곳을 VPC 안이면서 준비된 서브넷과 겹치지 않는 /25 범위로 고친 뒤 Enter를 누르세요.\n'
+         f'4. 터미널에 `{LIST_SUBNETS_CMD}`를 입력하고 Enter를 누르세요. 두 서브넷의 범위가 겹치지 않는지 확인하세요.\n'
+         '5. 두 서브넷을 확인했으면 제출 버튼을 누르세요.',
+    solution=f'# --cidr-block을 10.91.1.128/25에서 겹치지 않는 /25로 고쳐요. 예: 10.91.2.0/25. VPC 안의 다른 빈 /25도 통과해요.\n{create_cmd("10.91.2.0/25")}\n{LIST_SUBNETS_CMD}',
+    terminal=terminal(ST[2], {'goal': 'choose_subnet', 'vpc_cidr': VPC, 'subnets': [{'name': 'A', 'cidr': '10.91.1.0/24'}], 'new_prefix': 25}, {}, []),
     narration=[
         say('준비된 서브넷 10.91.1.0/24는 그대로 두고, /25 서브넷을 하나 더 만드는 문제예요.',
             'text:준비된 서브넷은 그대로 두세요.'),
-        run('bash list-subnets.sh', '준비된 서브넷부터 볼게요.'),
+        run(LIST_SUBNETS_CMD, '준비된 서브넷부터 볼게요.'),
         say('10.91.1.0/24 서브넷 하나가 있어요. 10.91.1.0부터 10.91.1.255까지를 차지해요.', TERM),
-        say('준비 값 10.91.1.128/25는 VPC 안이에요. 그런데 10.91.1.128부터 255까지라 기존 범위의 안쪽이에요.',
-            'code:10.91.1.128/25'),
-        run('bash create-subnet.sh', '그대로 실행해 볼게요.', fails=True),
+        say('주어진 값 10.91.1.128/25는 VPC 안이에요. 그런데 10.91.1.128부터 255까지라 기존 범위의 안쪽이에요.',
+            'text:아래는 /25 서브넷 하나를 만드는 명령이에요.'),
+        run(create_cmd('10.91.1.128/25'), '그대로 실행해 볼게요.', fails=True),
         say('InvalidSubnet.Conflict 오류예요. VPC 안의 범위인데도 기존 서브넷과 겹쳐서 거절됐어요.', TERM),
         say('조심하세요. 준비된 서브넷을 지우면 겹침은 사라져요. 하지만 준비 상태가 바뀌어 통과하지 않아요.',
             'text:여러분이 만든 서브넷이 아니에요.'),
-        patch('--cidr-block 10.91.1.128/25', '--cidr-block 10.91.2.0/25', '셋째 칸을 2로 바꿔 10.91.2.0/25를 골라요.', 'create-subnet.sh'),
-        run('bash create-subnet.sh', '고른 범위로 다시 실행해요.'),
+        run(create_cmd('10.91.2.0/25'), '셋째 칸을 2로 바꿔 10.91.2.0/25로 다시 실행해요.'),
         say('새 서브넷 10.91.2.0/25가 생겼어요. 이번에는 거절되지 않았어요.', TERM),
-        run('bash list-subnets.sh', '두 서브넷의 범위를 나란히 볼게요.'),
+        run(LIST_SUBNETS_CMD, '두 서브넷의 범위를 나란히 볼게요.'),
         say('두 서브넷이 함께 있어요. 10.91.1.x와 10.91.2.0~127은 서로 겹치지 않아요.', TERM),
         say('10.91.3.0/25처럼 VPC 안의 다른 빈 /25를 골라도 통과해요. 정답이 하나로 정해진 문제가 아니에요.',
             'text:VPC 안에서 준비된 서브넷과 겹치지 않는 /25 범위 하나를 직접 골라 만드세요.'),
     ],
     core='수업 예고의 4번째 경험이다.\n\n'
-         '시작: VPC + 준비 서브넷 A 10.91.1.0/24(시작 상태 설명에서 먼저 알림). 준비 명령의 CIDR은 10.91.1.128/25.\n'
-         '행동: 목록 → 원본 실행(겹침 거절) → /25 값 한 곳을 겹치지 않는 범위로 수정 → 재실행 → 목록.\n'
+         '시작: VPC + 준비 서브넷 A 10.91.1.0/24(시작 상태 설명에서 먼저 알림). 본문 시작 명령의 CIDR은 10.91.1.128/25.\n'
+         '행동: 목록 → 시작 명령 실행(겹침 거절) → ↑로 불러와 /25 값 한 곳을 겹치지 않는 범위로 수정 → 목록.\n'
          '관찰 근거: 겹침 오류, 두 서브넷의 범위.\n'
          '판정: 조건 검사. 준비 서브넷 유지 + 새 /25 정확히 하나. 특정 값 하나를 고정하지 않는다. 겹침 실패, /24 실패, 두 번째 새 서브넷 실패, 준비 서브넷 삭제 실패.',
     complexity=dict(new_concepts=['같은 VPC 안 서브넷 범위의 겹침 거절'], prerequisite_experience='앞 스텝의 범위 밖 거절(안이어도 거절되는 다른 이유).',
-                    changed_condition='준비 서브넷이 있고 준비 명령의 범위가 그와 겹친다.', observable_evidence='겹침 오류, 수정 뒤 두 서브넷의 CidrBlock.',
+                    changed_condition='준비 서브넷이 있고 시작 명령의 범위가 그와 겹친다.', observable_evidence='겹침 오류, 수정 뒤 두 서브넷의 CidrBlock.',
                     learner_edited_lines=1, new_external_services=0),
 ))
 
@@ -250,8 +265,8 @@ STEPS.append(dict(
     goal='인스턴스(instance)는 서브넷 하나에 놓이는 서버 자원이에요. 서버의 사설 IP 주소는 그 서브넷의 범위에서 받아요.\n\n'
          '이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 VPC 10.91.0.0/16 안에 서브넷 A 10.91.1.0/24와 서브넷 B 10.91.2.0/24를 미리 만들어 뒀어요. '
          '두 서브넷의 ID는 `LAB_SUBNET_A_ID`와 `LAB_SUBNET_B_ID`에 있어요. 아직 서버는 없어요.\n\n'
-         '편집기의 `launch-server.sh`는 서브넷 B에 서버 한 대를 실행하는 준비 명령이에요. 이번에는 고치지 않고 그대로 실행해요. '
-         '`list-servers.sh`는 서버의 ID·서브넷 ID·사설 IP 주소·상태를 표로 보여 줘요.\n\n'
+         '편집기의 `launch-server.sh`는 서브넷 B에 서버 한 대를 실행하는 준비 명령이에요. 옵션이 많아서 파일로 준비했어요. 이번에는 고치지 않고 그대로 실행해요. '
+         + LIST_SERVERS_NOTE + '\n\n'
          '**할 일**\n\n'
          '1. 편집기에서 `launch-server.sh`의 `--subnet-id` 값을 읽으세요.\n'
          '2. 터미널에 `bash launch-server.sh`를 입력하고 Enter를 누르세요. 출력의 `SubnetId`와 `PrivateIpAddress`를 읽으세요.\n'
@@ -261,8 +276,8 @@ STEPS.append(dict(
          '6. 서버가 `running`인 것을 확인했으면 제출 버튼을 누르세요.',
     solution='# 준비 명령을 그대로 실행해요. 서버가 서브넷 B에 놓여요.\nbash launch-server.sh\n# 상태가 running이 될 때까지 표를 다시 확인해요.\nbash list-servers.sh',
     terminal=terminal(ST[3], {'goal': 'launch_server', 'vpc_cidr': VPC, 'subnets': TWO_SUBNETS, 'target_subnet': 'B'},
-                      {'launch-server.sh': launch_server('"$LAB_SUBNET_B_ID"', LAUNCH_HOW), 'list-servers.sh': LIST_SERVERS, 'list-subnets.sh': LIST_SUBNETS},
-                      ['launch-server.sh']),
+                      {'launch-server.sh': launch_server('"$LAB_SUBNET_B_ID"', LAUNCH_HOW), 'list-servers.sh': LIST_SERVERS},
+                      ['launch-server.sh'], ['list-servers.sh']),
     narration=[
         say('서버는 서브넷 하나에 놓이고, 주소도 그 서브넷의 범위에서 받아요.',
             'text:서버의 사설 IP 주소는 그 서브넷의 범위에서 받아요.'),
@@ -279,7 +294,7 @@ STEPS.append(dict(
         say('이제 running이에요. 사설 IP 주소가 서브넷 B의 범위 10.91.2.0/24 안에 있어요.', TERM),
     ],
     core='수업 예고의 5번째 경험이다. EC2 게스트를 처음 쓴다.\n\n'
-         '시작: VPC, 준비 서브넷 A·B, 인스턴스 0개. 준비 명령은 --subnet-id "$LAB_SUBNET_B_ID".\n'
+         '시작: VPC, 준비 서브넷 A·B, 인스턴스 0개. 준비 명령 launch-server.sh(편집기)는 --subnet-id "$LAB_SUBNET_B_ID". list-servers.sh는 읽기 전용 탭.\n'
          '행동: 준비 run-instances 실행 → list-servers로 상태 확인(running까지).\n'
          '관찰 근거: SubnetId, PrivateIpAddress(10.91.2.x), pending→running.\n'
          '판정: 초기 상태(서버 0대) 실패, 준비 명령 실행 뒤 통과. 채점은 pending이면 정해진 시간 안에서 기다린다.\n'
@@ -295,7 +310,9 @@ STEPS.append(dict(
     goal='같은 VPC 안에서도 어느 서브넷에 놓느냐에 따라 서버의 자리와 주소가 달라져요.\n\n'
          '이번 문제는 새 실습 상태에서 시작해요. 앞 문제처럼 실습 환경이 VPC 10.91.0.0/16과 서브넷 A 10.91.1.0/24, 서브넷 B 10.91.2.0/24를 미리 만들어 뒀어요. 아직 서버는 없어요.\n\n'
          '서버를 10.91.2.0/24에 놓아야 해요. 그런데 편집기의 `launch-server.sh`는 다른 서브넷을 가리켜요. '
-         '처음 명령으로 만든 서버가 남아 있으면 통과하지 않아요. 결과를 확인한 뒤 「초기화」로 처음 상태를 받고 고치세요.\n\n'
+         '처음 명령으로 만든 서버가 남아 있으면 통과하지 않아요. 결과를 확인한 뒤 「초기화」로 처음 상태를 받고 고치세요. '
+         + LIST_SERVERS_NOTE + '\n\n'
+         + COPY_SERVER + '\n\n'
          '**할 일**\n\n'
          '1. 터미널에 `bash launch-server.sh`를 입력하고 Enter를 누르세요.\n'
          '2. 터미널에 `bash list-servers.sh`를 입력하고 Enter를 누르세요. 서버의 사설 IP 주소가 어느 서브넷 범위에 있는지 확인하세요.\n'
@@ -306,12 +323,12 @@ STEPS.append(dict(
          '7. 상태가 `running`인 것을 확인했으면 제출 버튼을 누르세요.',
     solution='# 처음 명령은 서브넷 A에 놓여요. 「초기화」로 처음 상태를 받은 뒤 고쳐요.\n# launch-server.sh의 --subnet-id를 "$LAB_SUBNET_A_ID"에서 "$LAB_SUBNET_B_ID"로 고쳐요.\nbash launch-server.sh\nbash list-servers.sh',
     terminal=terminal(ST[4], {'goal': 'launch_server', 'vpc_cidr': VPC, 'subnets': TWO_SUBNETS, 'target_subnet': 'B'},
-                      {'launch-server.sh': launch_server('"$LAB_SUBNET_A_ID"', LAUNCH_HOW), 'list-servers.sh': LIST_SERVERS, 'list-subnets.sh': LIST_SUBNETS},
-                      ['launch-server.sh']),
+                      {'launch-server.sh': launch_server('"$LAB_SUBNET_A_ID"', LAUNCH_HOW), 'list-servers.sh': LIST_SERVERS},
+                      ['launch-server.sh'], ['list-servers.sh']),
     narration=[
         say('목표 자리는 10.91.2.0/24, 곧 서브넷 B예요.', 'text:서버를 10.91.2.0/24에 놓아야 해요.'),
         say('준비 명령은 서브넷 A의 ID를 써요.', 'code:"$LAB_SUBNET_A_ID"'),
-        run('bash list-subnets.sh', '두 서브넷의 ID와 범위를 볼게요.'),
+        run(LIST_SUBNETS_CMD, '두 서브넷의 ID와 범위를 볼게요.'),
         say('서브넷 A는 10.91.1.0/24, B는 10.91.2.0/24예요. 같은 VPC 안의 다른 범위예요.', TERM),
         say('조심하세요. 그대로 실행하면 서버가 서브넷 A에 놓여요. 그 서버를 남긴 채 B에 하나 더 띄우면 두 대라서 통과하지 않아요.',
             'text:처음 명령으로 만든 서버가 남아 있으면 통과하지 않아요.'),
@@ -343,8 +360,8 @@ STEPS.append(dict(
     objectives=['같은 VPC 안에서는 API가 알려 준 사설 IP 주소로 다른 서브넷의 서버에 요청할 수 있어요.'],
     goal='같은 VPC 안의 서버끼리는 사설 IP 주소로 연결해요. 연결할 주소는 API가 알려 준 서버의 사설 IP 주소예요.\n\n'
          '이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 서브넷 A 10.91.1.0/24에 클라이언트 서버를, 서브넷 B 10.91.2.0/24에 자바 HTTP 서버를 미리 실행해 뒀어요. '
-         '두 서버의 ID는 `LAB_CLIENT_ID`와 `LAB_SERVER_ID`에 있어요.\n\n'
-         '`client-request <IPv4 주소>`는 클라이언트 서버 안에서 그 주소의 8080 포트로 HTTP 요청을 보내요. '
+         '두 서버의 ID는 `LAB_CLIENT_ID`와 `LAB_SERVER_ID`에 있어요. ' + LIST_SERVERS_NOTE + '\n\n'
+         '`client-request` 뒤에 IPv4 주소를 붙이면 클라이언트 서버 안에서 그 주소의 8080 포트로 HTTP 요청을 보내요. '
          '편집기의 `server-address.txt`에는 요청할 주소가 한 줄 있는데, 아직 서버의 주소가 아니에요. 이 파일의 주소를 서버의 사설 IP 주소로 고치세요.\n\n'
          '**할 일**\n\n'
          f'1. 터미널에 `{REQUEST}`를 입력하고 Enter를 누르세요. 결과를 읽으세요.\n'
@@ -356,8 +373,8 @@ STEPS.append(dict(
     solution='# list-servers.sh 표에서 LAB_SERVER_ID 서버의 사설 IP 주소를 읽어 server-address.txt에 적어요.\n# 클라이언트 서버 안에서 그 주소로 요청해요.\nclient-request "$(cat server-address.txt)"',
     terminal=terminal(ST[5], {'goal': 'request_server', 'vpc_cidr': VPC, 'subnets': TWO_SUBNETS, 'client_subnet': 'A',
                               'server_subnet': 'B', 'address_file': 'server-address.txt'},
-                      {'server-address.txt': '10.91.2.99\n', 'list-servers.sh': LIST_SERVERS, 'list-subnets.sh': LIST_SUBNETS},
-                      ['server-address.txt']),
+                      {'server-address.txt': '10.91.2.99\n', 'list-servers.sh': LIST_SERVERS},
+                      ['server-address.txt'], ['list-servers.sh']),
     narration=[
         say('요청은 서브넷 A의 클라이언트에서 출발해요. 서브넷 B에 있는 서버의 주소를 알아내는 게 핵심이에요.',
             'text:연결할 주소는 API가 알려 준 서버의 사설 IP 주소예요.'),
@@ -381,7 +398,7 @@ STEPS.append(dict(
             'text:이 파일의 주소를 서버의 사설 IP 주소로 고치세요.'),
     ],
     core='수업 예고의 7번째 경험이다.\n\n'
-         '시작: VPC, 서브넷 A·B, 서브넷 B의 자바 서버, 서브넷 A의 준비 클라이언트(모두 준비 스크립트가 만듦). 주소 파일은 10.91.2.99.\n'
+         '시작: VPC, 서브넷 A·B, 서브넷 B의 자바 서버, 서브넷 A의 준비 클라이언트(모두 준비 스크립트가 만듦). 주소 파일은 10.91.2.99. list-servers.sh는 읽기 전용 탭.\n'
          '행동: 원본 주소로 요청(실패) → 서버 ID 확인 → 표에서 사설 주소 읽기 → 주소 파일 한 곳 수정 → client-request.\n'
          '관찰 근거: HTTP 응답의 instance·served-on·from·java.version.\n'
          '판정: 주소 파일 = 서버 API 사설 주소이고 채점기가 소유 클라이언트에서 직접 요청한 응답의 신원이 맞아야 한다. 자리표시 주소 실패, 같은 서버의 Docker 주소 실패, 응답 출력 위조 실패.\n'
@@ -396,34 +413,34 @@ STEPS.append(dict(
     objectives=['새 개념 없이 범위·자리·주소 판단을 조합해 자바 서버를 원하는 서브넷에 배치하고 응답을 받아요.'],
     goal='지금까지 확인한 범위·자리·주소를 한 번에 써요. 새로 배울 것은 없어요.\n\n'
          '이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 VPC 10.91.0.0/16에 서브넷 A 10.91.1.0/24와 그 안의 클라이언트 서버만 미리 만들어 뒀어요. '
-         '목표 서브넷 10.91.2.0/24는 아직 없어요. 새 서브넷에는 준비된 ID 변수가 없어요. 그래서 `launch-server.sh`는 `subnet-id.sh`로 범위에 맞는 서브넷 ID를 찾아요.\n\n'
+         '목표 서브넷 10.91.2.0/24는 아직 없어요. 새 서브넷에는 준비된 ID 변수가 없어요. 그래서 `launch-server.sh`는 `subnet-id.sh`(읽기 전용 탭)로 범위에 맞는 서브넷 ID를 찾아요. '
+         + LIST_SERVERS_NOTE + '\n\n'
          '서브넷 10.91.2.0/24를 만들고, 그 안에 준비된 자바 HTTP 서버 한 대를 실행하세요. 그리고 서브넷 A의 클라이언트에서 그 서버의 사설 IP 주소로 응답을 받으세요. '
-         '편집기의 세 파일에는 아직 맞지 않는 값이 한 곳씩 있어요. 서버가 엉뚱한 자리에 생기면 「초기화」로 처음 상태를 받으세요.\n\n'
+         '편집기의 두 파일에는 아직 맞지 않는 값이 한 곳씩 있어요. 서버가 엉뚱한 자리에 생기면 「초기화」로 처음 상태를 받으세요.\n\n'
+         + COPY_SUBNET + '\n\n'
          '**할 일**\n\n'
-         '1. 편집기에서 `create-subnet.sh`의 `--cidr-block` 값을 목표 범위로 고치세요.\n'
-         '2. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 새 서브넷의 `CidrBlock`을 확인하세요.\n'
+         '1. 터미널에 `aws ec2 create-subnet`을 입력해 목표 범위의 서브넷을 만드세요. 실습 주소·VPC 옵션은 복사해서 쓰세요.\n'
+         f'2. 터미널에 `{LIST_SUBNETS_CMD}`를 입력하고 Enter를 누르세요. 새 서브넷의 `CidrBlock`을 확인하세요.\n'
          '3. 편집기에서 `launch-server.sh`의 `subnet-id.sh` 뒤 범위를 새 서브넷의 범위로 고치세요.\n'
          '4. 터미널에 `bash launch-server.sh`를 입력하고 Enter를 누르세요. 출력의 `PrivateIpAddress`를 읽으세요.\n'
          '5. 터미널에 `bash list-servers.sh`를 입력하고 Enter를 누르세요. 새 서버가 `running`인지 확인하세요.\n'
          '6. 편집기에서 `server-address.txt`의 주소를 새 서버의 사설 IP 주소로 고치세요.\n'
          f'7. 터미널에 `{REQUEST}`를 입력하고 Enter를 누르세요. 연결에 실패하면 잠시 뒤 다시 실행하세요.\n'
          '8. 응답의 `served-on`과 `from`을 확인했으면 제출 버튼을 누르세요.',
-    solution='# create-subnet.sh의 --cidr-block을 10.91.2.0/24로 고쳐 목표 서브넷을 만들어요.\nbash create-subnet.sh\n'
+    solution=f'# 목표 범위 10.91.2.0/24로 서브넷을 만들어요.\n{create_cmd("10.91.2.0/24")}\n'
              '# launch-server.sh의 subnet-id.sh 뒤 범위를 10.91.2.0/24로 고쳐 새 서브넷에 서버를 실행해요.\nbash launch-server.sh\n'
              '# 새 서버의 사설 IP 주소를 server-address.txt에 적고, 서브넷 A의 클라이언트에서 요청해요.\nclient-request "$(cat server-address.txt)"',
     terminal=terminal(ST[6], {'goal': 'deploy_server', 'vpc_cidr': VPC, 'subnets': [{'name': 'A', 'cidr': '10.91.1.0/24'}],
                               'client_subnet': 'A', 'target_cidr': '10.91.2.0/24', 'address_file': 'server-address.txt'},
-                      {'create-subnet.sh': create_subnet('10.91.1.0/24'),
-                       'launch-server.sh': launch_server('"$(bash subnet-id.sh 10.91.1.0/24)"', LAUNCH_FIND),
-                       'server-address.txt': '0.0.0.0\n', 'subnet-id.sh': SUBNET_ID,
-                       'list-servers.sh': LIST_SERVERS, 'list-subnets.sh': LIST_SUBNETS},
-                      ['create-subnet.sh', 'launch-server.sh', 'server-address.txt']),
+                      {'launch-server.sh': launch_server('"$(bash subnet-id.sh 10.91.1.0/24)"', LAUNCH_FIND),
+                       'server-address.txt': '0.0.0.0\n', 'subnet-id.sh': SUBNET_ID, 'list-servers.sh': LIST_SERVERS},
+                      ['launch-server.sh', 'server-address.txt'], ['subnet-id.sh', 'list-servers.sh']),
     narration=[
         say('범위는 1장, 자리는 서브넷 선택, 주소는 요청 문제에서 확인했어요. 이번에는 셋을 이어서 써요.',
             'text:지금까지 확인한 범위·자리·주소를 한 번에 써요.'),
-        say('준비 값 10.91.1.0/24는 서브넷 A와 같은 범위라 겹쳐요.', 'code:--cidr-block 10.91.1.0/24'),
-        patch('--cidr-block 10.91.1.0/24', '--cidr-block 10.91.2.0/24', '목표 범위 10.91.2.0/24로 고쳐요.', 'create-subnet.sh'),
-        run('bash create-subnet.sh', '목표 서브넷을 만들어요.'),
+        say('먼저 목표 범위 10.91.2.0/24로 서브넷을 직접 만들어요. 서브넷 A와 겹치지 않는 범위예요.',
+            'text:서브넷 10.91.2.0/24를 만들고, 그 안에 준비된 자바 HTTP 서버 한 대를 실행하세요.'),
+        run(create_cmd('10.91.2.0/24'), '목표 서브넷을 만드는 명령을 입력해요.'),
         say('10.91.2.0/24 서브넷이 생겼어요. 이 서브넷의 ID는 준비된 변수에 없어요.', TERM),
         patch('subnet-id.sh 10.91.1.0/24', 'subnet-id.sh 10.91.2.0/24', '서버를 놓을 자리를 새 서브넷의 범위로 고쳐요.', 'launch-server.sh'),
         say('subnet-id.sh가 이 범위로 새 서브넷의 ID를 찾아 --subnet-id에 넣어요.', 'code:subnet-id.sh 10.91.2.0/24'),
@@ -448,13 +465,13 @@ STEPS.append(dict(
     ],
     core='수업 예고의 8번째 경험이자 마지막 수행이다. 새 개념 없음.\n\n'
          '시작: VPC 10.91.0.0/16, 준비 서브넷 A와 클라이언트. 목표 서브넷 10.91.2.0/24는 없음(B ID 변수를 가정하지 않는다). '
-         '세 파일에 한 곳씩: create-subnet.sh 10.91.1.0/24(A와 겹침), launch-server.sh의 subnet-id.sh 10.91.1.0/24(A), server-address.txt 0.0.0.0.\n'
-         '행동: CIDR → 서버 자리 범위 → 요청 주소를 각각 한 곳씩 고치고 실행한다.\n'
+         'create-subnet은 직접 입력하고, 편집기의 두 파일에 한 곳씩: launch-server.sh의 subnet-id.sh 10.91.1.0/24(A), server-address.txt 0.0.0.0. subnet-id.sh·list-servers.sh는 읽기 전용 탭.\n'
+         '행동: 서브넷 직접 생성 → 서버 자리 범위 → 요청 주소를 고치고 실행한다.\n'
          '관찰 근거: 새 서브넷, 10.91.2.x 서버, 클라이언트에서 받은 자바 서버 응답.\n'
          '판정: 새 서브넷 10.91.2.0/24 하나 + 그 안의 서버 한 대 + 주소 파일 일치 + 채점기 HTTP 신원 확인. 서브넷 A 배치 실패, 응답 출력 위조 실패.\n'
          '주의: API running과 HTTP 준비를 구별한다. 해설은 주소를 aws 명령으로 옮겨 적는다(동적 값).',
     complexity=dict(new_concepts=[], prerequisite_experience='1장 서브넷 생성, 2장 배치와 요청.',
-                    changed_condition='목표 서브넷이 없고 세 파일의 값이 한 곳씩 맞지 않는다.', observable_evidence='새 서브넷의 CidrBlock, 서버의 10.91.2.x 주소, 200 응답의 served-on·from.',
+                    changed_condition='목표 서브넷이 없고 서버 자리·요청 주소가 한 곳씩 맞지 않는다.', observable_evidence='새 서브넷의 CidrBlock, 서버의 10.91.2.x 주소, 200 응답의 served-on·from.',
                     learner_edited_lines=3, new_external_services=0),
 ))
 
@@ -593,6 +610,7 @@ def prd(preview):
         approval=dict(status='draft'),
         change_history=['2026-11-09 사용자 검토용 초안(.scratch/floci-course-wayfinder/first-lesson/prd.draft.md).',
                         '2026-11-10 승인 범위 안의 정식 제작: 읽기 전용 VPC 조회(1.1.1)를 단원 전제와 첫 스텝 관찰로 옮겼다. 자바 게스트 게이트가 통과해 2장도 같은 자바 서버 이미지를 쓴다. 학생이 고치는 파일은 편집기에 둔다. 마지막 수행은 새 서브넷 ID 변수가 없으므로 subnet-id.sh가 범위로 ID를 찾는다. 학생의 「다시 시작」 표현은 실제 버튼 이름 「초기화」로 바꿨다.',
+                        '2026-11-12 사용자 결정(「고고」·「이정도는 파일에 의존하지 않고 직접 입력하게 하자」): create-subnet은 준비 파일 없이 직접 입력하고, 자주 쓰는 --endpoint-url·--vpc-id·VPC 필터는 본문의 복사 블록으로 준다. list-subnets.sh는 없애고 필터를 붙인 describe-subnets를 직접 입력한다(Floci에도 실제 AWS처럼 기본 VPC가 있다). list-servers.sh·subnet-id.sh는 편집기의 읽기 전용 탭으로 보여 준다. 1번 제목을 「VPC 안에 서브넷을 만드세요」로 바꿨다.',
                         '2026-11-10 사용자 결정(추천안 채택): 학생 컴퓨터에 AWS CLI를 설치하지 않도록 aws 명령과 채점기가 고정 공식 AWS CLI 이미지를 실습 네트워크에서 실행한다. 학생 명령·문제·채점 조건은 그대로다.'],
     )
     return approve(document, by='Claude Code: 사용자 승인 초안에 따른 본편·해설 제작',

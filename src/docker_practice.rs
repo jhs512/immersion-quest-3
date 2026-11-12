@@ -237,6 +237,14 @@ impl GitPractice {
     }
     /// The files a Compose, GitLab or cloud step shows in its editor (empty for other steps).
     pub fn editable_files(&self)->Vec<String> {self.exercise.gitlab.as_ref().map(|g|g.editable.clone()).or_else(||self.exercise.docker.as_ref().and_then(|d|d.compose.as_ref()).map(|c|c.editable.clone())).or_else(||self.exercise.cloud.as_ref().map(|c|c.editable.clone())).unwrap_or_default()}
+    /// Prepared helper files a cloud step shows read-only; never saved from the editor.
+    pub fn readonly_files(&self)->Vec<String> {self.exercise.readonly_files.clone()}
+    /// The real file of an editable or read-only tab, as the terminal sees it.
+    pub fn read_shown(&self,name:&str)->Result<String,String> {
+        if !self.readonly_files().iter().any(|f|f==name){return self.read_editable(name)}
+        let bytes=std::fs::read(self.work().join(name)).map_err(|e|e.to_string())?;
+        Ok(String::from_utf8_lossy(&bytes).replace("\r\n","\n"))
+    }
     fn editable(&self,name:&str)->Result<PathBuf,String> {
         if !self.editable_files().iter().any(|f|f==name){return Err("이 문제에서 고칠 파일이 아니에요.".into())}
         Ok(self.work().join(name))

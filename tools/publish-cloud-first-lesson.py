@@ -21,7 +21,7 @@ PREFIX='jhs512/mq3-lesson-redesigned-'
 KEYS=('cloud-vpc-subnet-ec2',)
 SUMMARY='클라우드 첫 수업을 추가했어요.'
 # Live revisions this publication may replace with the prepared one.
-REPLACES=('cloud-vpc-subnet-ec2-1',)
+REPLACES=('cloud-vpc-subnet-ec2-1','cloud-vpc-subnet-ec2-2')
 UPDATE_SUMMARY='클라우드 수업은 클라우드 실습을 지원하는 앱에서만 열려요.'
 spec=importlib.util.spec_from_file_location('cloud_content_publisher',ROOT/'tools/publish-redesigned-courses.py')
 publisher=importlib.util.module_from_spec(spec)

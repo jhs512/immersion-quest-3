@@ -1,0 +1,410 @@
+   Compiling molip-quest v0.1.0 (C:\Users\jangk\Documents\Codex\2026-10-12\immersion-quest-cloud-first-lesson-20261109)
+warning: constant `RUST_TOOLCHAIN` is never used
+  --> src\native_trace.rs:32:7
+   |
+32 | const RUST_TOOLCHAIN:&str="1.95.0";
+   |       ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `RUSTUP_VERSION` is never used
+  --> src\native_trace.rs:33:7
+   |
+33 | const RUSTUP_VERSION:&str="1.29.2";
+   |       ^^^^^^^^^^^^^^
+
+warning: constant `RUSTUP_SHA256` is never used
+  --> src\native_trace.rs:34:7
+   |
+34 | const RUSTUP_SHA256:&[(&str,&str)]=&[
+   |       ^^^^^^^^^^^^^
+
+warning: method `terminal_projects` is never used
+   --> src\docker_lab\terminal.rs:296:19
+    |
+233 | impl LessonSession {
+    | ------------------ method in this implementation
+...
+296 |     pub(crate) fn terminal_projects(&self)->Vec<String> {self.0.terminals.lock().unwrap().values().map(|s|s.lab.project.clone()).co...
+    |                   ^^^^^^^^^^^^^^^^^
+
+warning: `molip-quest` (lib test) generated 4 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.15s
+     Running unittests src\lib.rs (target\debug\deps\molip_quest-dfeb3679405ad82e.exe)
+
+running 1 test
+test git_practice::cloud_practice::tests::docker_cloud_lesson_subnet_steps ...     [o] 준비된 VPC의 범위: "vpc-fa0afc21" "10.91.0.0/16"
+    [x] 목표 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ aws ec2 describe-vpcs --endpoint-url "$LAB_ENDPOINT" --vpc-ids "$LAB_VPC_ID"
+    rc_ok=true {
+    "Vpcs": [
+        {
+            "OwnerId": "000000000000",
+            "InstanceTenancy": "default",
+            "Ipv6CidrBlockAssociationSet": [],
+            "CidrBlockAssociationSet": [
+                {
+                    "AssociationId": "vpc-cidr-assoc-bf2e0df7",
+                    "CidrBlock": "10.91.0.0/16",
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "IsDefault": false,
+            "Tags": [],
+            "VpcId": "vpc-fa0afc21",
+            "State": "available",
+            "CidrBlock": "10.91.0.0/16",
+            "DhcpOptionsId": "dopt-default"
+        }
+    ]
+}
+  $ aws ec2 describe-subnets --endpoint-url "$LAB_ENDPOINT" --filters Name=vpc-id,Values="$LAB_VPC_ID"
+    rc_ok=true {
+    "Subnets": []
+}
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.91.1.0/24
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-ca02dd9d",
+        "EnableDns64": false,
+        "SubnetId": "subnet-ca02dd9d",
+        "State": "available",
+        "VpcId": "vpc-fa0afc21",
+        "CidrBlock": "10.91.1.0/24",
+        "AvailableIpAddressCount": 251,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+  $ aws ec2 describe-subnets --endpoint-url "$LAB_ENDPOINT" --filters Name=vpc-id,Values="$LAB_VPC_ID"
+    rc_ok=true {
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-ca02dd9d",
+            "EnableDns64": false,
+            "SubnetId": "subnet-ca02dd9d",
+            "State": "available",
+            "VpcId": "vpc-fa0afc21",
+            "CidrBlock": "10.91.1.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}
+    [o] 준비된 VPC의 범위: "vpc-fa0afc21" "10.91.0.0/16"
+    [o] 목표 서브넷: 10.91.1.0/24 서브넷이 있어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+    [o] 준비된 VPC의 범위: "vpc-136dd873" "10.91.0.0/16"
+    [x] 목표 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.92.2.0/24
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.92.2.0/24' is invalid.
+  $ echo '{"Subnet":{"CidrBlock":"10.91.2.0/24","State":"available"}}'
+    rc_ok=true {"Subnet":{"CidrBlock":"10.91.2.0/24","State":"available"}}
+    [o] 준비된 VPC의 범위: "vpc-136dd873" "10.91.0.0/16"
+    [x] 목표 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.92.2.0/24
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.92.2.0/24' is invalid.
+  $ aws ec2 describe-subnets --endpoint-url "$LAB_ENDPOINT" --filters Name=vpc-id,Values="$LAB_VPC_ID"
+    rc_ok=true {
+    "Subnets": []
+}
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.91.2.0/24
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-07ba3523",
+        "EnableDns64": false,
+        "SubnetId": "subnet-07ba3523",
+        "State": "available",
+        "VpcId": "vpc-2f9b7f3f",
+        "CidrBlock": "10.91.2.0/24",
+        "AvailableIpAddressCount": 251,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+  $ aws ec2 describe-subnets --endpoint-url "$LAB_ENDPOINT" --filters Name=vpc-id,Values="$LAB_VPC_ID"
+    rc_ok=true {
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-07ba3523",
+            "EnableDns64": false,
+            "SubnetId": "subnet-07ba3523",
+            "State": "available",
+            "VpcId": "vpc-2f9b7f3f",
+            "CidrBlock": "10.91.2.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}
+    [o] 준비된 VPC의 범위: "vpc-136dd873" "10.91.0.0/16"
+    [x] 목표 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.92.2.0/24
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.92.2.0/24' is invalid.
+  $ aws ec2 describe-subnets --endpoint-url "$LAB_ENDPOINT" --filters Name=vpc-id,Values="$LAB_VPC_ID"
+    rc_ok=true {
+    "Subnets": []
+}
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.91.2.0/24
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-bab98d2f",
+        "EnableDns64": false,
+        "SubnetId": "subnet-bab98d2f",
+        "State": "available",
+        "VpcId": "vpc-136dd873",
+        "CidrBlock": "10.91.2.0/24",
+        "AvailableIpAddressCount": 251,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+  $ aws ec2 describe-subnets --endpoint-url "$LAB_ENDPOINT" --filters Name=vpc-id,Values="$LAB_VPC_ID"
+    rc_ok=true {
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-bab98d2f",
+            "EnableDns64": false,
+            "SubnetId": "subnet-bab98d2f",
+            "State": "available",
+            "VpcId": "vpc-136dd873",
+            "CidrBlock": "10.91.2.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}
+    [o] 준비된 VPC의 범위: "vpc-136dd873" "10.91.0.0/16"
+    [o] 목표 서브넷: 10.91.2.0/24 서브넷이 있어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.74.2.0/24
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.74.2.0/24' is invalid.
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.91.2.0/24
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.91.2.0/24' is invalid.
+    [o] 준비된 VPC의 범위: "vpc-e7f0c314" "10.73.0.0/16"
+    [x] 목표 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.73.2.0/24
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-06ecf0c8",
+        "EnableDns64": false,
+        "SubnetId": "subnet-06ecf0c8",
+        "State": "available",
+        "VpcId": "vpc-e7f0c314",
+        "CidrBlock": "10.73.2.0/24",
+        "AvailableIpAddressCount": 251,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+    [o] 준비된 VPC의 범위: "vpc-e7f0c314" "10.73.0.0/16"
+    [o] 목표 서브넷: 10.73.2.0/24 서브넷이 있어요.
+    [o] 필요 없는 서브넷: 목표가 아닌 새 서브넷이 없어요.
+    [o] 준비된 VPC의 범위: "vpc-afdd4947" "10.91.0.0/16"
+    [o] 준비된 서브넷: 준비된 서브넷이 그대로 있어요.
+    [x] 새 서브넷: 준비된 VPC에 새 서브넷이 없어요.
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.91.1.128/25
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Conflict) when calling the CreateSubnet operation: The CIDR '10.91.1.128/25' conflicts with another subnet
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.91.2.0/24
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-961d0aec",
+        "EnableDns64": false,
+        "SubnetId": "subnet-961d0aec",
+        "State": "available",
+        "VpcId": "vpc-afdd4947",
+        "CidrBlock": "10.91.2.0/24",
+        "AvailableIpAddressCount": 251,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+    [o] 준비된 VPC의 범위: "vpc-afdd4947" "10.91.0.0/16"
+    [o] 준비된 서브넷: 준비된 서브넷이 그대로 있어요.
+    [x] 새 서브넷: /25 크기가 아니에요: 10.91.2.0/24
+  $ aws ec2 describe-subnets --endpoint-url "$LAB_ENDPOINT" --filters Name=vpc-id,Values="$LAB_VPC_ID"
+    rc_ok=true {
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-fdd947ae",
+            "EnableDns64": false,
+            "SubnetId": "subnet-fdd947ae",
+            "State": "available",
+            "VpcId": "vpc-5d0a0ff8",
+            "CidrBlock": "10.91.1.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.91.1.128/25
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidSubnet.Conflict) when calling the CreateSubnet operation: The CIDR '10.91.1.128/25' conflicts with another subnet
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.91.2.0/25
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-b30dc73c",
+        "EnableDns64": false,
+        "SubnetId": "subnet-b30dc73c",
+        "State": "available",
+        "VpcId": "vpc-5d0a0ff8",
+        "CidrBlock": "10.91.2.0/25",
+        "AvailableIpAddressCount": 123,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+  $ aws ec2 describe-subnets --endpoint-url "$LAB_ENDPOINT" --filters Name=vpc-id,Values="$LAB_VPC_ID"
+    rc_ok=true {
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-fdd947ae",
+            "EnableDns64": false,
+            "SubnetId": "subnet-fdd947ae",
+            "State": "available",
+            "VpcId": "vpc-5d0a0ff8",
+            "CidrBlock": "10.91.1.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        },
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-b30dc73c",
+            "EnableDns64": false,
+            "SubnetId": "subnet-b30dc73c",
+            "State": "available",
+            "VpcId": "vpc-5d0a0ff8",
+            "CidrBlock": "10.91.2.0/25",
+            "AvailableIpAddressCount": 123,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}
+    [o] 준비된 VPC의 범위: "vpc-5d0a0ff8" "10.91.0.0/16"
+    [o] 준비된 서브넷: 준비된 서브넷이 그대로 있어요.
+    [o] 새 서브넷: 10.91.2.0/25 서브넷이 있어요.
+  $ aws ec2 create-subnet --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID" --cidr-block 10.91.3.0/25
+    rc_ok=true {
+    "Subnet": {
+        "AvailabilityZoneId": "use1-az1",
+        "MapCustomerOwnedIpOnLaunch": false,
+        "OwnerId": "000000000000",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [],
+        "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-91edddaf",
+        "EnableDns64": false,
+        "SubnetId": "subnet-91edddaf",
+        "State": "available",
+        "VpcId": "vpc-0827836a",
+        "CidrBlock": "10.91.3.0/25",
+        "AvailableIpAddressCount": 123,
+        "AvailabilityZone": "us-east-1a",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": false
+    }
+}
+    [o] 준비된 VPC의 범위: "vpc-0827836a" "10.91.0.0/16"
+    [o] 준비된 서브넷: 준비된 서브넷이 그대로 있어요.
+    [o] 새 서브넷: 10.91.3.0/25 서브넷이 있어요.
+PASS lesson subnet steps 1-3
+PASS lesson-subnets-1794464502909: host containers/networks/volumes/context identical before and after
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 198 filtered out; finished in 127.41s
+

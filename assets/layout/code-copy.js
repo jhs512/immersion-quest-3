@@ -1,0 +1,42 @@
+// A 「복사」 button on each code block of a problem, so prepared options such as
+// --endpoint-url "$LAB_ENDPOINT" can be pasted into the terminal at any time.
+(() => {
+  if (window.molipCodeCopy) return;
+  const copyText = async text => {
+    // The desktop WebView may refuse the async clipboard; a selected range with copy works there.
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+    document.body.appendChild(area);
+    area.select();
+    let copied = false;
+    try { copied = document.execCommand('copy'); } catch (_) { copied = false; }
+    area.remove();
+    if (!copied && navigator.clipboard?.writeText) {
+      try { await navigator.clipboard.writeText(text); copied = true; } catch (_) { copied = false; }
+    }
+    return copied;
+  };
+  const decorate = root => {
+    for (const block of root.querySelectorAll('.problem-pane .markdown pre')) {
+      if (block.querySelector(':scope > .code-copy')) continue;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'code-copy';
+      button.textContent = '복사';
+      button.setAttribute('aria-label', '코드 복사');
+      button.addEventListener('click', async event => {
+        event.stopPropagation();
+        const code = block.querySelector('code')?.textContent ?? block.textContent.replace(/복사$/, '');
+        const copied = await copyText(code.replace(/\n$/, ''));
+        button.textContent = copied ? '복사했어요' : '복사하지 못했어요';
+        setTimeout(() => { button.textContent = '복사'; }, 1600);
+      });
+      block.appendChild(button);
+    }
+  };
+  decorate(document);
+  new MutationObserver(() => decorate(document)).observe(document.body, { childList: true, subtree: true });
+  window.molipCodeCopy = { copyText, decorate };
+})();
