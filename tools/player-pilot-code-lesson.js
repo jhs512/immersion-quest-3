@@ -102,6 +102,18 @@
      if(button('여기 머물기'))await click('여기 머물기');
     };
     await wait(terminalReady,`cloud step ${index+1} ready`,minutes(15));
+    // The grid must put the code in the editor row: code visible, the height handle below it, a usable terminal.
+    const gridOk=(terminal,label)=>{
+     // Measure inside the workspace that holds this terminal: the learner's stays in the page during an explanation.
+     const root=document.querySelector(terminal)?.closest('.git-terminal-shell');
+     const editorBox=root?.querySelector('.compose-source .cm-editor')??root?.querySelector('.compose-source textarea');
+     const code=editorBox?.getBoundingClientRect(),handle=root?.querySelector('.split-java-source')?.getBoundingClientRect(),term=document.querySelector(terminal)?.getBoundingClientRect();
+     // Structure, not only size: the notes row must come first so the editor sits in the sized editor row
+     // (a min-content row collapses a not-yet-measured editor to nothing).
+     const kids=[...(root?.children??[])],notesFirst=kids[0]?.classList.contains('docker-notes')&&kids.indexOf(root.querySelector(':scope > .compose-source'))===1;
+     const seen={notesFirst,editor:editorBox?.className||'none',code:Math.round(code?.height||0),handleBelowCode:!!(code&&handle&&handle.top>=code.bottom-2),terminal:Math.round(term?.height||0)};
+     if(!(seen.notesFirst&&seen.code>=80&&seen.handleBelowCode&&seen.terminal>=110))throw Error(`Cloud step ${index+1} ${label} layout: ${JSON.stringify(seen)}`);
+    };
     // Layout as the learner sees it: how much of each prepared file the editor shows without scrolling.
     await new Promise(r=>setTimeout(r,500));
     const layout=[];
@@ -114,6 +126,7 @@
      layout.push({name,lines,shown,scrolls:(scroller?.scrollHeight||0)>(scroller?.clientHeight||0)+2,lastLineVisible:rect.length===lines&&rect.at(-1).bottom<=(scroller?.getBoundingClientRect().bottom||0)+1});
     }
     checked.push(`layout step ${index+1} window ${innerWidth}x${innerHeight} terminal ${Math.round(document.querySelector('#git-student-terminal')?.getBoundingClientRect().height||0)}px ${JSON.stringify(layout)}`);
+    gridOk('#git-student-terminal','learner');
     const tabs=[...document.querySelectorAll('[data-editor-tab]')].filter(t=>t.getClientRects().length).map(t=>t.dataset.editorTab);
     if(JSON.stringify(tabs)!==JSON.stringify(editable))throw Error(`Cloud editor tabs ${tabs} differ from ${editable}`);
     for(const [name,text] of Object.entries(await files()))if(text!==start[name])throw Error(`${name} does not show the prepared file`);
@@ -134,6 +147,8 @@
     await submit('passed','learner cloud state accepted');
     // The teacher prepares its own cloud first; server steps take minutes before narration starts.
     await click('해설 재생');await wait(()=>molipAgent.running,'cloud teacher begins',minutes(15));
+    await wait(()=>document.querySelector('#git-demo-terminal')&&window.molipGitTutor?.owner===document.querySelector('#git-demo-terminal')?.dataset.terminalSession,'teacher terminal shown',minutes(15));
+    await new Promise(r=>setTimeout(r,600));gridOk('#git-demo-terminal','teacher');
     await wait(()=>!molipAgent.running&&document.querySelector('.repository-task')?.dataset.narrating==='false','cloud teacher ends',minutes(30));
     verifyTeacher(task);
     if(teacherResult.includes('중단했습니다')||teacherResult.includes('해설을 멈췄어요')||teacherResult.split('bash_command:').length-1!==task.narration.filter(a=>a.action==='bash_command').length)throw Error(`Cloud teacher did not finish: ${teacherResult}`);
