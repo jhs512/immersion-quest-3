@@ -87,7 +87,9 @@ def merge_course(remote,local):
     previews=value.setdefault('lesson_previews',{})
     for ref in new:
         preview=local['lesson_previews'][ref['id']]
-        if ref['id'] in previews and previews[ref['id']]!=preview:raise ValueError('Concurrent cloud preview differs')
+        # Replacing a known earlier revision carries its reviewed preview; otherwise a different live preview is a concurrent change.
+        replacing=any(r['repository']==ref['repository'] and r['revision'] in REPLACES for r in remote['lessons'])
+        if ref['id'] in previews and previews[ref['id']]!=preview and not replacing:raise ValueError('Concurrent cloud preview differs')
         previews[ref['id']]=copy.deepcopy(preview)
     history=value.setdefault('change_history',[])
     for summary in (UPDATE_SUMMARY,):
