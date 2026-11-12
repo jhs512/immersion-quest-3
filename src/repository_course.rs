@@ -350,8 +350,10 @@ impl Lesson {
         if (self.schema_version==3)!=gitlab {return Err("GitLab 실습은 새 실행 형식이 필요해요. 앱 업데이트와 수업 형식을 확인하세요.".into())}
         // Schema 4 marks local cloud practice: a player without the cloud runtime (build 181 and older)
         // rejects the version instead of opening it as a plain Bash step without editor, cloud or grader.
+        // One-directional: this player still opens cloud-vpc-subnet-ec2-1 (schema 2), already installed in
+        // course snapshots; rejecting it made the whole course unreadable in build 184.
         let cloud=self.tasks.iter().any(|t|t.git_terminal.as_ref().is_some_and(|e|e.cloud.is_some()));
-        if (self.schema_version==4)!=cloud {return Err("클라우드 실습은 새 실행 형식이 필요해요. 앱 업데이트와 수업 형식을 확인하세요.".into())}
+        if self.schema_version==4&&!cloud {return Err("수업 형식 4는 클라우드 실습에만 써요. 수업 형식을 확인하세요.".into())}
         if self.schema_version>=2 {self.validate_hierarchy()?;}
         for t in &self.tasks {
             crate::supporting_materials::validate(&t.supporting_materials)?;
