@@ -1,4 +1,4 @@
-"""Publish only the verified first cloud lesson after its compatible player release.
+"""Publish only the verified cloud lessons after their compatible player release.
 
 Plan by default. Existing immutable tags are never moved. The live course is
 read/merged with a contents SHA so unrelated newer lessons and metadata survive.
@@ -18,11 +18,13 @@ ROOT=Path(__file__).resolve().parents[1]
 SOURCE_REPO='jhs512/immersion-quest-3'
 COURSE='jhs512/mq3-course-redesigned-java-backend'
 PREFIX='jhs512/mq3-lesson-redesigned-'
-KEYS=('cloud-vpc-subnet-ec2',)
+KEYS=('cloud-vpc-subnet-ec2','cloud-ec2-lifecycle')
 SUMMARY='클라우드 첫 수업을 추가했어요.'
 # Live revisions this publication may replace with the prepared one.
 REPLACES=('cloud-vpc-subnet-ec2-1','cloud-vpc-subnet-ec2-2')
 UPDATE_SUMMARY='클라우드 수업은 클라우드 실습을 지원하는 앱에서만 열려요.'
+# Later cloud lessons, each recorded once in the live change history when it is first published.
+ADDED_SUMMARIES=('클라우드 두 번째 수업을 추가했어요.',)
 spec=importlib.util.spec_from_file_location('cloud_content_publisher',ROOT/'tools/publish-redesigned-courses.py')
 publisher=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(publisher)
@@ -37,6 +39,7 @@ def stage(rows,remote):
     live={r['repository']:r for r in remote['lessons']}
     for ref,raw in rows:
         old=live.get(ref['repository'])
+        if old==ref:continue  # already live with these exact bytes (verified below)
         if old is not None and old['revision'] in REPLACES:
             revisions.publish_lesson(old,ref,raw,'Require the cloud runtime (lesson schema 4)')
         else:
@@ -96,9 +99,10 @@ def merge_course(remote,local):
         if any(h.get('summary')==SUMMARY for h in history) and not any(h.get('summary')==summary for h in history):
             entry=next(h for h in json.loads((ROOT/'tools/redesigned_courses/release.json').read_text(encoding='utf-8'))['course_changes']['java'] if h['summary']==summary)
             history.insert(0,dict(entry,at=datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00','Z')))
-    if not any(h.get('summary')==SUMMARY for h in history):
-        entry=next(h for h in json.loads((ROOT/'tools/redesigned_courses/release.json').read_text(encoding='utf-8'))['course_changes']['java'] if h['summary']==SUMMARY)
-        history.insert(0,dict(entry,at=datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00','Z')))
+    for summary in (SUMMARY,)+ADDED_SUMMARIES:
+        if not any(h.get('summary')==summary for h in history):
+            entry=next(h for h in json.loads((ROOT/'tools/redesigned_courses/release.json').read_text(encoding='utf-8'))['course_changes']['java'] if h['summary']==summary)
+            history.insert(0,dict(entry,at=datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00','Z')))
     return value
 
 
@@ -156,7 +160,7 @@ def main():
         for _ in range(3):
             current=gh(endpoint+'?ref=main');remote=json.loads(base64.b64decode(current['content']));merged=merge_course(remote,local)
             if merged==remote:break
-            payload=dict(message='Publish the verified first cloud lesson',branch='main',sha=current['sha'],
+            payload=dict(message='Publish the verified cloud lessons',branch='main',sha=current['sha'],
                 content=base64.b64encode((json.dumps(merged,ensure_ascii=False,indent=2)+'\n').encode()).decode())
             try:
                 result=gh(endpoint,'PUT',payload)
