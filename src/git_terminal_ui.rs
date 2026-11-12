@@ -249,7 +249,11 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         if is_gitlab&&!demo {p {class:"practice-start-notice",role:"status",if docker_preparing(){"로컬 GitLab을 준비하고 있어요. 최초 실행에는 몇 분 걸릴 수 있어요."}else{"로컬 GitLab · 실습 계정 자동 연결"}}}
         if restored_start() {p {class:"practice-start-notice",role:"status","앞 단계의 파일과 Git 상태를 준비했어요. 현재 문제의 작업은 직접 진행하세요."}}
         // A cloud step starts its own local cloud (and, for servers, guests) before the prompt: minutes, not seconds.
-        if is_cloud&&docker_preparing() {p {class:"practice-start-notice",role:"status",if demo{"해설용 클라우드 실습 환경을 따로 준비하고 있어요. 서버 문제는 몇 분 걸릴 수 있어요."}else{"클라우드 실습 환경을 준비하고 있어요. Docker가 꺼져 있으면 자동으로 켜요. 서버 문제는 처음에 몇 분 걸릴 수 있어요."}}}
+        // The notes row is always present, like Docker's: the editor grid's first row is this row, so an empty
+        // first row would push the editor into it, collapse the code and squeeze the terminal.
+        if is_cloud {div {class:"docker-notes",
+            if docker_preparing() {p {class:"practice-start-notice",role:"status",if demo{"해설용 클라우드 실습 환경을 따로 준비하고 있어요. 서버 문제는 몇 분 걸릴 수 있어요."}else{"클라우드 실습 환경을 준비하고 있어요. Docker가 꺼져 있으면 자동으로 켜요. 서버 문제는 처음에 몇 분 걸릴 수 있어요."}}}
+        }}
         if is_docker {div {class:"docker-notes",
             if docker_preparing()&&!demo {p {class:"practice-start-notice",role:"status","Docker를 준비하고 있어요. 꺼져 있으면 자동으로 켜요."}}
             if let Some(note)=docker_note() {p {class:"practice-start-notice",role:"status","{note} 현재 문제의 명령은 직접 입력하세요."}}
