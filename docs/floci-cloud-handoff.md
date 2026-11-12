@@ -134,7 +134,9 @@
 - 앱 버전 경계: 수업 형식은 4 그대로다. build.188 이하 앱은 모르는 목표 때문에 코스 업데이트 전체를 거절하고 설치된 코스를 그대로 쓴다(build.181 이하가 형식 4를 만났을 때와 같다). 검사: `tests/cloud_lesson_schema.rs`.
 - 수업: `tools/redesigned_lessons/cloud_ec2_lifecycle/`(작성 스크립트 `.scratch/floci-course-wayfinder/second-lesson/author_lesson.py`·`register_lesson.py`). 자바 과정에서 `cloud-vpc-subnet-ec2` 다음, 분류 `cloud`, 파일럿 ID `멈`, 수업 버전 `cloud-ec2-lifecycle-1`. 명령은 직접 입력하고 옵션은 복사 블록, `list-servers.sh`는 읽기 전용 탭이다.
 - 검증(Windows, Docker Desktop 29.8.1): `docker_cloud_lifecycle_lesson_steps` **통과**(955초). 6스텝 모두 공개 수업 JSON의 해설 명령을 그대로 재생해 통과했고, 대표 오답(종료·클라이언트 멈춤·멈추기만·서브넷 하나만 삭제·출력 위조)이 실패하고 「초기화」 뒤 다시 풀렸다. `aws ec2 wait instance-*`가 Floci에서 동작하고, terminated 직후 서브넷 삭제도 됐다. 호스트 Docker 전후 같음. 로그: [lifecycle-native/run-1.log](../.scratch/floci-course-wayfinder/evidence/lifecycle-native/run-1.log). 단위 `cargo test --lib` 143 통과, 등록·번들·스키마 검사 통과(수업 113개·스텝 1131개).
-- 미완료: 앱 파일럿(아래 결과로 갱신), 맥 검증, 릴리스·게시(사용자 승인 필요).
+- 앱 파일럿: `cargo test --features desktop --test player_cloud_native cloud_lifecycle -- --ignored` **통과** 6/6(1690초). 스텝마다 복사 버튼, 읽기 전용 탭, 학생 명령의 채점, 해설 분리, 초기화를 확인했다. 첫 실행은 읽기 전용 탭만 있는 스텝의 레이아웃을 파일럿이 편집기로만 재서 실패했고, 파일럿이 `pre.readonly-file`도 재도록 고쳤다(화면은 정상). 실행 중 지난 스텝의 실습 런타임이 최대 5개까지 남아 있다가 끝에 모두 정리됐다(첫 수업도 같은지 미확인). 끝난 뒤 소유 자원 0개. 증거: `evidence/lifecycle-native/pilot-run-2.log`, 결과 JSON, 앱 로그.
+- 회귀: 첫 수업 `docker_cloud_lesson_server_steps` 다시 **통과**(357초).
+- 미완료: 맥 검증, 릴리스·게시(사용자 승인 필요. 게시 스크립트 `tools/publish-cloud-first-lesson.py`는 첫 수업 전용이라 새 수업용으로 넓혀야 한다).
 
 ## 실패·미검증으로 남은 것
 
