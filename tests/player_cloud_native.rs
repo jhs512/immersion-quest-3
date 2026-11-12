@@ -20,7 +20,9 @@ fn cloud_lesson_steps_grade_teach_and_reset_in_the_player() {
     std::fs::write(format!("target/pilot-{mode}-result.json"),&raw).unwrap();
     let result:serde_json::Value=serde_json::from_str(&raw).unwrap();
     assert!(status.success()&&result["passed"]==true,"{result}");
-    assert_eq!(result["checked"].as_array().unwrap().len(),7-from,"{result}");
+    let layout:Vec<_>=result["checked"].as_array().unwrap().iter().filter(|c|c.as_str().is_some_and(|c|c.starts_with("layout "))).collect();
+    for line in &layout {println!("{}",line.as_str().unwrap());}
+    assert_eq!(result["checked"].as_array().unwrap().len()-layout.len(),7-from,"{result}");
     if from>0 {return;}
     let store:serde_json::Value=serde_json::from_slice(&std::fs::read(session.directory().join("pilot-remote.json")).unwrap()).unwrap();
     let events:Vec<_>=store["comments"].as_array().unwrap().iter().flat_map(|comment|molip_quest::issue_progress::parse_events(comment["body"].as_str().unwrap())).collect();

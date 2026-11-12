@@ -345,9 +345,13 @@ impl Lesson {
     pub fn validate(&self)->Result<(),String> {
         crate::change_history::validate(&self.change_history)?;
         let mut ids=HashSet::new();
-        if !matches!(self.schema_version,1|2|3) || self.id.is_empty() || self.title.is_empty() || self.tasks.is_empty() || !self.tasks.iter().any(|t| t.required) || self.tasks.len()>200 { return Err("수업 구성과 필수 문제를 확인하세요.".into()); }
+        if !matches!(self.schema_version,1|2|3|4) || self.id.is_empty() || self.title.is_empty() || self.tasks.is_empty() || !self.tasks.iter().any(|t| t.required) || self.tasks.len()>200 { return Err("수업 구성과 필수 문제를 확인하세요.".into()); }
         let gitlab=self.tasks.iter().any(|t|t.git_terminal.as_ref().is_some_and(|e|e.gitlab.is_some()));
         if (self.schema_version==3)!=gitlab {return Err("GitLab 실습은 새 실행 형식이 필요해요. 앱 업데이트와 수업 형식을 확인하세요.".into())}
+        // Schema 4 marks local cloud practice: a player without the cloud runtime (build 181 and older)
+        // rejects the version instead of opening it as a plain Bash step without editor, cloud or grader.
+        let cloud=self.tasks.iter().any(|t|t.git_terminal.as_ref().is_some_and(|e|e.cloud.is_some()));
+        if (self.schema_version==4)!=cloud {return Err("클라우드 실습은 새 실행 형식이 필요해요. 앱 업데이트와 수업 형식을 확인하세요.".into())}
         if self.schema_version>=2 {self.validate_hierarchy()?;}
         for t in &self.tasks {
             crate::supporting_materials::validate(&t.supporting_materials)?;

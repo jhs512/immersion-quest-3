@@ -102,6 +102,18 @@
      if(button('여기 머물기'))await click('여기 머물기');
     };
     await wait(terminalReady,`cloud step ${index+1} ready`,minutes(15));
+    // Layout as the learner sees it: how much of each prepared file the editor shows without scrolling.
+    await new Promise(r=>setTimeout(r,500));
+    const layout=[];
+    for(const name of editable){
+     await show(name);await new Promise(r=>setTimeout(r,200));
+     const scroller=document.querySelector('.compose-source .cm-scroller'),line=document.querySelector('.compose-source .cm-line');
+     const lineHeight=line?.getBoundingClientRect().height||0,lines=start[name].replace(/\n$/,'').split('\n').length;
+     const shown=lineHeight?Math.floor((scroller?.clientHeight||0)/lineHeight):0;
+     const rect=[...document.querySelectorAll('.compose-source .cm-line')].map(l=>l.getBoundingClientRect());
+     layout.push({name,lines,shown,scrolls:(scroller?.scrollHeight||0)>(scroller?.clientHeight||0)+2,lastLineVisible:rect.length===lines&&rect.at(-1).bottom<=(scroller?.getBoundingClientRect().bottom||0)+1});
+    }
+    checked.push(`layout step ${index+1} window ${innerWidth}x${innerHeight} terminal ${Math.round(document.querySelector('#git-student-terminal')?.getBoundingClientRect().height||0)}px ${JSON.stringify(layout)}`);
     const tabs=[...document.querySelectorAll('[data-editor-tab]')].filter(t=>t.getClientRects().length).map(t=>t.dataset.editorTab);
     if(JSON.stringify(tabs)!==JSON.stringify(editable))throw Error(`Cloud editor tabs ${tabs} differ from ${editable}`);
     for(const [name,text] of Object.entries(await files()))if(text!==start[name])throw Error(`${name} does not show the prepared file`);
