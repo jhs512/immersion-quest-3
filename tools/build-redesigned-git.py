@@ -325,7 +325,9 @@ def build(name, check=False):
             unit['objectives'] = display['objectives']
             unit['premise'] = display['premise']
             unit['steps'] = [{'id': step['id'], 'objectives': step['objectives']} for step in unit['steps']]
-    lesson = {'schema_version': 3 if any((t.get('git_terminal') or {}).get('gitlab') for t in tasks) else 2, 'id': prd['id'], 'revision': revision,
+    # 3: GitLab practice, 4: local cloud practice. Players without that runtime reject the version.
+    schema = 3 if any((t.get('git_terminal') or {}).get('gitlab') for t in tasks) else 4 if any((t.get('git_terminal') or {}).get('cloud') for t in tasks) else 2
+    lesson = {'schema_version': schema, 'id': prd['id'], 'revision': revision,
               'title': prd['title'], 'description': authored['description'],
               'objectives': presentation['objectives'], 'sources': [source['url'] for source in prd['sources']],
               'review_enabled': False, 'sections': [], 'chapters': chapters, 'tasks': tasks}

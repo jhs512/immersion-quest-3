@@ -20,6 +20,9 @@ COURSE='jhs512/mq3-course-redesigned-java-backend'
 PREFIX='jhs512/mq3-lesson-redesigned-'
 KEYS=('cloud-vpc-subnet-ec2',)
 SUMMARY='클라우드 첫 수업을 추가했어요.'
+# Live revisions this publication may replace with the prepared one.
+REPLACES=('cloud-vpc-subnet-ec2-1',)
+UPDATE_SUMMARY='클라우드 수업은 클라우드 실습을 지원하는 앱에서만 열려요.'
 spec=importlib.util.spec_from_file_location('cloud_content_publisher',ROOT/'tools/publish-redesigned-courses.py')
 publisher=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(publisher)
@@ -54,7 +57,9 @@ def merge_course(remote,local):
     if len({r['repository'] for r in remote['lessons']})!=len(remote['lessons']):raise ValueError('Duplicate live repositories')
     for ref in remote['lessons']:
         if ref['repository'] in by_repo and ref!=by_repo[ref['repository']]:
-            raise ValueError('Concurrent cloud reference differs: '+ref['repository'])
+            # Only the known earlier revision is replaced (schema 4 gating); anything else is a concurrent change.
+            if not (ref['id']==by_repo[ref['repository']]['id'] and ref['revision'] in REPLACES):
+                raise ValueError('Concurrent cloud reference differs: '+ref['repository'])
     if {r['id'] for r in existing}&{r['id'] for r in new}:raise ValueError('Cloud IDs collide with live lessons')
     anchor=PREFIX+'docker-compose-db'
     at=next(i for i,r in enumerate(existing) if r['repository']==anchor)+1
@@ -71,6 +76,10 @@ def merge_course(remote,local):
         if ref['id'] in previews and previews[ref['id']]!=preview:raise ValueError('Concurrent cloud preview differs')
         previews[ref['id']]=copy.deepcopy(preview)
     history=value.setdefault('change_history',[])
+    for summary in (UPDATE_SUMMARY,):
+        if any(h.get('summary')==SUMMARY for h in history) and not any(h.get('summary')==summary for h in history):
+            entry=next(h for h in json.loads((ROOT/'tools/redesigned_courses/release.json').read_text(encoding='utf-8'))['course_changes']['java'] if h['summary']==summary)
+            history.insert(0,dict(entry,at=datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00','Z')))
     if not any(h.get('summary')==SUMMARY for h in history):
         entry=next(h for h in json.loads((ROOT/'tools/redesigned_courses/release.json').read_text(encoding='utf-8'))['course_changes']['java'] if h['summary']==SUMMARY)
         history.insert(0,dict(entry,at=datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00','Z')))
