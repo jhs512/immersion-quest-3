@@ -1,0 +1,382 @@
+warning: constant `RUST_TOOLCHAIN` is never used
+  --> src\native_trace.rs:32:7
+   |
+32 | const RUST_TOOLCHAIN:&str="1.95.0";
+   |       ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `RUSTUP_VERSION` is never used
+  --> src\native_trace.rs:33:7
+   |
+33 | const RUSTUP_VERSION:&str="1.29.2";
+   |       ^^^^^^^^^^^^^^
+
+warning: constant `RUSTUP_SHA256` is never used
+  --> src\native_trace.rs:34:7
+   |
+34 | const RUSTUP_SHA256:&[(&str,&str)]=&[
+   |       ^^^^^^^^^^^^^
+
+warning: method `terminal_projects` is never used
+   --> src\docker_lab\terminal.rs:296:19
+    |
+233 | impl LessonSession {
+    | ------------------ method in this implementation
+...
+296 |     pub(crate) fn terminal_projects(&self)->Vec<String> {self.0.terminals.lock().unwrap().values().map(|s|s.lab.project.clone()).co...
+    |                   ^^^^^^^^^^^^^^^^^
+
+warning: `molip-quest` (lib test) generated 4 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.58s
+     Running unittests src\lib.rs (target\debug\deps\molip_quest-dfeb3679405ad82e.exe)
+
+running 1 test
+test git_practice::cloud_practice::tests::docker_cloud_lifecycle_lesson_steps ...     [x] 서버 상태: 서버가 아직 running예요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+  $ aws ec2 terminate-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true {
+    "TerminatingInstances": [
+        {
+            "InstanceId": "i-6a51d3549130d70f8",
+            "CurrentState": {
+                "Code": 32,
+                "Name": "shutting-down"
+            },
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+    [x] 서버 상태: 서버가 종료됐어요. 멈추기만 해야 해요. 「초기화」로 처음 상태를 받으세요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+    [x] 서버 상태: 서버가 아직 running예요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+  $ client-request "$LAB_SERVER_IP"
+    rc_ok=true from=10.91.1.10
+HTTP/1.1 200 OK
+Content-Type: text/plain; charset=utf-8
+Content-Length: 93
+Connection: close
+
+instance=i-dc8323a148b21181b
+served-on=10.91.2.10
+java.version=25.0.5
+request=GET / HTTP/1.1
+  $ aws ec2 stop-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true {
+    "StoppingInstances": [
+        {
+            "InstanceId": "i-dc8323a148b21181b",
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+  $ aws ec2 wait --endpoint-url "$LAB_ENDPOINT" instance-stopped --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true 
+  $ bash list-servers.sh
+    rc_ok=true ---------------------------------------------------------------------
+|                         DescribeInstances                         |
++----------------------+-------------------+-------------+----------+
+|  i-9da1054184763db46 |  subnet-41c53714  |  10.91.1.10 |  running |
+|  i-dc8323a148b21181b |  subnet-959d935f  |  10.91.2.10 |  stopped |
++----------------------+-------------------+-------------+----------+
+  $ client-request "$LAB_SERVER_IP"
+    rc_ok=false CONNECT_FAIL java.net.SocketTimeoutException: Connect timed out
+    [o] 서버 상태: 서버가 멈췄어요(stopped).
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+    [x] 서버 상태: 서버가 아직 stopped예요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+  $ bash list-servers.sh
+    rc_ok=true ---------------------------------------------------------------------
+|                         DescribeInstances                         |
++----------------------+-------------------+-------------+----------+
+|  i-26ec9b40efb1141cc |  subnet-220e609a  |  10.91.1.10 |  running |
+|  i-cd5799b261befadd9 |  subnet-3e20a8e2  |  10.91.2.10 |  stopped |
++----------------------+-------------------+-------------+----------+
+  $ aws ec2 start-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true {
+    "StartingInstances": [
+        {
+            "InstanceId": "i-cd5799b261befadd9",
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}
+  $ aws ec2 wait --endpoint-url "$LAB_ENDPOINT" instance-running --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true 
+  $ bash list-servers.sh
+    rc_ok=true ---------------------------------------------------------------------
+|                         DescribeInstances                         |
++----------------------+-------------------+-------------+----------+
+|  i-26ec9b40efb1141cc |  subnet-220e609a  |  10.91.1.10 |  running |
+|  i-cd5799b261befadd9 |  subnet-3e20a8e2  |  10.91.2.10 |  running |
++----------------------+-------------------+-------------+----------+
+  $ client-request "$LAB_SERVER_IP"
+    rc_ok=false CONNECT_FAIL java.net.ConnectException: Connection refused (connect failed)
+    [o] 서버 상태: 같은 서버가 10.91.2.10로 다시 실행 중이에요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+    [x] 서버 상태: 서버가 아직 running예요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+  $ aws ec2 stop-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_CLIENT_ID"
+    rc_ok=true {
+    "StoppingInstances": [
+        {
+            "InstanceId": "i-69d0ca5d6fcc1d765",
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+    [x] 서버 상태: 서버가 아직 running예요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [x] 다른 서버: 클라이언트 서버가 stopped예요. 명령의 서버 ID를 확인하고 「초기화」로 다시 시작하세요.
+    [o] 새 서버: 새로 만든 서버 0대
+  $ bash list-servers.sh
+    rc_ok=true ---------------------------------------------------------------------
+|                         DescribeInstances                         |
++----------------------+-------------------+-------------+----------+
+|  i-9d37c9bcdb5efdeaa |  subnet-05894c48  |  10.91.1.10 |  running |
+|  i-e0e0eece67c96a072 |  subnet-72f7005a  |  10.91.2.10 |  running |
++----------------------+-------------------+-------------+----------+
+  $ echo "$LAB_CLIENT_ID"
+    rc_ok=true i-9d37c9bcdb5efdeaa
+  $ aws ec2 stop-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true {
+    "StoppingInstances": [
+        {
+            "InstanceId": "i-e0e0eece67c96a072",
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+  $ aws ec2 wait --endpoint-url "$LAB_ENDPOINT" instance-stopped --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true 
+  $ bash list-servers.sh
+    rc_ok=true ---------------------------------------------------------------------
+|                         DescribeInstances                         |
++----------------------+-------------------+-------------+----------+
+|  i-9d37c9bcdb5efdeaa |  subnet-05894c48  |  10.91.1.10 |  running |
+|  i-e0e0eece67c96a072 |  subnet-72f7005a  |  10.91.2.10 |  stopped |
++----------------------+-------------------+-------------+----------+
+    [o] 서버 상태: 서버가 멈췄어요(stopped).
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+    [x] 서버 상태: 서버가 아직 running예요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+  $ aws ec2 stop-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_SERVER_ID" > /dev/null && aws ec2 wait --endpoint-url "$LAB_ENDPOINT" instance-stopped --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true 
+    [x] 서버 상태: 서버가 멈추기만 했어요. 종료(terminate)해야 해요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+  $ aws ec2 terminate-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true {
+    "TerminatingInstances": [
+        {
+            "InstanceId": "i-c574359d39d6f037d",
+            "CurrentState": {
+                "Code": 32,
+                "Name": "shutting-down"
+            },
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+  $ aws ec2 wait --endpoint-url "$LAB_ENDPOINT" instance-terminated --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true 
+  $ bash list-servers.sh
+    rc_ok=true ------------------------------------------------------------------------
+|                           DescribeInstances                          |
++----------------------+-------------------+-------------+-------------+
+|  i-06d9937d72f04df3c |  subnet-7c42d4b9  |  10.91.1.10 |  running    |
+|  i-c574359d39d6f037d |  subnet-d4d676c7  |  10.91.2.10 |  terminated |
++----------------------+-------------------+-------------+-------------+
+  $ aws ec2 start-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_SERVER_ID"
+    rc_ok=false aws: [ERROR]: An error occurred (IncorrectInstanceState) when calling the StartInstances operation: The instance 'i-c574359d39d6f037d' is not in a state from which it can be started.
+    [o] 서버 상태: 서버가 종료됐어요(terminated).
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+    [x] 목표 서브넷: 10.91.2.0/24 서브넷이 아직 있어요. 그 안의 서버가 running예요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+  $ aws ec2 stop-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_SERVER_ID" > /dev/null && aws ec2 wait --endpoint-url "$LAB_ENDPOINT" instance-stopped --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true 
+  $ aws ec2 delete-subnet --endpoint-url "$LAB_ENDPOINT" --subnet-id "$LAB_SUBNET_B_ID"
+    rc_ok=false aws: [ERROR]: An error occurred (DependencyViolation) when calling the DeleteSubnet operation: The subnet 'subnet-dbaa5d8c' has dependencies and cannot be deleted.
+  $ echo 'deleted subnet B'
+    rc_ok=true deleted subnet B
+    [x] 목표 서브넷: 10.91.2.0/24 서브넷이 아직 있어요. 그 안의 서버가 stopped예요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+  $ aws ec2 delete-subnet --endpoint-url "$LAB_ENDPOINT" --subnet-id "$LAB_SUBNET_B_ID"
+    rc_ok=false aws: [ERROR]: An error occurred (DependencyViolation) when calling the DeleteSubnet operation: The subnet 'subnet-63b24f16' has dependencies and cannot be deleted.
+  $ bash list-servers.sh
+    rc_ok=true ---------------------------------------------------------------------
+|                         DescribeInstances                         |
++----------------------+-------------------+-------------+----------+
+|  i-57a59e165170316b6 |  subnet-63b24f16  |  10.91.2.10 |  running |
+|  i-7ee2a56439aeaf4b6 |  subnet-de9ebb62  |  10.91.1.10 |  running |
++----------------------+-------------------+-------------+----------+
+  $ aws ec2 terminate-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true {
+    "TerminatingInstances": [
+        {
+            "InstanceId": "i-57a59e165170316b6",
+            "CurrentState": {
+                "Code": 32,
+                "Name": "shutting-down"
+            },
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+  $ aws ec2 wait --endpoint-url "$LAB_ENDPOINT" instance-terminated --instance-ids "$LAB_SERVER_ID"
+    rc_ok=true 
+  $ aws ec2 delete-subnet --endpoint-url "$LAB_ENDPOINT" --subnet-id "$LAB_SUBNET_B_ID"
+    rc_ok=true 
+  $ aws ec2 describe-subnets --endpoint-url "$LAB_ENDPOINT" --filters Name=vpc-id,Values="$LAB_VPC_ID"
+    rc_ok=true {
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-de9ebb62",
+            "EnableDns64": false,
+            "SubnetId": "subnet-de9ebb62",
+            "State": "available",
+            "VpcId": "vpc-754c873b",
+            "CidrBlock": "10.91.1.0/24",
+            "AvailableIpAddressCount": 250,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}
+    [o] 목표 서브넷: 10.91.2.0/24 서브넷이 없어졌어요.
+    [o] 남겨 둘 서브넷: 다른 서브넷이 그대로 있어요.
+    [o] 다른 서버: 클라이언트 서버가 실행 중이에요.
+    [o] 새 서버: 새로 만든 서버 0대
+    [x] 준비된 VPC: VPC가 아직 있어요. 남은 서브넷 2개, 종료되지 않은 서버 2대예요.
+  $ aws ec2 terminate-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_SERVER_ID" > /dev/null && aws ec2 wait --endpoint-url "$LAB_ENDPOINT" instance-terminated --instance-ids "$LAB_SERVER_ID" && aws ec2 delete-subnet --endpoint-url "$LAB_ENDPOINT" --subnet-id "$LAB_SUBNET_B_ID"
+    rc_ok=true 
+  $ aws ec2 delete-vpc --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID"
+    rc_ok=false aws: [ERROR]: An error occurred (DependencyViolation) when calling the DeleteVpc operation: The vpc 'vpc-aa0676fd' has dependencies and cannot be deleted.
+    [x] 준비된 VPC: VPC가 아직 있어요. 남은 서브넷 1개, 종료되지 않은 서버 1대예요.
+  $ aws ec2 delete-vpc --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID"
+    rc_ok=false aws: [ERROR]: An error occurred (DependencyViolation) when calling the DeleteVpc operation: The vpc 'vpc-7042a1f1' has dependencies and cannot be deleted.
+  $ bash list-servers.sh
+    rc_ok=true ---------------------------------------------------------------------
+|                         DescribeInstances                         |
++----------------------+-------------------+-------------+----------+
+|  i-2c2f5393256869f7d |  subnet-14cf6a90  |  10.91.1.10 |  running |
+|  i-108e70034e0a0aee0 |  subnet-97725647  |  10.91.2.10 |  running |
++----------------------+-------------------+-------------+----------+
+  $ aws ec2 terminate-instances --endpoint-url "$LAB_ENDPOINT" --instance-ids "$LAB_SERVER_ID" "$LAB_CLIENT_ID"
+    rc_ok=true {
+    "TerminatingInstances": [
+        {
+            "InstanceId": "i-108e70034e0a0aee0",
+            "CurrentState": {
+                "Code": 32,
+                "Name": "shutting-down"
+            },
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        },
+        {
+            "InstanceId": "i-2c2f5393256869f7d",
+            "CurrentState": {
+                "Code": 32,
+                "Name": "shutting-down"
+            },
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+  $ aws ec2 wait --endpoint-url "$LAB_ENDPOINT" instance-terminated --instance-ids "$LAB_SERVER_ID" "$LAB_CLIENT_ID"
+    rc_ok=true 
+  $ aws ec2 delete-subnet --endpoint-url "$LAB_ENDPOINT" --subnet-id "$LAB_SUBNET_B_ID"
+    rc_ok=true 
+  $ aws ec2 delete-subnet --endpoint-url "$LAB_ENDPOINT" --subnet-id "$LAB_SUBNET_A_ID"
+    rc_ok=true 
+  $ aws ec2 describe-subnets --endpoint-url "$LAB_ENDPOINT" --filters Name=vpc-id,Values="$LAB_VPC_ID"
+    rc_ok=true {
+    "Subnets": []
+}
+  $ aws ec2 delete-vpc --endpoint-url "$LAB_ENDPOINT" --vpc-id "$LAB_VPC_ID"
+    rc_ok=true 
+  $ aws ec2 describe-vpcs --endpoint-url "$LAB_ENDPOINT" --vpc-ids "$LAB_VPC_ID"
+    rc_ok=false aws: [ERROR]: An error occurred (InvalidVpcID.NotFound) when calling the DescribeVpcs operation: The vpc ID 'vpc-7042a1f1' does not exist
+    [o] 준비된 VPC: 준비된 VPC가 없어졌어요.
+PASS lifecycle lesson steps 1-6
+PASS lifecycle-lesson-1794472464217: host containers/networks/volumes/context identical before and after
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 201 filtered out; finished in 955.00s
+

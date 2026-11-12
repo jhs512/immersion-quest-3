@@ -48,7 +48,7 @@ class OpeningTests(unittest.TestCase):
                     self.assertEqual(overview['text'], overview_text(authored))
                     self.assertEqual(overview['target'], f'text:{plain(task["title"])}#1')
                     self.assertLessEqual(len(overview['text']), 160)
-        self.assertEqual(total, 1125)
+        self.assertEqual(total, 1131)
 
     def test_preserve_code_names(self):
         self.assertEqual(plain('`fit_transform` 값을 확인해요'), 'fit_transform 값을 확인해요')

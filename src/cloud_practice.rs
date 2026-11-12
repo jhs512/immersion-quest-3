@@ -43,6 +43,23 @@ pub enum CloudGoal {
     RequestServer,
     /// Create `target_cidr`, run the prepared Java server in it, name its address; HTTP from the client.
     DeployServer,
+    /// The prepared server is `stopped`; the prepared client keeps running.
+    StopServer,
+    /// The server, prepared `stopped`, is `running` again with the same subnet and private address.
+    StartServer,
+    /// The prepared server is `terminated`; the client and the prepared subnets stay.
+    TerminateServer,
+    /// The prepared `target_subnet` (the server's) is gone; the other subnets and the client stay.
+    DeleteSubnet,
+    /// The prepared VPC is gone, so everything inside it was removed first.
+    DeleteVpc,
+}
+
+impl CloudGoal {
+    /// Goals graded by the prepared instances' lifecycle and deletion, never by HTTP.
+    pub fn lifecycle(self) -> bool {
+        matches!(self, Self::StopServer | Self::StartServer | Self::TerminateServer | Self::DeleteSubnet | Self::DeleteVpc)
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -97,7 +114,7 @@ fn holds(block: (u32, u8), address: Ipv4Addr) -> bool {
 
 impl CloudExercise {
     pub fn guest(&self) -> bool {
-        matches!(self.goal, CloudGoal::LaunchServer | CloudGoal::RequestServer | CloudGoal::DeployServer)
+        self.goal.lifecycle() || matches!(self.goal, CloudGoal::LaunchServer | CloudGoal::RequestServer | CloudGoal::DeployServer)
     }
     fn subnet(&self, name: &str) -> Option<&CloudSubnet> {
         self.subnets.iter().find(|s| s.name == name)
@@ -160,6 +177,12 @@ impl CloudExercise {
             CloudGoal::DeployServer => {
                 known(&self.client_subnet) && free_target(&self.target_cidr) && address()
                     && self.server_subnet.is_none() && self.target_subnet.is_none() && self.new_prefix.is_none()
+            }
+            // A running client and a responding server in two different prepared subnets.
+            _ => {
+                let target = if self.goal == CloudGoal::DeleteSubnet { self.target_subnet == self.server_subnet } else { self.target_subnet.is_none() };
+                known(&self.client_subnet) && known(&self.server_subnet) && self.client_subnet != self.server_subnet && target
+                    && self.target_cidr.is_none() && self.new_prefix.is_none() && self.address_file.is_none()
             }
         };
         if ok { Ok(()) } else { bad() }
@@ -352,6 +375,14 @@ fn api_ok(root: &Path, state: &State, args: &[&str]) -> Result<Value, String> {
     let r = api(root, state, args)?;
     if r.ok { Ok(r.json) } else { Err(format!("실습용 클라우드 API가 준비 요청을 거절했어요.\n{}", r.err.chars().take(800).collect::<String>())) }
 }
+/// `State.Name` of one instance; `None` once the API no longer lists it.
+fn instance_state(root: &Path, state: &State, id: &str) -> Result<Option<String>, String> {
+    let r = api(root, state, &["ec2", "describe-instances", "--instance-ids", id])?;
+    if !r.ok {
+        return if r.err.contains("InvalidInstanceID.NotFound") { Ok(None) } else { Err("실습용 클라우드 API가 서버 조회를 거절했어요. 초기화하세요.".into()) };
+    }
+    Ok(r.json["Reservations"][0]["Instances"][0]["State"]["Name"].as_str().map(String::from))
+}
 fn wait<T>(seconds: u64, mut step: impl FnMut() -> Result<Option<T>, String>) -> Result<Option<T>, String> {
     let start = Instant::now();
     loop {
@@ -389,8 +420,9 @@ fn remove_owned(owner: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Running, labelled with this root's owner, and answering on the owned endpoint.
-fn verify_runtime(root: &Path, state: &State) -> Result<(), String> {
+/// Running, labelled with this root's owner, and answering on the owned endpoint. Lifecycle goals
+/// stop and remove the prepared instances on purpose, so only the other goals require them running.
+fn verify_runtime(root: &Path, state: &State, instances: bool) -> Result<(), String> {
     let (_, container, _) = names(root);
     let format = format!("{{{{.State.Running}}}} {{{{index .Config.Labels \"{LABEL}\"}}}}");
     let p = docker(&["inspect", "--format", &format, &container], 15)?;
@@ -406,7 +438,7 @@ fn verify_runtime(root: &Path, state: &State) -> Result<(), String> {
         if !running.ok || running.out.trim() != "true" {
             return Err("실습용 클라우드 API가 멈췄어요. 초기화하세요.".into());
         }
-        for instance in [&state.client, &state.server].into_iter().flatten() {
+        for instance in [&state.client, &state.server].into_iter().flatten().filter(|_| instances) {
             let r = inner(&container, &["inspect", "--format", "{{.State.Running}}", &instance.container], 15)?;
             if !r.ok || r.out.trim() != "true" {
                 return Err("준비된 서버가 멈췄어요. 초기화해서 새 환경을 만드세요.".into());
@@ -509,7 +541,7 @@ impl GitPractice {
             if !state.ready || state.version != RUNTIME_VERSION || state.fixture != exercise.fixture() {
                 return Err("실습 준비가 중단됐거나 문제의 시작 상태가 바뀌었어요. 초기화해서 새 환경을 만드세요.".into());
             }
-            verify_runtime(root, &state)?;
+            verify_runtime(root, &state, !exercise.goal.lifecycle())?;
             return self.cloud_env(&state);
         }
         let mut state = State {
@@ -590,6 +622,13 @@ impl GitPractice {
             // API `running` is not HTTP readiness: wait until the client actually gets an answer.
             if wait(180, || Ok(probe(&container, &client, &server.ip)?.filter(|p| p.ok)))?.is_none() {
                 return Err("준비된 서버가 HTTP에 응답하지 않았어요. 초기화해서 다시 준비하세요.".into());
+            }
+            if exercise.goal == CloudGoal::StartServer {
+                // The step starts from a stopped server that answered before it was stopped.
+                api_ok(root, state, &["ec2", "stop-instances", "--instance-ids", &server.id])?;
+                if wait(180, || Ok(instance_state(root, state, &server.id)?.filter(|s| s == "stopped")))?.is_none() {
+                    return Err("준비 서버를 멈추지 못했어요. 초기화해서 다시 준비하세요.".into());
+                }
             }
             state.server = Some(server);
         }
@@ -720,6 +759,10 @@ impl GitPractice {
         }
         if let Some(server) = &state.server {
             env.push(("LAB_SERVER_ID".into(), server.id.clone()));
+            // Finding the private address is the first lesson's task; lifecycle steps only reuse it.
+            if self.exercise.cloud.as_ref().is_some_and(|c| c.goal.lifecycle()) {
+                env.push(("LAB_SERVER_IP".into(), server.ip.clone()));
+            }
         }
         if let Some(client) = &state.client {
             env.push(("LAB_CLIENT_ID".into(), client.id.clone()));
@@ -740,7 +783,10 @@ impl GitPractice {
         if !state.ready || state.fixture != exercise.fixture() {
             return Err("실습 준비가 끝나지 않았거나 시작 상태가 달라요. 초기화하세요.".into());
         }
-        verify_runtime(root, &state)?;
+        verify_runtime(root, &state, !exercise.goal.lifecycle())?;
+        if exercise.goal.lifecycle() {
+            return self.check_lifecycle(exercise, &state);
+        }
         let mut cases = vec![];
         let mut record = |name: &str, passed: bool, expected: &str, actual: String| {
             cases.push(TestCaseResult { input: name.into(), expected: expected.into(), stdout: actual, stderr: String::new(), passed, state: "cloud_state".into() })
@@ -803,6 +849,8 @@ impl GitPractice {
                     target_subnet = exercise.target_subnet.as_ref().map(|n| state.subnets[n].0.clone());
                 }
             }
+            // Graded by check_lifecycle before this point.
+            _ => unreachable!("lifecycle goals are graded separately"),
         }
         if !state.guest {
             return Ok(TestReport { passed: cases.iter().all(|c| c.passed), cases });
@@ -874,6 +922,94 @@ impl GitPractice {
                         Some(p) => p.body.lines().filter(|l| !l.starts_with("request=")).collect::<Vec<_>>().join("\n") });
             }
         }
+        Ok(TestReport { passed: cases.iter().all(|c| c.passed), cases })
+    }
+
+    /// Lifecycle goals: the prepared instances' states and which owned resources still exist.
+    fn check_lifecycle(&self, exercise: &CloudExercise, state: &State) -> Result<crate::runner::TestReport, String> {
+        use crate::runner::{TestCaseResult, TestReport};
+        let root = self.root();
+        let (Some(server), Some(client)) = (&state.server, &state.client) else { return Err("준비된 서버가 없어요. 초기화하세요.".into()) };
+        let mut cases = vec![];
+        let mut record = |name: &str, passed: bool, expected: &str, actual: String| {
+            cases.push(TestCaseResult { input: name.into(), expected: expected.into(), stdout: actual, stderr: String::new(), passed, state: "cloud_state".into() })
+        };
+        let instances = || -> Result<Vec<Value>, String> {
+            let d = api_ok(root, state, &["ec2", "describe-instances"])?;
+            Ok(d["Reservations"].as_array().into_iter().flatten().flat_map(|r| r["Instances"].as_array().cloned().unwrap_or_default()).collect())
+        };
+        // A state change in progress gets a fixed time to settle; the learner's sleep length is not the answer.
+        let moving = |all: &[Value]| all.iter().any(|i| ["pending", "stopping", "shutting-down"].contains(&i["State"]["Name"].as_str().unwrap_or_default()));
+        let mut all = instances()?;
+        if moving(&all) {
+            all = wait(90, || { let now = instances()?; Ok((!moving(&now)).then_some(now)) })?.unwrap_or(all);
+        }
+        let find = |id: &str| all.iter().find(|i| i["InstanceId"] == id);
+        // An instance the API no longer lists is as gone as a terminated one.
+        let name = |id: &str| find(id).and_then(|i| i["State"]["Name"].as_str()).unwrap_or("terminated").to_string();
+        let vpcs = api_ok(root, state, &["ec2", "describe-vpcs"])?;
+        let vpc_kept = vpcs["Vpcs"].as_array().into_iter().flatten().any(|v| v["VpcId"] == state.vpc_id.as_str());
+        let subnets = api_ok(root, state, &["ec2", "describe-subnets"])?;
+        let mine: Vec<Value> = subnets["Subnets"].as_array().into_iter().flatten().filter(|s| s["VpcId"] == state.vpc_id.as_str()).cloned().collect();
+        let has_subnet = |id: &str| mine.iter().any(|s| s["SubnetId"] == id);
+        let server_state = name(&server.id);
+        let client_state = name(&client.id);
+        let server_subnet = exercise.server_subnet.as_ref().map(|n| state.subnets[n].clone()).unwrap_or_default();
+        if exercise.goal == CloudGoal::DeleteVpc {
+            let left_subnets = mine.len();
+            let left_servers = all.iter().filter(|i| i["VpcId"] == state.vpc_id.as_str() && i["State"]["Name"] != "terminated").count();
+            record("준비된 VPC", !vpc_kept, &format!("{} VPC를 지워요. 안에 든 서버와 서브넷부터 정리해요.", exercise.vpc_cidr),
+                if !vpc_kept { "준비된 VPC가 없어졌어요.".into() }
+                else { format!("VPC가 아직 있어요. 남은 서브넷 {left_subnets}개, 종료되지 않은 서버 {left_servers}대예요.") });
+            return Ok(TestReport { passed: cases.iter().all(|c| c.passed), cases });
+        }
+        if !vpc_kept {
+            record("준비된 VPC", false, "이 문제에서는 VPC를 지우지 않아요.", "준비된 VPC가 없어졌어요. 「초기화」로 처음 상태를 받으세요.".into());
+            return Ok(TestReport { passed: false, cases });
+        }
+        match exercise.goal {
+            CloudGoal::StopServer => record("서버 상태", server_state == "stopped", "준비된 서버를 멈춰요(stopped). 종료하지 않아요.",
+                match server_state.as_str() {
+                    "stopped" => "서버가 멈췄어요(stopped).".into(),
+                    "terminated" => "서버가 종료됐어요. 멈추기만 해야 해요. 「초기화」로 처음 상태를 받으세요.".into(),
+                    other => format!("서버가 아직 {other} 상태예요."),
+                }),
+            CloudGoal::StartServer => {
+                let now = find(&server.id);
+                let same = now.is_some_and(|i| i["PrivateIpAddress"] == server.ip.as_str() && i["SubnetId"] == server_subnet.0.as_str());
+                record("서버 상태", server_state == "running" && same, "멈춘 서버를 다시 켜요. 같은 서버가 같은 주소로 실행돼요.",
+                    match server_state.as_str() {
+                        "running" if same => format!("같은 서버가 {}로 다시 실행 중이에요.", server.ip),
+                        "running" => "서버가 실행 중이지만 주소나 서브넷이 처음과 달라요.".into(),
+                        "terminated" => "서버가 종료됐어요. 종료한 서버는 다시 켤 수 없어요. 「초기화」로 처음 상태를 받으세요.".into(),
+                        other => format!("서버가 아직 {other} 상태예요."),
+                    });
+            }
+            CloudGoal::TerminateServer => record("서버 상태", server_state == "terminated", "준비된 서버를 종료해요(terminated).",
+                match server_state.as_str() {
+                    "terminated" => "서버가 종료됐어요(terminated).".into(),
+                    "stopped" => "서버가 멈추기만 했어요. 종료(terminate)해야 해요.".into(),
+                    other => format!("서버가 아직 {other} 상태예요."),
+                }),
+            _ => {
+                let gone = !has_subnet(&server_subnet.0);
+                record("목표 서브넷", gone, &format!("서버가 있던 {} 서브넷을 지워요.", server_subnet.1),
+                    if gone { format!("{} 서브넷이 없어졌어요.", server_subnet.1) }
+                    else if server_state != "terminated" { format!("{} 서브넷이 아직 있어요. 그 안의 서버가 {server_state} 상태예요.", server_subnet.1) }
+                    else { format!("{} 서브넷이 아직 있어요. 서버는 종료됐으니 서브넷을 지우세요.", server_subnet.1) });
+            }
+        }
+        let others: Vec<&(String, String)> = state.subnets.values().filter(|s| exercise.goal != CloudGoal::DeleteSubnet || s.0 != server_subnet.0).collect();
+        let kept = others.iter().all(|(id, block)| mine.iter().any(|s| s["SubnetId"] == id.as_str() && s["CidrBlock"] == block.as_str()));
+        record("남겨 둘 서브넷", kept, "다른 준비 서브넷은 그대로 둬요.",
+            if kept { "다른 서브넷이 그대로 있어요.".into() } else { "지우지 말아야 할 서브넷이 없어지거나 바뀌었어요. 「초기화」로 처음 상태를 받으세요.".into() });
+        record("다른 서버", client_state == "running", "클라이언트 서버는 실행 중인 그대로 둬요.",
+            if client_state == "running" { "클라이언트 서버가 실행 중이에요.".into() }
+            else { format!("클라이언트 서버가 {client_state} 상태예요. 명령의 서버 ID를 확인하고 「초기화」로 다시 시작하세요.") });
+        let prepared = [server.id.as_str(), client.id.as_str()];
+        let extra = all.iter().filter(|i| i["VpcId"] == state.vpc_id.as_str() && i["State"]["Name"] != "terminated"
+            && !prepared.contains(&i["InstanceId"].as_str().unwrap_or_default())).count();
+        record("새 서버", extra == 0, "이 문제에서는 서버를 새로 만들지 않아요.", format!("새로 만든 서버 {extra}대"));
         Ok(TestReport { passed: cases.iter().all(|c| c.passed), cases })
     }
 }

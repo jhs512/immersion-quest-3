@@ -1,0 +1,56 @@
+[
+ {
+  "lesson": "cloud-ec2-lifecycle",
+  "step": "stp_8501d14f-3b50-4c04-8fb6-c27fa6923577",
+  "checked": {
+   "조심하세요. 명령이 성공했다고 서버가 바로 멈춘 건 아니에요. 상태를 다시 확인해야 해요.": "실제 실수: stop-instances의 성공 출력을 보고 바로 다음 행동을 하는 것. 사전 측정에서 응답의 CurrentState는 stopping이었고 약 20초 뒤 stopped가 됐다. 결과(아직 멈추지 않음)와 확인 행동(표 다시 보기)을 말한다."
+  },
+  "findings": [],
+  "reviewer": "Claude Code(작성자 자체 검토, 사용자 검수 아님) 2026-11-12"
+ },
+ {
+  "lesson": "cloud-ec2-lifecycle",
+  "step": "stp_65e476ad-0cc4-4bed-a6e7-e80bd1c63bcf",
+  "checked": {
+   "조심하세요. 서버는 running인데 연결이 거절됐어요. 자바 프로그램은 처음 켤 때만 시작했어요.": "사전 측정에서 start 뒤 running·같은 사설 주소였지만 client-request가 90초 동안 Connection refused였다. 준비 서버의 자바 프로그램은 user-data로 처음 시작할 때만 뜬다(AWS 문서의 기본 동작과 같은 방향). running을 응답 가능으로 착각하는 실수를 짚는다."
+  },
+  "findings": [],
+  "reviewer": "Claude Code(작성자 자체 검토, 사용자 검수 아님) 2026-11-12"
+ },
+ {
+  "lesson": "cloud-ec2-lifecycle",
+  "step": "stp_25c6d982-502f-4aff-bf81-812df3e61cac",
+  "checked": {
+   "조심하세요. 그대로 실행하면 클라이언트 서버가 멈춰요. 명령은 ID가 가리키는 서버에만 가요.": "본문의 시작 명령은 --instance-ids \"$LAB_CLIENT_ID\"다. 그대로 실행하면 채점의 「다른 서버」가 실패하고 「초기화」가 필요하다. 실행 전에 표와 echo로 대상을 확인한 직후의 경고다."
+  },
+  "findings": [],
+  "reviewer": "Claude Code(작성자 자체 검토, 사용자 검수 아님) 2026-11-12"
+ },
+ {
+  "lesson": "cloud-ec2-lifecycle",
+  "step": "stp_fa217c4b-6db8-4c1d-9df0-483147439d4c",
+  "checked": {
+   "조심하세요. 멈춤과 종료는 이름이 비슷하지만 달라요. 다시 쓸 서버면 멈추기만 해요.": "시연에서 terminated 서버의 start가 IncorrectInstanceState로 거절된 직후다(사전 측정과 같다). 다시 쓸 서버를 종료하는 실수의 결과(돌아오지 않음)와 대안(stop)을 말한다."
+  },
+  "findings": [],
+  "reviewer": "Claude Code(작성자 자체 검토, 사용자 검수 아님) 2026-11-12"
+ },
+ {
+  "lesson": "cloud-ec2-lifecycle",
+  "step": "stp_0cbeda4d-c73d-49e7-882f-88d6bc4c5480",
+  "checked": {
+   "조심하세요. 서버를 멈추기만 해도 서브넷은 안 지워져요. 멈춘 서버도 자리를 차지해요.": "사전 측정에서 stopped 서버가 있는 서브넷의 delete-subnet이 DependencyViolation으로 거절됐다. 채점도 멈추기만 한 경우 서브넷이 남아 실패한다. 대표 오답을 미리 짚는다."
+  },
+  "findings": [],
+  "reviewer": "Claude Code(작성자 자체 검토, 사용자 검수 아님) 2026-11-12"
+ },
+ {
+  "lesson": "cloud-ec2-lifecycle",
+  "step": "stp_eb061d59-86eb-4cd6-a985-e05e8e9389d6",
+  "checked": {
+   "조심하세요. 거꾸로 VPC부터 지우려 하면 계속 거절돼요. 안쪽부터 서버, 서브넷, VPC 순서예요.": "사전 측정에서 서브넷이 남은 VPC의 delete-vpc가 DependencyViolation이었고, 서버 종료 → 서브넷 삭제 뒤 성공했다. 시연의 첫 거절과 마지막 성공을 묶어 순서를 정리한다."
+  },
+  "findings": [],
+  "reviewer": "Claude Code(작성자 자체 검토, 사용자 검수 아님) 2026-11-12"
+ }
+]

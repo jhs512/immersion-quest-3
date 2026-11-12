@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "45e7e66adfb7c59a44bee2835ed5a32bb1b1e5841b1874e10a1615e472c8bcb7",
+  "entry": [
+    {
+      "action": "say",
+      "text": "자바 서버만 멈춰야 해요. 그런데 주어진 명령은 다른 서버를 가리켜요.",
+      "target": "text:그런데 아래 명령의 --instance-ids는 다른 서버를 가리켜요."
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-servers.sh",
+      "say": "실행하기 전에 서버 표부터 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 120
+    },
+    {
+      "action": "say",
+      "text": "서버가 두 대예요. 서브넷 ID가 다른 두 자리에 한 대씩 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "echo \"$LAB_CLIENT_ID\"",
+      "say": "주어진 명령의 ID가 어느 서버인지 출력해 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "이 ID는 표에서 서브넷 A에 있는 서버예요. 자바 서버가 아니라 클라이언트 서버예요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 그대로 실행하면 클라이언트 서버가 멈춰요. 명령은 ID가 가리키는 서버에만 가요.",
+      "target": "text:그대로 실행하면 엉뚱한 서버가 멈춰요."
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 stop-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"",
+      "say": "--instance-ids 한 곳을 LAB_SERVER_ID로 고쳐 실행해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "CurrentState가 stopping이에요. 이번에는 자바 서버를 멈추는 중이에요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-stopped --instance-ids \"$LAB_SERVER_ID\"",
+      "say": "stopped가 될 때까지 기다려요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 300
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-servers.sh",
+      "say": "두 서버의 상태를 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "자바 서버만 stopped이고, 클라이언트 서버는 running 그대로예요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

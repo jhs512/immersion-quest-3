@@ -25,3 +25,19 @@ fn cloud_content_cannot_be_opened_as_plain_bash_practice() {
     plain["schema_version"] = 4.into();
     assert!(serde_json::from_value::<Lesson>(plain).unwrap().validate().is_err());
 }
+
+/// The lifecycle lesson uses goals that build 188 and older do not know. Such a player fails the whole
+/// course update (its installed course stays as it was) instead of opening the steps without a grader.
+#[test]
+fn lifecycle_lesson_needs_a_player_that_knows_its_goals() {
+    let course = CourseManifest::parse(include_str!("fixtures/player-pilot/멈/course.json")).unwrap();
+    let raw = include_str!("../courses/redesigned/cloud-ec2-lifecycle.json");
+    let lesson = Lesson::parse(raw, &course.lessons[0]).unwrap();
+    assert_eq!(lesson.schema_version, 4);
+    let goals: Vec<String> = lesson.tasks.iter().map(|t| serde_json::to_value(t.git_terminal.as_ref().unwrap().cloud.as_ref().unwrap().goal).unwrap().as_str().unwrap().to_string()).collect();
+    assert_eq!(goals, ["stop_server", "start_server", "stop_server", "terminate_server", "delete_subnet", "delete_vpc"]);
+    // An unknown goal is a parse error, never a step that opens without its cloud.
+    let unknown = raw.replace("\"goal\": \"delete_vpc\"", "\"goal\": \"delete_everything\"");
+    assert_ne!(unknown, raw);
+    assert!(serde_json::from_str::<Lesson>(&unknown).is_err());
+}
