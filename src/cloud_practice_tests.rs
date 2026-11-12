@@ -132,6 +132,25 @@ fn editor_shows_only_listed_prepared_files() {
         spec.cloud.as_mut().unwrap().editable = bad.iter().map(|f| f.to_string()).collect();
         assert!(spec.validate().is_err(), "{bad:?}");
     }
+    // Read-only helper tabs: prepared files, never the editable ones, only on cloud steps, never saved.
+    let mut helper = shown.clone();
+    let shell = helper.shell.as_mut().unwrap();
+    for files in [&mut shell.start.as_mut().unwrap().files, &mut shell.demo.files] {
+        files.insert("list-servers.sh".into(), "aws ec2 describe-instances\n".into());
+    }
+    helper.readonly_files = vec!["list-servers.sh".into()];
+    assert!(helper.validate().is_ok());
+    let practice = GitPractice::new(helper.clone()).unwrap();
+    assert_eq!(practice.read_shown("list-servers.sh").unwrap(), "aws ec2 describe-instances\n");
+    assert!(practice.save_editable("list-servers.sh", "rm -rf /").is_err(), "a read-only tab is not saved");
+    for bad in [vec!["missing.sh"], vec!["create-subnet.sh"], vec!["list-servers.sh", "list-servers.sh"]] {
+        let mut spec = helper.clone();
+        spec.readonly_files = bad.iter().map(|f| f.to_string()).collect();
+        assert!(spec.validate().is_err(), "readonly {bad:?}");
+    }
+    let mut plain = helper.clone();
+    plain.cloud = None;
+    assert!(plain.validate().is_err(), "read-only tabs are a cloud-step feature");
 }
 
 #[test]
@@ -764,6 +783,10 @@ fn docker_cloud_transfer_failure_reaps_both_processes() {
 
 // -- The published first cloud lesson, step by step, through the submission path ----------------
 const LESSON: &str = "courses/redesigned/cloud-vpc-subnet-ec2.json";
+/// The create-subnet command learners type (no prepared file since revision -3).
+fn create(block: &str) -> String {
+    format!("aws ec2 create-subnet --endpoint-url \"$LAB_ENDPOINT\" --vpc-id \"$LAB_VPC_ID\" --cidr-block {block}")
+}
 struct LessonStep { id: String, title: String, exercise: GitExercise, narration: Vec<Value> }
 fn lesson_steps() -> Vec<LessonStep> {
     let raw = std::fs::read(Path::new(env!("CARGO_MANIFEST_DIR")).join(LESSON)).expect("build the lesson first");
@@ -833,9 +856,8 @@ fn docker_cloud_lesson_subnet_steps() {
 
         // 2 (representative): starter refused, printed success is not state, the narration's fix passes.
         let (p, env) = open(owned, steps[1].exercise.clone());
-        let original = std::fs::read(p.work().join("create-subnet.sh")).unwrap();
         assert!(!report(&p).passed, "step 2 initial");
-        let (ok, _, err) = sh(&p, &env, "bash create-subnet.sh");
+        let (ok, _, err) = sh(&p, &env, &create("10.92.2.0/24"));
         assert!(!ok && err.contains("InvalidSubnet.Range"));
         assert!(sh(&p, &env, r#"echo '{"Subnet":{"CidrBlock":"10.91.2.0/24","State":"available"}}'"#).0);
         assert!(!report(&p).passed, "step 2 printed success");
@@ -850,37 +872,28 @@ fn docker_cloud_lesson_subnet_steps() {
         assert!(teacher.check_exercise().unwrap().passed, "step 2 narration reaches the goal");
         teacher.release_network_demo();
         assert!(!report(&p).passed, "the demonstration did not change the student");
-        assert_eq!(std::fs::read(p.work().join("create-subnet.sh")).unwrap(), original);
         replay(&p, &env, &steps[1], "student");
         assert!(report(&p).passed, "step 2 one-line fix");
         p.cleanup_cloud().unwrap();
-        // Changed fixture: the same prepared file with another VPC.
+        // Changed fixture: the same step with another VPC.
         let mut changed = steps[1].exercise.clone();
         let cloud = changed.cloud.as_mut().unwrap();
         cloud.vpc_cidr = "10.73.0.0/16".into();
         cloud.target_cidr = Some("10.73.2.0/24".into());
-        let shell = changed.shell.as_mut().unwrap();
-        for files in [&mut shell.start.as_mut().unwrap().files, &mut shell.demo.files] {
-            let file = files.get_mut("create-subnet.sh").unwrap();
-            *file = file.replace("10.92.2.0/24", "10.74.2.0/24");
-        }
         let (p, env) = open(owned, changed);
-        assert!(!sh(&p, &env, "bash create-subnet.sh").0);
-        edit(&p, "create-subnet.sh", "--cidr-block 10.74.2.0/24", "--cidr-block 10.91.2.0/24");
-        assert!(!sh(&p, &env, "bash create-subnet.sh").0, "the default answer is outside the changed VPC");
+        assert!(!sh(&p, &env, &create("10.74.2.0/24")).0);
+        assert!(!sh(&p, &env, &create("10.91.2.0/24")).0, "the default answer is outside the changed VPC");
         assert!(!report(&p).passed);
-        edit(&p, "create-subnet.sh", "--cidr-block 10.91.2.0/24", "--cidr-block 10.73.2.0/24");
-        assert!(sh(&p, &env, "bash create-subnet.sh").0);
+        assert!(sh(&p, &env, &create("10.73.2.0/24")).0);
         assert!(report(&p).passed, "step 2 changed fixture");
         p.cleanup_cloud().unwrap();
 
         // 3: any free /25 passes; overlap is refused; another size fails.
         let (p, env) = open(owned, steps[2].exercise.clone());
         assert!(!report(&p).passed, "step 3 initial");
-        let (ok, _, err) = sh(&p, &env, "bash create-subnet.sh");
+        let (ok, _, err) = sh(&p, &env, &create("10.91.1.128/25"));
         assert!(!ok && err.contains("InvalidSubnet.Conflict"), "overlap refused: {err}");
-        edit(&p, "create-subnet.sh", "--cidr-block 10.91.1.128/25", "--cidr-block 10.91.2.0/24");
-        assert!(sh(&p, &env, "bash create-subnet.sh").0);
+        assert!(sh(&p, &env, &create("10.91.2.0/24")).0);
         let wrong = report(&p);
         assert!(!wrong.passed && feedback(&wrong, "/25 크기가 아니에요"), "step 3 a /24");
         p.cleanup_cloud().unwrap();
@@ -892,8 +905,7 @@ fn docker_cloud_lesson_subnet_steps() {
         assert!(report(&p).passed, "step 3 narration");
         p.cleanup_cloud().unwrap();
         let (p, env) = open(owned, steps[2].exercise.clone());
-        edit(&p, "create-subnet.sh", "--cidr-block 10.91.1.128/25", "--cidr-block 10.91.3.0/25");
-        assert!(sh(&p, &env, "bash create-subnet.sh").0);
+        assert!(sh(&p, &env, &create("10.91.3.0/25")).0);
         assert!(report(&p).passed, "step 3 another free /25");
         p.cleanup_cloud().unwrap();
         println!("PASS lesson subnet steps 1-3");
@@ -963,9 +975,8 @@ fn docker_cloud_lesson_server_steps() {
         // 7: a server left in the client's subnet fails; after 초기화 the narration passes with real HTTP.
         let (p, env) = open(owned, "step7", steps[6].exercise.clone());
         assert!(!report(&p).passed, "step 7 initial");
-        assert!(!sh(&p, &env, "bash create-subnet.sh").0, "starter overlaps subnet A");
-        edit(&p, "create-subnet.sh", "--cidr-block 10.91.1.0/24", "--cidr-block 10.91.2.0/24");
-        assert!(sh(&p, &env, "bash create-subnet.sh > /dev/null").0);
+        assert!(!sh(&p, &env, &create("10.91.1.0/24")).0, "an overlapping subnet is refused");
+        assert!(sh(&p, &env, &format!("{} > /dev/null", create("10.91.2.0/24"))).0);
         assert!(sh(&p, &env, "bash launch-server.sh > /dev/null").0);
         let wrong = report(&p);
         assert!(!wrong.passed && feedback(&wrong, "목표 서브넷이 아닌 곳"), "step 7 server in A");

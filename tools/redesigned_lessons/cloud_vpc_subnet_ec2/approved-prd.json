@@ -19,7 +19,7 @@
     "Docker Desktop의 Linux 컨테이너 엔진(AWS CLI v2는 고정 공식 이미지로 실습 네트워크에서 실행)"
   ],
   "scope": [
-    "준비된 명령으로 VPC 안에 서브넷을 만드세요",
+    "VPC 안에 서브넷을 만드세요",
     "범위 밖 서브넷을 VPC 안으로 고치세요",
     "준비된 서브넷과 겹치지 않는 범위를 고르세요",
     "지정한 서브넷에서 서버 한 대를 실행하세요",
@@ -118,19 +118,19 @@
           "steps": [
             {
               "id": "stp_d40503e7-fca3-4193-b103-5d6c2acac9e4",
-              "title": "준비된 명령으로 VPC 안에 서브넷을 만드세요",
+              "title": "VPC 안에 서브넷을 만드세요",
               "objectives": [
                 "서브넷은 VPC 안의 더 작은 주소 범위이고, 만든 서브넷은 그 VPC에 속해요."
               ],
-              "core_flow": "수업 예고의 1·2번째 경험이다. 읽기 전용 VPC 조회(예고 1)는 채점하지 않고 이 스텝의 첫 관찰과 단원 전제로 둔다.\n\n시작: VPC 10.91.0.0/16 하나, 서브넷 0개. 준비 명령은 이미 올바른 10.91.1.0/24.\n행동: describe-vpcs로 CidrBlock을 읽고, 준비 create-subnet을 그대로 실행한 뒤 목록을 읽는다.\n관찰 근거: 새 서브넷의 VpcId·CidrBlock.\n판정: 초기 상태(서브넷 0개) 실패, 준비 명령 실행 뒤 통과. 학생이 만든 다른 VPC의 같은 CIDR은 실패.\n주의: 정상 명령 자체가 실패했다고 쓰지 않는다. 실행 전 상태가 실패이고 실행하면 통과하는 실행 과제다.",
+              "core_flow": "수업 예고의 1·2번째 경험이다. 읽기 전용 VPC 조회(예고 1)는 채점하지 않고 이 스텝의 첫 관찰과 단원 전제로 둔다.\n\n시작: VPC 10.91.0.0/16 하나(그 밖에 Floci의 기본 VPC 172.31.0.0/16), 준비 VPC의 서브넷 0개. 준비 파일 없음.\n행동: describe-vpcs로 CidrBlock을 읽고, create-subnet을 직접 입력한 뒤 VPC 필터를 붙인 목록을 읽는다.\n관찰 근거: 새 서브넷의 VpcId·CidrBlock.\n판정: 초기 상태(서브넷 0개) 실패, 명령 실행 뒤 통과. 학생이 만든 다른 VPC의 같은 CIDR은 실패.\n주의: 자주 쓰는 옵션은 본문의 복사 블록으로 준다(2026-11-12 사용자 결정: 파일에 의존하지 않고 직접 입력).",
               "complexity": {
                 "new_concepts": [
                   "서브넷 = VPC 안의 하위 주소 범위"
                 ],
                 "prerequisite_experience": "network-ip의 CIDR 범위 판단, Docker로 서버를 실행한 경험.",
-                "changed_condition": "고칠 값 없음. 준비 명령을 실제로 실행한다.",
+                "changed_condition": "준비 파일 없이 명령을 직접 입력한다.",
                 "observable_evidence": "describe-vpcs의 CidrBlock, create-subnet과 describe-subnets의 VpcId·CidrBlock.",
-                "learner_edited_lines": 0,
+                "learner_edited_lines": 1,
                 "new_external_services": 1
               }
             },
@@ -140,13 +140,13 @@
               "objectives": [
                 "VPC 범위 밖의 서브넷은 거절되고, 범위를 VPC 안으로 고치면 만들어져요."
               ],
-              "core_flow": "수업 예고의 3번째 경험이자 대표 문제다.\n\n시작: VPC 10.91.0.0/16만 있음, 서브넷 0개. 준비 명령의 CIDR이 10.92.2.0/24.\n행동: 원본 실행(InvalidSubnet.Range 거절) → --cidr-block 한 곳을 10.91.2.0/24로 수정 → 재실행 → 목록.\n관찰 근거: 원본의 실제 오류, 수정 뒤 CidrBlock·VpcId.\n판정: 준비 코드 실패, 정답 통과, 출력 위조 실패, 다른 VPC의 같은 CIDR 실패, 범위 안의 다른 CIDR 실패, 추가 서브넷 실패, 직접 명령·삭제 후 재생성 통과, VPC 10.73.0.0/16 변형 통과.\n주의: 비트 계산을 다시 가르치지 않는다.",
+              "core_flow": "수업 예고의 3번째 경험이자 대표 문제다.\n\n시작: VPC 10.91.0.0/16만 있음, 서브넷 0개. 본문에 CIDR이 10.92.2.0/24인 시작 명령을 준다(파일 없음).\n행동: 시작 명령 실행(InvalidSubnet.Range 거절) → ↑로 불러와 --cidr-block 한 곳을 10.91.2.0/24로 수정 → 재실행 → 목록.\n관찰 근거: 원본의 실제 오류, 수정 뒤 CidrBlock·VpcId.\n판정: 시작 명령 실패, 정답 통과, 출력 위조 실패, 다른 VPC의 같은 CIDR 실패, 범위 안의 다른 CIDR 실패, 추가 서브넷 실패, VPC 10.73.0.0/16 변형 통과.\n주의: 비트 계산을 다시 가르치지 않는다.",
               "complexity": {
                 "new_concepts": [
                   "VPC 범위 밖 서브넷의 거절"
                 ],
                 "prerequisite_experience": "network-ip의 범위 안/밖 판단, 앞 스텝의 서브넷 생성.",
-                "changed_condition": "준비 명령의 CIDR이 VPC 밖이다.",
+                "changed_condition": "시작 명령의 CIDR이 VPC 밖이다.",
                 "observable_evidence": "InvalidSubnet.Range 오류, 수정 뒤 CidrBlock·VpcId.",
                 "learner_edited_lines": 1,
                 "new_external_services": 0
@@ -158,13 +158,13 @@
               "objectives": [
                 "같은 VPC 안의 서브넷끼리는 범위가 겹칠 수 없어요. 겹치지 않는 범위를 직접 골라요."
               ],
-              "core_flow": "수업 예고의 4번째 경험이다.\n\n시작: VPC + 준비 서브넷 A 10.91.1.0/24(시작 상태 설명에서 먼저 알림). 준비 명령의 CIDR은 10.91.1.128/25.\n행동: 목록 → 원본 실행(겹침 거절) → /25 값 한 곳을 겹치지 않는 범위로 수정 → 재실행 → 목록.\n관찰 근거: 겹침 오류, 두 서브넷의 범위.\n판정: 조건 검사. 준비 서브넷 유지 + 새 /25 정확히 하나. 특정 값 하나를 고정하지 않는다. 겹침 실패, /24 실패, 두 번째 새 서브넷 실패, 준비 서브넷 삭제 실패.",
+              "core_flow": "수업 예고의 4번째 경험이다.\n\n시작: VPC + 준비 서브넷 A 10.91.1.0/24(시작 상태 설명에서 먼저 알림). 본문 시작 명령의 CIDR은 10.91.1.128/25.\n행동: 목록 → 시작 명령 실행(겹침 거절) → ↑로 불러와 /25 값 한 곳을 겹치지 않는 범위로 수정 → 목록.\n관찰 근거: 겹침 오류, 두 서브넷의 범위.\n판정: 조건 검사. 준비 서브넷 유지 + 새 /25 정확히 하나. 특정 값 하나를 고정하지 않는다. 겹침 실패, /24 실패, 두 번째 새 서브넷 실패, 준비 서브넷 삭제 실패.",
               "complexity": {
                 "new_concepts": [
                   "같은 VPC 안 서브넷 범위의 겹침 거절"
                 ],
                 "prerequisite_experience": "앞 스텝의 범위 밖 거절(안이어도 거절되는 다른 이유).",
-                "changed_condition": "준비 서브넷이 있고 준비 명령의 범위가 그와 겹친다.",
+                "changed_condition": "준비 서브넷이 있고 시작 명령의 범위가 그와 겹친다.",
                 "observable_evidence": "겹침 오류, 수정 뒤 두 서브넷의 CidrBlock.",
                 "learner_edited_lines": 1,
                 "new_external_services": 0
@@ -196,7 +196,7 @@
               "objectives": [
                 "서버(인스턴스)는 지정한 서브넷에 놓이고, 그 서브넷 범위에서 사설 IP 주소를 받아요."
               ],
-              "core_flow": "수업 예고의 5번째 경험이다. EC2 게스트를 처음 쓴다.\n\n시작: VPC, 준비 서브넷 A·B, 인스턴스 0개. 준비 명령은 --subnet-id \"$LAB_SUBNET_B_ID\".\n행동: 준비 run-instances 실행 → list-servers로 상태 확인(running까지).\n관찰 근거: SubnetId, PrivateIpAddress(10.91.2.x), pending→running.\n판정: 초기 상태(서버 0대) 실패, 준비 명령 실행 뒤 통과. 채점은 pending이면 정해진 시간 안에서 기다린다.\n주의: API running과 HTTP 준비는 다르다. 이 스텝은 HTTP를 채점하지 않는다.",
+              "core_flow": "수업 예고의 5번째 경험이다. EC2 게스트를 처음 쓴다.\n\n시작: VPC, 준비 서브넷 A·B, 인스턴스 0개. 준비 명령 launch-server.sh(편집기)는 --subnet-id \"$LAB_SUBNET_B_ID\". list-servers.sh는 읽기 전용 탭.\n행동: 준비 run-instances 실행 → list-servers로 상태 확인(running까지).\n관찰 근거: SubnetId, PrivateIpAddress(10.91.2.x), pending→running.\n판정: 초기 상태(서버 0대) 실패, 준비 명령 실행 뒤 통과. 채점은 pending이면 정해진 시간 안에서 기다린다.\n주의: API running과 HTTP 준비는 다르다. 이 스텝은 HTTP를 채점하지 않는다.",
               "complexity": {
                 "new_concepts": [
                   "인스턴스 = 서브넷에 놓이는 서버 자원"
@@ -242,7 +242,7 @@
               "objectives": [
                 "같은 VPC 안에서는 API가 알려 준 사설 IP 주소로 다른 서브넷의 서버에 요청할 수 있어요."
               ],
-              "core_flow": "수업 예고의 7번째 경험이다.\n\n시작: VPC, 서브넷 A·B, 서브넷 B의 자바 서버, 서브넷 A의 준비 클라이언트(모두 준비 스크립트가 만듦). 주소 파일은 10.91.2.99.\n행동: 원본 주소로 요청(실패) → 서버 ID 확인 → 표에서 사설 주소 읽기 → 주소 파일 한 곳 수정 → client-request.\n관찰 근거: HTTP 응답의 instance·served-on·from·java.version.\n판정: 주소 파일 = 서버 API 사설 주소이고 채점기가 소유 클라이언트에서 직접 요청한 응답의 신원이 맞아야 한다. 자리표시 주소 실패, 같은 서버의 Docker 주소 실패, 응답 출력 위조 실패.\n주의: 다른 VPC로의 차단·라우팅 표·NACL·보안 그룹은 가르치지 않는다.",
+              "core_flow": "수업 예고의 7번째 경험이다.\n\n시작: VPC, 서브넷 A·B, 서브넷 B의 자바 서버, 서브넷 A의 준비 클라이언트(모두 준비 스크립트가 만듦). 주소 파일은 10.91.2.99. list-servers.sh는 읽기 전용 탭.\n행동: 원본 주소로 요청(실패) → 서버 ID 확인 → 표에서 사설 주소 읽기 → 주소 파일 한 곳 수정 → client-request.\n관찰 근거: HTTP 응답의 instance·served-on·from·java.version.\n판정: 주소 파일 = 서버 API 사설 주소이고 채점기가 소유 클라이언트에서 직접 요청한 응답의 신원이 맞아야 한다. 자리표시 주소 실패, 같은 서버의 Docker 주소 실패, 응답 출력 위조 실패.\n주의: 다른 VPC로의 차단·라우팅 표·NACL·보안 그룹은 가르치지 않는다.",
               "complexity": {
                 "new_concepts": [
                   "API가 알려 준 사설 주소 = 같은 VPC에서 연결할 주소"
@@ -279,11 +279,11 @@
               "objectives": [
                 "새 개념 없이 범위·자리·주소 판단을 조합해 자바 서버를 원하는 서브넷에 배치하고 응답을 받아요."
               ],
-              "core_flow": "수업 예고의 8번째 경험이자 마지막 수행이다. 새 개념 없음.\n\n시작: VPC 10.91.0.0/16, 준비 서브넷 A와 클라이언트. 목표 서브넷 10.91.2.0/24는 없음(B ID 변수를 가정하지 않는다). 세 파일에 한 곳씩: create-subnet.sh 10.91.1.0/24(A와 겹침), launch-server.sh의 subnet-id.sh 10.91.1.0/24(A), server-address.txt 0.0.0.0.\n행동: CIDR → 서버 자리 범위 → 요청 주소를 각각 한 곳씩 고치고 실행한다.\n관찰 근거: 새 서브넷, 10.91.2.x 서버, 클라이언트에서 받은 자바 서버 응답.\n판정: 새 서브넷 10.91.2.0/24 하나 + 그 안의 서버 한 대 + 주소 파일 일치 + 채점기 HTTP 신원 확인. 서브넷 A 배치 실패, 응답 출력 위조 실패.\n주의: API running과 HTTP 준비를 구별한다. 해설은 주소를 aws 명령으로 옮겨 적는다(동적 값).",
+              "core_flow": "수업 예고의 8번째 경험이자 마지막 수행이다. 새 개념 없음.\n\n시작: VPC 10.91.0.0/16, 준비 서브넷 A와 클라이언트. 목표 서브넷 10.91.2.0/24는 없음(B ID 변수를 가정하지 않는다). create-subnet은 직접 입력하고, 편집기의 두 파일에 한 곳씩: launch-server.sh의 subnet-id.sh 10.91.1.0/24(A), server-address.txt 0.0.0.0. subnet-id.sh·list-servers.sh는 읽기 전용 탭.\n행동: 서브넷 직접 생성 → 서버 자리 범위 → 요청 주소를 고치고 실행한다.\n관찰 근거: 새 서브넷, 10.91.2.x 서버, 클라이언트에서 받은 자바 서버 응답.\n판정: 새 서브넷 10.91.2.0/24 하나 + 그 안의 서버 한 대 + 주소 파일 일치 + 채점기 HTTP 신원 확인. 서브넷 A 배치 실패, 응답 출력 위조 실패.\n주의: API running과 HTTP 준비를 구별한다. 해설은 주소를 aws 명령으로 옮겨 적는다(동적 값).",
               "complexity": {
                 "new_concepts": [],
                 "prerequisite_experience": "1장 서브넷 생성, 2장 배치와 요청.",
-                "changed_condition": "목표 서브넷이 없고 세 파일의 값이 한 곳씩 맞지 않는다.",
+                "changed_condition": "목표 서브넷이 없고 서버 자리·요청 주소가 한 곳씩 맞지 않는다.",
                 "observable_evidence": "새 서브넷의 CidrBlock, 서버의 10.91.2.x 주소, 200 응답의 served-on·from.",
                 "learner_edited_lines": 3,
                 "new_external_services": 0
@@ -313,7 +313,7 @@
   ],
   "representative": {
     "step_id": "stp_ed72ac2b-8f2c-4e8c-a8ce-5f3bacb80b20",
-    "prompt": "서브넷은 VPC 주소 공간의 일부여야 해요. VPC 밖의 범위로는 서브넷을 만들 수 없어요.\n\n이번 문제도 새 실습 상태에서 시작해요. 앞 문제에서 만든 서브넷은 없어요. 준비된 VPC의 범위는 10.91.0.0/16이에요.\n\n편집기의 `create-subnet.sh`는 서브넷을 만드는 준비 명령인데, `--cidr-block` 값이 틀렸어요. 이 VPC 안에 10.91.2.0/24 서브넷 하나를 만들어야 해요. `--endpoint-url`과 `--vpc-id`는 그대로 두세요.\n\n**할 일**\n\n1. 편집기에서 `create-subnet.sh`의 `--cidr-block` 값을 VPC 범위 10.91.0.0/16과 비교하세요.\n2. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 오류 메시지를 읽으세요.\n3. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 서브넷이 생기지 않았는지 확인하세요.\n4. 편집기에서 `--cidr-block` 값 한 곳만 `10.91.2.0/24`로 고치세요.\n5. 터미널에 `bash create-subnet.sh`를 입력하고 Enter를 누르세요. 이번 출력의 `CidrBlock`과 `VpcId`를 읽으세요.\n6. 터미널에 `bash list-subnets.sh`를 입력하고 Enter를 누르세요. 고친 범위의 서브넷이 하나 있는지 확인하세요.\n7. 고친 뒤 상태를 확인했으면 제출 버튼을 누르세요.",
+    "prompt": "서브넷은 VPC 주소 공간의 일부여야 해요. VPC 밖의 범위로는 서브넷을 만들 수 없어요.\n\n이번 문제도 새 실습 상태에서 시작해요. 앞 문제에서 만든 서브넷은 없어요. 준비된 VPC의 범위는 10.91.0.0/16이에요.\n\n아래는 서브넷을 만드는 명령인데, `--cidr-block` 값이 틀렸어요. 이 VPC 안에 10.91.2.0/24 서브넷 하나를 만들어야 해요. `--endpoint-url`과 `--vpc-id`는 그대로 두세요.\n\n```\naws ec2 create-subnet --endpoint-url \"$LAB_ENDPOINT\" --vpc-id \"$LAB_VPC_ID\" --cidr-block 10.92.2.0/24\n```\n\n**복사해서 쓰는 옵션**\n\n실습 주소와 준비된 VPC는 아래 블록에서 언제든 복사해 붙여 넣을 수 있어요.\n\n```\n--endpoint-url \"$LAB_ENDPOINT\"\n```\n\n```\n--vpc-id \"$LAB_VPC_ID\"\n```\n\n```\n--filters Name=vpc-id,Values=\"$LAB_VPC_ID\"\n```\n\n**할 일**\n\n1. 위 명령의 `--cidr-block` 값을 VPC 범위 10.91.0.0/16과 비교하세요.\n2. 위 명령을 복사해 터미널에 붙여 넣고 Enter를 누르세요. 오류 메시지를 읽으세요.\n3. 터미널에 `aws ec2 describe-subnets --endpoint-url \"$LAB_ENDPOINT\" --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"`를 입력하고 Enter를 누르세요. 서브넷이 생기지 않았는지 확인하세요.\n4. 키보드의 ↑ 키로 2번의 명령을 다시 불러와 `--cidr-block` 값 한 곳만 `10.91.2.0/24`로 고친 뒤 Enter를 누르세요. 이번 출력의 `CidrBlock`과 `VpcId`를 읽으세요.\n5. 터미널에 `aws ec2 describe-subnets --endpoint-url \"$LAB_ENDPOINT\" --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"`를 입력하고 Enter를 누르세요. 고친 범위의 서브넷이 하나 있는지 확인하세요.\n6. 고친 뒤 상태를 확인했으면 제출 버튼을 누르세요.",
     "starter_state": "VPC 10.91.0.0/16만 있고 서브넷 0개. create-subnet.sh의 --cidr-block은 10.92.2.0/24.",
     "expected_action": "--cidr-block 한 곳을 10.91.2.0/24로 고치고 실행한다.",
     "acceptance": "소유 VPC에 10.91.2.0/24 available 서브넷이 정확히 하나이고 다른 새 서브넷이 없다. 다른 VPC의 같은 CIDR·출력 위조·범위 안 다른 값은 실패한다.",
@@ -328,7 +328,7 @@
     ],
     "challenge": "준비된 VPC 10.91.0.0/16 안에 서브넷 10.91.2.0/24를 만들고 준비된 자바 HTTP 서버 한 대를 배치하세요. 같은 VPC의 다른 서브넷에 있는 클라이언트에서 그 사설 주소로 응답을 받아야 해요.",
     "scenario": [
-      "준비된 명령으로 VPC 안에 서브넷을 만드세요",
+      "VPC 안에 서브넷을 만드세요",
       "범위 밖 서브넷을 VPC 안으로 고치세요",
       "준비된 서브넷과 겹치지 않는 범위를 고르세요",
       "지정한 서브넷에서 서버 한 대를 실행하세요",
@@ -349,11 +349,12 @@
     "status": "approved",
     "by": "Claude Code: 사용자 승인 초안에 따른 본편·해설 제작",
     "evidence": "2026-11-09 사용자가 예고·PRD·대표 문제 초안을 확인한 뒤 「고고」로 다음 제작 단계를 승인했다. 2026-11-10 사용자: 승인된 예고·PRD·대표 문제를 바탕으로 첫 수업을 완성해, 방향 확인을 반복해서 묻지 말고 구현·검증까지 계속 진행해. 생성된 정식 JSON이나 개별 문장을 사용자가 직접 검수했다고 주장하지 않는다.",
-    "content_sha256": "90b5a218cc1e1cffe9ccea0153d041f40eb0bc9a72f941c941fbd6d38684953b"
+    "content_sha256": "74a4cabdf26ef25f3373b7dc802416988242711e40c513c6ad1886e5022f1c6d"
   },
   "change_history": [
     "2026-11-09 사용자 검토용 초안(.scratch/floci-course-wayfinder/first-lesson/prd.draft.md).",
     "2026-11-10 승인 범위 안의 정식 제작: 읽기 전용 VPC 조회(1.1.1)를 단원 전제와 첫 스텝 관찰로 옮겼다. 자바 게스트 게이트가 통과해 2장도 같은 자바 서버 이미지를 쓴다. 학생이 고치는 파일은 편집기에 둔다. 마지막 수행은 새 서브넷 ID 변수가 없으므로 subnet-id.sh가 범위로 ID를 찾는다. 학생의 「다시 시작」 표현은 실제 버튼 이름 「초기화」로 바꿨다.",
+    "2026-11-12 사용자 결정(「고고」·「이정도는 파일에 의존하지 않고 직접 입력하게 하자」): create-subnet은 준비 파일 없이 직접 입력하고, 자주 쓰는 --endpoint-url·--vpc-id·VPC 필터는 본문의 복사 블록으로 준다. list-subnets.sh는 없애고 필터를 붙인 describe-subnets를 직접 입력한다(Floci에도 실제 AWS처럼 기본 VPC가 있다). list-servers.sh·subnet-id.sh는 편집기의 읽기 전용 탭으로 보여 준다. 1번 제목을 「VPC 안에 서브넷을 만드세요」로 바꿨다.",
     "2026-11-10 사용자 결정(추천안 채택): 학생 컴퓨터에 AWS CLI를 설치하지 않도록 aws 명령과 채점기가 고정 공식 AWS CLI 이미지를 실습 네트워크에서 실행한다. 학생 명령·문제·채점 조건은 그대로다."
   ]
 }

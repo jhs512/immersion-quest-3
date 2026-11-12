@@ -240,6 +240,8 @@ window.molipVoice && molipVoice.setName({});",
         document::eval(include_str!("../assets/layout/shortcuts.js"));
         document::eval(include_str!("../assets/layout/toast.js"));
         document::eval(include_str!("../assets/layout/focus.js"));
+        // 「복사」 on problem code blocks (e.g. the cloud lab's --endpoint-url and --vpc-id options).
+        document::eval(include_str!("../assets/layout/code-copy.js"));
         // 코드 흐름 보기: the java-memory-visualizer TraceView and its MQ dialog (src/java_trace.rs).
         document::eval(&molip_quest::java_trace::viewer_script());
         document::eval(include_str!("../assets/layout/victory.js"));

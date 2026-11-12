@@ -36,7 +36,7 @@ def main():
                            '서버 한 대를 원하는 서브넷에 놓고, 받은 주소가 그 범위 안인지 확인해요.',
                            '같은 VPC 안의 다른 서버에서 그 주소로 HTTP 응답을 받아 배치를 확인해요.'],
             'authoring_prd': 'tools/redesigned_lessons/cloud_vpc_subnet_ec2/approved-prd.json',
-            'revision': f'{KEY}-2', 'added_on': '2026-11-10',
+            'revision': f'{KEY}-3', 'added_on': '2026-11-10',
             'origin': '2026-11-09 사용자가 승인한 Floci 클라우드 첫 수업 예고·PRD·대표 문제로 만든 자바 과정 후속 선택 수업.',
             'validation': {'pilot': '클', 'driver': 'code', 'label': TITLE},
             'required': False})

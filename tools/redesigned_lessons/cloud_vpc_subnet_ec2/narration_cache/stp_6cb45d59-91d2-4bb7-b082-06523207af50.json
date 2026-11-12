@@ -1,6 +1,6 @@
 {
   "by": "hand",
-  "source_sha256": "1ae828d1ec07b67fbdaee26d9936ea810b827c318066af7524b1c59fbfc49fa2",
+  "source_sha256": "ad9d2e5f048c6d1341a412d3f713ebac014ea17ce66adf32d73c3369ed370c6f",
   "entry": [
     {
       "action": "say",
@@ -9,20 +9,13 @@
     },
     {
       "action": "say",
-      "text": "준비 값 10.91.1.0/24는 서브넷 A와 같은 범위라 겹쳐요.",
-      "target": "code:--cidr-block 10.91.1.0/24"
-    },
-    {
-      "action": "patch_code",
-      "before": "--cidr-block 10.91.1.0/24",
-      "after": "--cidr-block 10.91.2.0/24",
-      "say": "목표 범위 10.91.2.0/24로 고쳐요.",
-      "file": "create-subnet.sh"
+      "text": "먼저 목표 범위 10.91.2.0/24로 서브넷을 직접 만들어요. 서브넷 A와 겹치지 않는 범위예요.",
+      "target": "text:서브넷 10.91.2.0/24를 만들고, 그 안에 준비된 자바 HTTP 서버 한 대를 실행하세요."
     },
     {
       "action": "bash_command",
-      "command": "bash create-subnet.sh",
-      "say": "목표 서브넷을 만들어요.",
+      "command": "aws ec2 create-subnet --endpoint-url \"$LAB_ENDPOINT\" --vpc-id \"$LAB_VPC_ID\" --cidr-block 10.91.2.0/24",
+      "say": "목표 서브넷을 만드는 명령을 입력해요.",
       "target": "#git-demo-terminal",
       "wait_seconds": 60
     },
