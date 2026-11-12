@@ -154,6 +154,17 @@ fn App() -> Element {
             molip_quest::telemetry::record_web_error(error);
         }
     });
+    // 「복사」 on problem code blocks (e.g. the cloud lab's --endpoint-url and --vpc-id options) uses the
+    // native clipboard, as 「수업 링크 복사」 does: the macOS WebView does not copy for this button.
+    use_future(||async move {
+        let mut bridge=document::eval(include_str!("../assets/layout/code-copy.js"));
+        while let Ok(request)=bridge.recv::<serde_json::Value>().await {
+            let text=request["text"].as_str().unwrap_or_default().to_string();
+            let copied=arboard::Clipboard::new().and_then(|mut clipboard|clipboard.set_text(text)).is_ok();
+            let token=request["token"].as_u64().unwrap_or_default();
+            document::eval(&format!("window.molipCodeCopy?.resolve({token},{copied})"));
+        }
+    });
     use_context_provider(|| Signal::new(0u32));
     use_context_provider(|| Signal::new(String::new()));
     #[cfg(target_os="macos")]
@@ -240,8 +251,6 @@ window.molipVoice && molipVoice.setName({});",
         document::eval(include_str!("../assets/layout/shortcuts.js"));
         document::eval(include_str!("../assets/layout/toast.js"));
         document::eval(include_str!("../assets/layout/focus.js"));
-        // 「복사」 on problem code blocks (e.g. the cloud lab's --endpoint-url and --vpc-id options).
-        document::eval(include_str!("../assets/layout/code-copy.js"));
         // 코드 흐름 보기: the java-memory-visualizer TraceView and its MQ dialog (src/java_trace.rs).
         document::eval(&molip_quest::java_trace::viewer_script());
         document::eval(include_str!("../assets/layout/victory.js"));
