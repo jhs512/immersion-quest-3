@@ -1,0 +1,79 @@
+{
+  "by": "hand",
+  "source_sha256": "fa714c513c8ffecea58a4a449e0d5f0461ad41d3e47820301d687461dee78c58",
+  "entry": [
+    {
+      "action": "say",
+      "text": "서브넷 B를 지우는 문제예요. 먼저 그대로 지워 볼게요.",
+      "target": "text:서브넷 B를 지우세요."
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_B_ID\"",
+      "say": "delete-subnet을 입력해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 120,
+      "fails": true
+    },
+    {
+      "action": "say",
+      "text": "DependencyViolation 오류예요. 이 서브넷에 기대고 있는 자원이 있다는 뜻이에요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-servers.sh",
+      "say": "서브넷 B에 무엇이 있는지 표로 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "자바 서버가 서브넷 B의 ID로 실행 중이에요. 이 서버가 서브넷을 붙잡고 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 서버를 멈추기만 해도 서브넷은 안 지워져요. 멈춘 서버도 자리를 차지해요.",
+      "target": "text:멈춘 서버도 남아 있는 거예요."
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 terminate-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"",
+      "say": "그래서 자바 서버를 종료해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-terminated --instance-ids \"$LAB_SERVER_ID\"",
+      "say": "terminated가 될 때까지 기다려요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 300
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_B_ID\"",
+      "say": "같은 delete-subnet을 다시 실행해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "이번에는 오류가 없어요. 서버를 먼저 없애니 서브넷이 지워졌어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 describe-subnets --endpoint-url \"$LAB_ENDPOINT\" --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"",
+      "say": "남은 서브넷을 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "서브넷 A만 남았어요. 지우는 순서는 안에 든 서버부터예요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

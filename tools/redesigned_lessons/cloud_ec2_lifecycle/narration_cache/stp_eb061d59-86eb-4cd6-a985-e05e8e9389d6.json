@@ -1,0 +1,101 @@
+{
+  "by": "hand",
+  "source_sha256": "9104febf792b0793278d519455206d7af9597ce1367d0bb93c0ef1c9b32b2bc4",
+  "entry": [
+    {
+      "action": "say",
+      "text": "이번에는 VPC 하나를 통째로 정리해요. 먼저 VPC부터 지워 볼게요.",
+      "target": "text:이 VPC를 모두 정리하세요."
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 delete-vpc --endpoint-url \"$LAB_ENDPOINT\" --vpc-id \"$LAB_VPC_ID\"",
+      "say": "delete-vpc를 입력해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 120,
+      "fails": true
+    },
+    {
+      "action": "say",
+      "text": "DependencyViolation이에요. VPC 안에 아직 자원이 남아 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-servers.sh",
+      "say": "남은 서버부터 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "서버가 두 대 실행 중이에요. 서브넷 A와 B에 한 대씩 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 terminate-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\" \"$LAB_CLIENT_ID\"",
+      "say": "두 서버를 한 번에 종료해요. ID를 공백으로 이어 써요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-terminated --instance-ids \"$LAB_SERVER_ID\" \"$LAB_CLIENT_ID\"",
+      "say": "둘 다 terminated가 될 때까지 기다려요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 300
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_B_ID\"",
+      "say": "이제 서브넷 B를 지워요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_A_ID\"",
+      "say": "서브넷 A도 지워요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 describe-subnets --endpoint-url \"$LAB_ENDPOINT\" --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"",
+      "say": "서브넷이 남았는지 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "Subnets가 비어 있어요. 이제 VPC 안에 남은 게 없어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 delete-vpc --endpoint-url \"$LAB_ENDPOINT\" --vpc-id \"$LAB_VPC_ID\"",
+      "say": "처음의 delete-vpc를 다시 실행해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 describe-vpcs --endpoint-url \"$LAB_ENDPOINT\" --vpc-ids \"$LAB_VPC_ID\"",
+      "say": "VPC를 조회해 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60,
+      "fails": true
+    },
+    {
+      "action": "say",
+      "text": "InvalidVpcID.NotFound예요. VPC가 지워졌어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 거꾸로 VPC부터 지우려 하면 계속 거절돼요. 안쪽부터 서버, 서브넷, VPC 순서예요.",
+      "target": "text:안에 서브넷이 남아 있으면 거절돼요."
+    }
+  ]
+}

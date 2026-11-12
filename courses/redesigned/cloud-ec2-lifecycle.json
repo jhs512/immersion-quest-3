@@ -1,0 +1,925 @@
+{
+  "schema_version": 4,
+  "id": "lsn_81d67284-bfe0-49b9-ac29-33f9aea19c00",
+  "revision": "cloud-ec2-lifecycle-1",
+  "title": "클라우드 · 서버를 멈추고 다시 켜고 없애요",
+  "description": "서버를 멈추고 다시 켜고 없애며 남는 것을 확인하고, 서버 → 서브넷 → VPC 순서로 자원을 지워요.",
+  "objectives": [
+    "서버를 멈추고 다시 켜면 무엇이 남고 무엇이 사라지는지 실제 상태로 확인해요.",
+    "상태가 바로 바뀌지 않는 것을 보고, 다음 명령 전에 원하는 상태가 됐는지 확인해요.",
+    "자원을 지우는 순서를 거절 메시지로 찾아요. 서버 → 서브넷 → VPC 순서예요."
+  ],
+  "sources": [
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Stop_Start.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html",
+    "https://docs.aws.amazon.com/cli/latest/reference/ec2/delete-subnet.html",
+    "https://github.com/floci-io/floci"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_8bd5ec7c-84b7-4c7b-8a89-09062c811a09",
+      "title": "서버를 멈추고 다시 켜요",
+      "objectives": [
+        "멈춘 서버는 자리와 주소를 그대로 가지고 다시 켤 수 있어요. 상태가 바뀌는 데 시간이 걸려요."
+      ],
+      "units": [
+        {
+          "id": "unt_a2e41539-a3c0-49be-bdc9-7ac01e47813f",
+          "title": "멈추고 다시 켜기",
+          "objectives": [
+            "stop·start의 상태 변화와 재시작 뒤 남는 것을 확인하고, 명령의 대상 서버를 ID로 골라요."
+          ],
+          "premise": "실습 환경이 VPC 10.91.0.0/16에 서브넷 A·B를 만들고, A에 클라이언트 서버, B에 자바 서버를 실행해 둬요. 문제마다 새 실습 상태에서 시작하고, 서버를 준비하는 데 몇 분 걸릴 수 있어요. 모든 aws 명령은 이 컴퓨터의 로컬 실습 주소로만 가요.",
+          "steps": [
+            {
+              "id": "stp_8501d14f-3b50-4c04-8fb6-c27fa6923577",
+              "objectives": [
+                "서버를 멈추면(stop) 상태가 stopping을 거쳐 stopped가 되고, 그동안 요청에 응답하지 않아요."
+              ]
+            },
+            {
+              "id": "stp_65e476ad-0cc4-4bed-a6e7-e80bd1c63bcf",
+              "objectives": [
+                "멈춘 서버를 다시 켜면 같은 서버가 같은 사설 주소로 running이 돼요. 그 안의 프로그램은 저절로 다시 뜨지 않아요."
+              ]
+            },
+            {
+              "id": "stp_25c6d982-502f-4aff-bf81-812df3e61cac",
+              "objectives": [
+                "명령은 --instance-ids가 가리키는 서버에만 가요. 실행 전에 그 ID가 어느 서버인지 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_92e0193d-d9f6-4650-9a3b-7afdf00fb315",
+      "title": "없애고, 순서대로 지워요",
+      "objectives": [
+        "종료한 서버는 돌아오지 않아요. 지울 때는 안에 든 자원부터 서버 → 서브넷 → VPC 순서로 지워요."
+      ],
+      "units": [
+        {
+          "id": "unt_9b9870ff-1a0e-4bfd-93c0-6c7d96444250",
+          "title": "종료와 삭제 의존성",
+          "objectives": [
+            "terminate의 결과와, 서버가 남은 서브넷이 거절되는 이유를 실제 오류로 확인해요."
+          ],
+          "premise": "앞 장과 같은 구성에서 시작해요. 서버를 없애거나 자원을 지우는 문제예요.",
+          "steps": [
+            {
+              "id": "stp_fa217c4b-6db8-4c1d-9df0-483147439d4c",
+              "objectives": [
+                "종료한 서버(terminated)는 다시 켤 수 없어요. 멈춘 서버와 달라요."
+              ]
+            },
+            {
+              "id": "stp_0cbeda4d-c73d-49e7-882f-88d6bc4c5480",
+              "objectives": [
+                "서버가 남아 있는 서브넷은 지울 수 없어요. 그 안의 서버부터 종료해야 해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_3fda7ab4-4d49-4c96-8dd8-8fb0ce64bcc8",
+          "title": "마지막 수행",
+          "objectives": [
+            "새 개념 없이 종료와 삭제 순서를 조합해 VPC 하나를 정리해요."
+          ],
+          "premise": "서버 두 대와 서브넷 두 개가 든 VPC를 통째로 정리해요.",
+          "steps": [
+            {
+              "id": "stp_eb061d59-86eb-4cd6-a985-e05e8e9389d6",
+              "objectives": [
+                "거절 메시지를 따라 서버 → 서브넷 → VPC 순서로 모두 지워요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_8501d14f-3b50-4c04-8fb6-c27fa6923577",
+      "title": "응답하는 서버를 멈추세요",
+      "goal": "서버(인스턴스)는 멈췄다가 다시 켤 수 있어요. 멈추는 명령은 `aws ec2 stop-instances`예요. `--instance-ids`로 멈출 서버를 정해요.\n\n이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 VPC 10.91.0.0/16 안에 서브넷 A 10.91.1.0/24와 서브넷 B 10.91.2.0/24를 만들어 뒀어요. 서브넷 A에는 클라이언트 서버(`LAB_CLIENT_ID`), 서브넷 B에는 자바 서버(`LAB_SERVER_ID`)가 실행 중이에요. 자바 서버의 사설 IP 주소는 `LAB_SERVER_IP`에 있어요.\n\n편집기의 `list-servers.sh` 탭(읽기 전용)은 서버의 ID·서브넷 ID·사설 IP 주소·상태를 표로 보여 주는 준비 명령이에요.\n\n**복사해서 쓰는 옵션**\n\n실습 주소와 준비된 자원의 ID는 아래 블록에서 언제든 복사해 붙여 넣을 수 있어요.\n\n```\n--endpoint-url \"$LAB_ENDPOINT\"\n```\n\n```\n--instance-ids \"$LAB_SERVER_ID\"\n```\n\n**할 일**\n\n1. 터미널에 `client-request \"$LAB_SERVER_IP\"`를 입력하고 Enter를 누르세요. 자바 서버가 응답하는지 확인하세요.\n2. 터미널에 `aws ec2 stop-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"`를 입력하고 Enter를 누르세요. 출력의 `CurrentState`를 읽으세요.\n3. 터미널에 `bash list-servers.sh`를 입력하고 Enter를 누르세요. 자바 서버의 상태를 읽으세요.\n4. 상태가 `stopped`가 아니면 잠시 뒤 `bash list-servers.sh`를 다시 실행하세요.\n5. `stopped`가 되면 `client-request \"$LAB_SERVER_IP\"`를 다시 입력하세요. 응답이 오는지 확인하세요.\n6. 자바 서버가 `stopped`인 것을 확인했으면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 자바 서버를 멈춰요. 응답의 CurrentState는 아직 stopping이에요.\naws ec2 stop-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"\n# stopped가 될 때까지 표를 다시 확인해요.\nbash list-servers.sh",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "배치한 서버를 멈추고, 다시 켜고, 없애요. 그리고 자원을 지우는 순서를 거절 메시지로 찾아요."
+        },
+        {
+          "action": "say",
+          "text": "멈춘 서버는 자리와 주소가 남고, 종료한 서버는 돌아오지 않아요. 상태가 바뀌는 데는 시간이 걸려요."
+        },
+        {
+          "action": "say",
+          "text": "모든 명령은 이 컴퓨터의 로컬 실습 API로만 가요. 실제 AWS 계정은 쓰지 않고, 직접 확인한 동작만 다뤄요."
+        },
+        {
+          "action": "say",
+          "text": "응답하는 서버를 멈추는 문제예요.",
+          "target": "text:응답하는 서버를 멈추세요#1"
+        },
+        {
+          "action": "say",
+          "text": "서브넷 B의 자바 서버가 실행 중이에요. 먼저 응답하는지 확인할게요.",
+          "target": "text:서브넷 B에는 자바 서버(LAB_SERVER_ID)가 실행 중이에요."
+        },
+        {
+          "action": "bash_command",
+          "command": "client-request \"$LAB_SERVER_IP\"",
+          "say": "클라이언트 서버에서 자바 서버로 요청해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 120
+        },
+        {
+          "action": "say",
+          "text": "HTTP/1.1 200 OK가 왔어요. 자바 서버가 응답하고 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이제 stop-instances로 이 서버를 멈춰요. --instance-ids가 멈출 서버를 정해요.",
+          "target": "text:--instance-ids로 멈출 서버를 정해요."
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 stop-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"",
+          "say": "서버를 멈추는 명령을 입력해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "PreviousState는 running, CurrentState는 stopping이에요. 아직 다 멈춘 게 아니에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 명령이 성공했다고 서버가 바로 멈춘 건 아니에요. 상태를 다시 확인해야 해요.",
+          "target": "text:상태가 stopped가 아니면 잠시 뒤 bash list-servers.sh를 다시 실행하세요."
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-stopped --instance-ids \"$LAB_SERVER_ID\"",
+          "say": "해설은 stopped가 될 때까지 기다리는 명령을 써요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "표로 상태를 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "자바 서버가 stopped예요. 사설 IP 주소와 서브넷은 그대로 표에 남아 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "client-request \"$LAB_SERVER_IP\"",
+          "say": "멈춘 서버에 다시 요청해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 120,
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "이번에는 연결하지 못했어요. 멈춘 서버는 요청에 응답하지 않아요.",
+          "target": "#git-demo-terminal"
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "stop_server",
+          "vpc_cidr": "10.91.0.0/16",
+          "subnets": [
+            {
+              "name": "A",
+              "cidr": "10.91.1.0/24"
+            },
+            {
+              "name": "B",
+              "cidr": "10.91.2.0/24"
+            }
+          ],
+          "client_subnet": "A",
+          "server_subnet": "B",
+          "editable": []
+        },
+        "shell": {
+          "step_id": "stp_8501d14f-3b50-4c04-8fb6-c27fa6923577",
+          "start": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        },
+        "readonly_files": [
+          "list-servers.sh"
+        ]
+      }
+    },
+    {
+      "id": "stp_65e476ad-0cc4-4bed-a6e7-e80bd1c63bcf",
+      "title": "멈춘 서버를 다시 켜세요",
+      "goal": "멈춘 서버는 `aws ec2 start-instances`로 다시 켤 수 있어요. 멈췄던 그 서버가 다시 실행돼요.\n\n이번 문제는 새 실습 상태에서 시작해요. 앞 문제와 같은 VPC·서브넷·클라이언트 서버가 있어요. 서브넷 B의 자바 서버(`LAB_SERVER_ID`)는 응답하던 상태에서 실습 환경이 미리 멈춰 뒀어요(stopped). 멈추기 전 사설 IP 주소는 `LAB_SERVER_IP`에 있어요.\n\n편집기의 `list-servers.sh` 탭(읽기 전용)은 서버의 ID·서브넷 ID·사설 IP 주소·상태를 표로 보여 주는 준비 명령이에요.\n\n**복사해서 쓰는 옵션**\n\n실습 주소와 준비된 자원의 ID는 아래 블록에서 언제든 복사해 붙여 넣을 수 있어요.\n\n```\n--endpoint-url \"$LAB_ENDPOINT\"\n```\n\n```\n--instance-ids \"$LAB_SERVER_ID\"\n```\n\n**할 일**\n\n1. 터미널에 `bash list-servers.sh`를 입력하고 Enter를 누르세요. 자바 서버의 상태와 사설 IP 주소를 읽으세요.\n2. 터미널에 `aws ec2 start-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"`를 입력하고 Enter를 누르세요. 출력의 `CurrentState`를 읽으세요.\n3. 터미널에 `bash list-servers.sh`를 다시 입력하세요. 상태가 `running`인지, 사설 IP 주소가 1번과 같은지 확인하세요.\n4. 터미널에 `client-request \"$LAB_SERVER_IP\"`를 입력하고 Enter를 누르세요. 응답이 오는지 확인하세요.\n5. 자바 서버가 `running`인 것을 확인했으면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 멈춘 서버를 다시 켜요. 응답의 CurrentState는 pending이에요.\naws ec2 start-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"\n# running이 됐는지, 주소가 그대로인지 표로 확인해요.\nbash list-servers.sh",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "멈춘 서버를 다시 켜는 문제예요.",
+          "target": "text:멈춘 서버를 다시 켜세요#1"
+        },
+        {
+          "action": "say",
+          "text": "자바 서버는 미리 멈춰 둔 상태예요. 표로 먼저 확인할게요.",
+          "target": "text:실습 환경이 미리 멈춰 뒀어요(stopped)."
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "서버 표를 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 120
+        },
+        {
+          "action": "say",
+          "text": "자바 서버는 stopped이고, 사설 IP 주소는 10.91.2로 시작해요. 이 주소를 기억해 두세요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 start-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"",
+          "say": "start-instances로 다시 켜요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "PreviousState는 stopped, CurrentState는 pending이에요. 켜지는 중이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-running --instance-ids \"$LAB_SERVER_ID\"",
+          "say": "running이 될 때까지 기다려요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "다시 표를 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "running이에요. 같은 ID의 서버가 처음과 같은 사설 IP 주소로 돌아왔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "client-request \"$LAB_SERVER_IP\"",
+          "say": "이제 요청을 보내 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 120,
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 서버는 running인데 연결이 거절됐어요. 자바 프로그램은 처음 켤 때만 시작했어요.",
+          "target": "text:멈췄던 그 서버가 다시 실행돼요."
+        },
+        {
+          "action": "say",
+          "text": "서버가 켜진 것과 그 안의 프로그램이 응답하는 것은 달라요. 이 수업은 서버의 상태만 채점해요.",
+          "target": "#git-demo-terminal"
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "start_server",
+          "vpc_cidr": "10.91.0.0/16",
+          "subnets": [
+            {
+              "name": "A",
+              "cidr": "10.91.1.0/24"
+            },
+            {
+              "name": "B",
+              "cidr": "10.91.2.0/24"
+            }
+          ],
+          "client_subnet": "A",
+          "server_subnet": "B",
+          "editable": []
+        },
+        "shell": {
+          "step_id": "stp_65e476ad-0cc4-4bed-a6e7-e80bd1c63bcf",
+          "start": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        },
+        "readonly_files": [
+          "list-servers.sh"
+        ]
+      }
+    },
+    {
+      "id": "stp_25c6d982-502f-4aff-bf81-812df3e61cac",
+      "title": "멈출 서버를 골라 멈추세요",
+      "goal": "서버가 여러 대면 `--instance-ids`의 값이 어느 서버를 가리키는지가 중요해요.\n\n이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 VPC 10.91.0.0/16 안에 서브넷 A 10.91.1.0/24와 서브넷 B 10.91.2.0/24를 만들어 뒀어요. 서브넷 A에는 클라이언트 서버(`LAB_CLIENT_ID`), 서브넷 B에는 자바 서버(`LAB_SERVER_ID`)가 실행 중이에요. 자바 서버의 사설 IP 주소는 `LAB_SERVER_IP`에 있어요.\n\n서브넷 B(10.91.2.0/24)의 자바 서버만 멈춰야 해요. 클라이언트 서버는 실행 중인 그대로 둬야 해요. 그런데 아래 명령의 `--instance-ids`는 다른 서버를 가리켜요. 그대로 실행하면 엉뚱한 서버가 멈춰요. 그때는 「초기화」로 처음 상태를 받으세요.\n\n```\naws ec2 stop-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_CLIENT_ID\"\n```\n\n편집기의 `list-servers.sh` 탭(읽기 전용)은 서버의 ID·서브넷 ID·사설 IP 주소·상태를 표로 보여 주는 준비 명령이에요.\n\n**복사해서 쓰는 옵션**\n\n실습 주소와 준비된 자원의 ID는 아래 블록에서 언제든 복사해 붙여 넣을 수 있어요.\n\n```\n--endpoint-url \"$LAB_ENDPOINT\"\n```\n\n```\n--instance-ids \"$LAB_SERVER_ID\"\n```\n\n**할 일**\n\n1. 터미널에 `bash list-servers.sh`를 입력하고 Enter를 누르세요. 두 서버의 ID와 서브넷 ID를 읽으세요.\n2. 터미널에 `echo \"$LAB_CLIENT_ID\"`를 입력하고 Enter를 누르세요. 위 명령이 가리키는 ID가 표의 어느 서버인지 찾으세요.\n3. 위 명령을 복사해 터미널에 붙여 넣고, `--instance-ids` 값 한 곳을 서브넷 B의 자바 서버로 고친 뒤 Enter를 누르세요.\n4. 터미널에 `bash list-servers.sh`를 입력하세요. 자바 서버만 `stopped`가 되고 클라이언트 서버는 `running`인지 확인하세요.\n5. 두 서버의 상태를 확인했으면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# --instance-ids를 \"$LAB_CLIENT_ID\"에서 서브넷 B의 자바 서버 \"$LAB_SERVER_ID\"로 고쳐요.\n# 표의 자바 서버 ID(i-로 시작)를 그대로 적어도 같아요.\naws ec2 stop-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"\nbash list-servers.sh",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "멈출 서버를 골라 멈추는 문제예요.",
+          "target": "text:멈출 서버를 골라 멈추세요#1"
+        },
+        {
+          "action": "say",
+          "text": "자바 서버만 멈춰야 해요. 그런데 주어진 명령은 다른 서버를 가리켜요.",
+          "target": "text:그런데 아래 명령의 --instance-ids는 다른 서버를 가리켜요."
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "실행하기 전에 서버 표부터 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 120
+        },
+        {
+          "action": "say",
+          "text": "서버가 두 대예요. 서브넷 ID가 다른 두 자리에 한 대씩 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo \"$LAB_CLIENT_ID\"",
+          "say": "주어진 명령의 ID가 어느 서버인지 출력해 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "이 ID는 표에서 서브넷 A에 있는 서버예요. 자바 서버가 아니라 클라이언트 서버예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 그대로 실행하면 클라이언트 서버가 멈춰요. 명령은 ID가 가리키는 서버에만 가요.",
+          "target": "text:그대로 실행하면 엉뚱한 서버가 멈춰요."
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 stop-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"",
+          "say": "--instance-ids 한 곳을 LAB_SERVER_ID로 고쳐 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "CurrentState가 stopping이에요. 이번에는 자바 서버를 멈추는 중이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-stopped --instance-ids \"$LAB_SERVER_ID\"",
+          "say": "stopped가 될 때까지 기다려요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "두 서버의 상태를 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "자바 서버만 stopped이고, 클라이언트 서버는 running 그대로예요.",
+          "target": "#git-demo-terminal"
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "stop_server",
+          "vpc_cidr": "10.91.0.0/16",
+          "subnets": [
+            {
+              "name": "A",
+              "cidr": "10.91.1.0/24"
+            },
+            {
+              "name": "B",
+              "cidr": "10.91.2.0/24"
+            }
+          ],
+          "client_subnet": "A",
+          "server_subnet": "B",
+          "editable": []
+        },
+        "shell": {
+          "step_id": "stp_25c6d982-502f-4aff-bf81-812df3e61cac",
+          "start": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        },
+        "readonly_files": [
+          "list-servers.sh"
+        ]
+      }
+    },
+    {
+      "id": "stp_fa217c4b-6db8-4c1d-9df0-483147439d4c",
+      "title": "서버를 종료하세요",
+      "goal": "서버를 아예 없애는 명령은 `aws ec2 terminate-instances`예요. 이것을 종료(terminate)라고 해요. 종료한 서버는 다시 켤 수 없어요.\n\n이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 VPC 10.91.0.0/16 안에 서브넷 A 10.91.1.0/24와 서브넷 B 10.91.2.0/24를 만들어 뒀어요. 서브넷 A에는 클라이언트 서버(`LAB_CLIENT_ID`), 서브넷 B에는 자바 서버(`LAB_SERVER_ID`)가 실행 중이에요. 자바 서버의 사설 IP 주소는 `LAB_SERVER_IP`에 있어요.\n\n편집기의 `list-servers.sh` 탭(읽기 전용)은 서버의 ID·서브넷 ID·사설 IP 주소·상태를 표로 보여 주는 준비 명령이에요.\n\n**복사해서 쓰는 옵션**\n\n실습 주소와 준비된 자원의 ID는 아래 블록에서 언제든 복사해 붙여 넣을 수 있어요.\n\n```\n--endpoint-url \"$LAB_ENDPOINT\"\n```\n\n```\n--instance-ids \"$LAB_SERVER_ID\"\n```\n\n**할 일**\n\n1. 터미널에 `aws ec2 terminate-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"`를 입력하고 Enter를 누르세요. 출력의 `CurrentState`를 읽으세요.\n2. 터미널에 `bash list-servers.sh`를 입력하세요. 자바 서버의 상태가 `terminated`가 될 때까지 다시 확인하세요.\n3. 터미널에 `aws ec2 start-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"`를 입력하고 Enter를 누르세요. 오류 메시지를 읽으세요.\n4. 자바 서버가 `terminated`이고 클라이언트 서버는 `running`인 것을 확인했으면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 자바 서버를 종료해요. 응답의 CurrentState는 shutting-down이에요.\naws ec2 terminate-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"\n# terminated가 될 때까지 표를 확인해요.\nbash list-servers.sh",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "서버를 종료하는 문제예요.",
+          "target": "text:서버를 종료하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "이번에는 서버를 멈추지 않고 아예 없애요. terminate-instances를 써요.",
+          "target": "text:서버를 아예 없애는 명령은 aws ec2 terminate-instances예요."
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 terminate-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"",
+          "say": "자바 서버를 종료해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 120
+        },
+        {
+          "action": "say",
+          "text": "CurrentState가 shutting-down이에요. 없어지는 중이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-terminated --instance-ids \"$LAB_SERVER_ID\"",
+          "say": "terminated가 될 때까지 기다려요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "표를 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "자바 서버가 terminated예요. 표에는 남아 있지만 이미 없어진 서버예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 start-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"",
+          "say": "다시 켜 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60,
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "IncorrectInstanceState 오류예요. 종료한 서버는 켤 수 있는 상태가 아니에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 멈춤과 종료는 이름이 비슷하지만 달라요. 다시 쓸 서버면 멈추기만 해요.",
+          "target": "text:종료한 서버는 다시 켤 수 없어요."
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "terminate_server",
+          "vpc_cidr": "10.91.0.0/16",
+          "subnets": [
+            {
+              "name": "A",
+              "cidr": "10.91.1.0/24"
+            },
+            {
+              "name": "B",
+              "cidr": "10.91.2.0/24"
+            }
+          ],
+          "client_subnet": "A",
+          "server_subnet": "B",
+          "editable": []
+        },
+        "shell": {
+          "step_id": "stp_fa217c4b-6db8-4c1d-9df0-483147439d4c",
+          "start": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        },
+        "readonly_files": [
+          "list-servers.sh"
+        ]
+      }
+    },
+    {
+      "id": "stp_0cbeda4d-c73d-49e7-882f-88d6bc4c5480",
+      "title": "서브넷 B를 지우세요",
+      "goal": "서브넷은 `aws ec2 delete-subnet`으로 지워요. 그런데 안에 서버가 남아 있으면 거절돼요. 멈춘 서버도 남아 있는 거예요.\n\n이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 VPC 10.91.0.0/16 안에 서브넷 A 10.91.1.0/24와 서브넷 B 10.91.2.0/24를 만들어 뒀어요. 서브넷 A에는 클라이언트 서버(`LAB_CLIENT_ID`), 서브넷 B에는 자바 서버(`LAB_SERVER_ID`)가 실행 중이에요. 자바 서버의 사설 IP 주소는 `LAB_SERVER_IP`에 있어요.\n\n서브넷 B를 지우세요. 서브넷 A와 클라이언트 서버는 그대로 둬야 해요.\n\n편집기의 `list-servers.sh` 탭(읽기 전용)은 서버의 ID·서브넷 ID·사설 IP 주소·상태를 표로 보여 주는 준비 명령이에요.\n\n**복사해서 쓰는 옵션**\n\n실습 주소와 준비된 자원의 ID는 아래 블록에서 언제든 복사해 붙여 넣을 수 있어요.\n\n```\n--endpoint-url \"$LAB_ENDPOINT\"\n```\n\n```\n--subnet-id \"$LAB_SUBNET_B_ID\"\n```\n\n```\n--instance-ids \"$LAB_SERVER_ID\"\n```\n\n**할 일**\n\n1. 터미널에 `aws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_B_ID\"`를 입력하고 Enter를 누르세요. 오류 메시지에서 오류 이름을 찾으세요.\n2. 터미널에 `bash list-servers.sh`를 입력하세요. 서브넷 B(`LAB_SUBNET_B_ID`)에 남아 있는 서버를 찾으세요.\n3. 그 서버를 `aws ec2 terminate-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"`로 종료하세요.\n4. `bash list-servers.sh`를 다시 실행해 그 서버가 `terminated`가 될 때까지 확인하세요.\n5. ↑ 키로 1번 명령을 다시 불러와 Enter를 누르세요.\n6. 터미널에 `aws ec2 describe-subnets --endpoint-url \"$LAB_ENDPOINT\" --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"`를 입력하세요. 서브넷 A만 남았는지 확인하고 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 서브넷 B에 서버가 남아 있으면 거절돼요(DependencyViolation).\naws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_B_ID\"\n# 그 서버부터 없애요. 멈추기(stop)만 하면 여전히 거절돼요.\naws ec2 terminate-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"\n# terminated가 된 뒤 같은 명령이 통과해요.\naws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-terminated --instance-ids \"$LAB_SERVER_ID\"\naws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_B_ID\"\naws ec2 describe-subnets --endpoint-url \"$LAB_ENDPOINT\" --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "서브넷 B를 지우는 문제예요.",
+          "target": "text:서브넷 B를 지우세요#1"
+        },
+        {
+          "action": "say",
+          "text": "먼저 그대로 지워 볼게요.",
+          "target": "text:서브넷 B를 지우세요."
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_B_ID\"",
+          "say": "delete-subnet을 입력해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 120,
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "DependencyViolation 오류예요. 이 서브넷에 기대고 있는 자원이 있다는 뜻이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "서브넷 B에 무엇이 있는지 표로 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "자바 서버가 서브넷 B의 ID로 실행 중이에요. 이 서버가 서브넷을 붙잡고 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 서버를 멈추기만 해도 서브넷은 안 지워져요. 멈춘 서버도 자리를 차지해요.",
+          "target": "text:멈춘 서버도 남아 있는 거예요."
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 terminate-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"",
+          "say": "그래서 자바 서버를 종료해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-terminated --instance-ids \"$LAB_SERVER_ID\"",
+          "say": "terminated가 될 때까지 기다려요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_B_ID\"",
+          "say": "같은 delete-subnet을 다시 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "이번에는 오류가 없어요. 서버를 먼저 없애니 서브넷이 지워졌어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 describe-subnets --endpoint-url \"$LAB_ENDPOINT\" --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"",
+          "say": "남은 서브넷을 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "서브넷 A만 남았어요. 지우는 순서는 안에 든 서버부터예요.",
+          "target": "#git-demo-terminal"
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "delete_subnet",
+          "vpc_cidr": "10.91.0.0/16",
+          "subnets": [
+            {
+              "name": "A",
+              "cidr": "10.91.1.0/24"
+            },
+            {
+              "name": "B",
+              "cidr": "10.91.2.0/24"
+            }
+          ],
+          "client_subnet": "A",
+          "server_subnet": "B",
+          "target_subnet": "B",
+          "editable": []
+        },
+        "shell": {
+          "step_id": "stp_0cbeda4d-c73d-49e7-882f-88d6bc4c5480",
+          "start": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        },
+        "readonly_files": [
+          "list-servers.sh"
+        ]
+      }
+    },
+    {
+      "id": "stp_eb061d59-86eb-4cd6-a985-e05e8e9389d6",
+      "title": "실습 VPC를 모두 정리하세요",
+      "goal": "VPC는 `aws ec2 delete-vpc`로 지워요. 안에 서브넷이 남아 있으면 거절돼요. 서브넷은 안에 서버가 남아 있으면 거절돼요.\n\n이번 문제는 새 실습 상태에서 시작해요. 실습 환경이 VPC 10.91.0.0/16 안에 서브넷 A 10.91.1.0/24와 서브넷 B 10.91.2.0/24를 만들어 뒀어요. 서브넷 A에는 클라이언트 서버(`LAB_CLIENT_ID`), 서브넷 B에는 자바 서버(`LAB_SERVER_ID`)가 실행 중이에요. 자바 서버의 사설 IP 주소는 `LAB_SERVER_IP`에 있어요.\n\n이 VPC를 모두 정리하세요. 마지막에는 VPC가 없어야 해요. 서버는 지운 뒤에도 `terminated`로 표에 남을 수 있어요. VPC를 지우는 명령은 아래와 같아요.\n\n```\naws ec2 delete-vpc --endpoint-url \"$LAB_ENDPOINT\" --vpc-id \"$LAB_VPC_ID\"\n```\n\n편집기의 `list-servers.sh` 탭(읽기 전용)은 서버의 ID·서브넷 ID·사설 IP 주소·상태를 표로 보여 주는 준비 명령이에요.\n\n**복사해서 쓰는 옵션**\n\n실습 주소와 준비된 자원의 ID는 아래 블록에서 언제든 복사해 붙여 넣을 수 있어요.\n\n```\n--endpoint-url \"$LAB_ENDPOINT\"\n```\n\n```\n--vpc-id \"$LAB_VPC_ID\"\n```\n\n```\n--instance-ids \"$LAB_SERVER_ID\" \"$LAB_CLIENT_ID\"\n```\n\n```\n--subnet-id \"$LAB_SUBNET_B_ID\"\n```\n\n```\n--subnet-id \"$LAB_SUBNET_A_ID\"\n```\n\n**할 일**\n\n1. 위 명령을 복사해 터미널에 붙여 넣고 Enter를 누르세요. 오류 메시지를 읽으세요.\n2. `bash list-servers.sh`와 `aws ec2 describe-subnets --endpoint-url \"$LAB_ENDPOINT\" --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"`로 VPC 안에 남은 서버와 서브넷을 찾으세요.\n3. 서버 두 대를 `terminate-instances`로 종료하고, `terminated`가 될 때까지 확인하세요.\n4. 서브넷 두 개를 `delete-subnet`으로 하나씩 지우세요.\n5. ↑ 키로 1번 명령을 다시 불러와 Enter를 누르세요.\n6. 터미널에 `aws ec2 describe-vpcs --endpoint-url \"$LAB_ENDPOINT\" --vpc-ids \"$LAB_VPC_ID\"`를 입력하세요. VPC가 없다는 오류가 나오면 제출 버튼을 누르세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# VPC 안의 서버부터 종료해요.\naws ec2 terminate-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\" \"$LAB_CLIENT_ID\"\naws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-terminated --instance-ids \"$LAB_SERVER_ID\" \"$LAB_CLIENT_ID\"\n# 그다음 서브넷을 지워요.\naws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_B_ID\"\naws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_A_ID\"\n# 마지막으로 VPC를 지워요.\naws ec2 delete-vpc --endpoint-url \"$LAB_ENDPOINT\" --vpc-id \"$LAB_VPC_ID\"",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "실습 VPC를 모두 정리하는 문제예요.",
+          "target": "text:실습 VPC를 모두 정리하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "이번에는 VPC 하나를 통째로 정리해요. 먼저 VPC부터 지워 볼게요.",
+          "target": "text:이 VPC를 모두 정리하세요."
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 delete-vpc --endpoint-url \"$LAB_ENDPOINT\" --vpc-id \"$LAB_VPC_ID\"",
+          "say": "delete-vpc를 입력해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 120,
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "DependencyViolation이에요. VPC 안에 아직 자원이 남아 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash list-servers.sh",
+          "say": "남은 서버부터 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "서버가 두 대 실행 중이에요. 서브넷 A와 B에 한 대씩 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 terminate-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\" \"$LAB_CLIENT_ID\"",
+          "say": "두 서버를 한 번에 종료해요. ID를 공백으로 이어 써요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-terminated --instance-ids \"$LAB_SERVER_ID\" \"$LAB_CLIENT_ID\"",
+          "say": "둘 다 terminated가 될 때까지 기다려요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_B_ID\"",
+          "say": "이제 서브넷 B를 지워요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 delete-subnet --endpoint-url \"$LAB_ENDPOINT\" --subnet-id \"$LAB_SUBNET_A_ID\"",
+          "say": "서브넷 A도 지워요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 describe-subnets --endpoint-url \"$LAB_ENDPOINT\" --filters Name=vpc-id,Values=\"$LAB_VPC_ID\"",
+          "say": "서브넷이 남았는지 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "say",
+          "text": "Subnets가 비어 있어요. 이제 VPC 안에 남은 게 없어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 delete-vpc --endpoint-url \"$LAB_ENDPOINT\" --vpc-id \"$LAB_VPC_ID\"",
+          "say": "처음의 delete-vpc를 다시 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60
+        },
+        {
+          "action": "bash_command",
+          "command": "aws ec2 describe-vpcs --endpoint-url \"$LAB_ENDPOINT\" --vpc-ids \"$LAB_VPC_ID\"",
+          "say": "VPC를 조회해 볼게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 60,
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "InvalidVpcID.NotFound예요. VPC가 지워졌어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 거꾸로 VPC부터 지우려 하면 계속 거절돼요. 안쪽부터 서버, 서브넷, VPC 순서예요.",
+          "target": "text:안에 서브넷이 남아 있으면 거절돼요."
+        }
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "cloud": {
+          "goal": "delete_vpc",
+          "vpc_cidr": "10.91.0.0/16",
+          "subnets": [
+            {
+              "name": "A",
+              "cidr": "10.91.1.0/24"
+            },
+            {
+              "name": "B",
+              "cidr": "10.91.2.0/24"
+            }
+          ],
+          "client_subnet": "A",
+          "server_subnet": "B",
+          "editable": []
+        },
+        "shell": {
+          "step_id": "stp_eb061d59-86eb-4cd6-a985-e05e8e9389d6",
+          "start": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "list-servers.sh": "# 이 실습의 서버(인스턴스) 목록을 표로 보여 주는 명령이에요.\n# 열은 차례로 인스턴스 ID, 서브넷 ID, 사설 IP 주소, 상태예요.\naws ec2 describe-instances \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --query 'Reservations[].Instances[].[InstanceId,SubnetId,PrivateIpAddress,State.Name]' \\\n  --output table\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        },
+        "readonly_files": [
+          "list-servers.sh"
+        ]
+      }
+    }
+  ],
+  "learning_strategy": "명령 하나를 직접 입력하고 표로 상태가 바뀌는 것을 확인해요. 거절되면 오류 이름을 읽고 원인을 먼저 없애요."
+}

@@ -1,0 +1,77 @@
+{
+  "by": "hand",
+  "source_sha256": "02b0e23bec0dbed14c800dc512816d6c6baa422501f28c00515db0cbe410cb72",
+  "entry": [
+    {
+      "action": "say",
+      "text": "서브넷 B의 자바 서버가 실행 중이에요. 먼저 응답하는지 확인할게요.",
+      "target": "text:서브넷 B에는 자바 서버(LAB_SERVER_ID)가 실행 중이에요."
+    },
+    {
+      "action": "bash_command",
+      "command": "client-request \"$LAB_SERVER_IP\"",
+      "say": "클라이언트 서버에서 자바 서버로 요청해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 120
+    },
+    {
+      "action": "say",
+      "text": "HTTP/1.1 200 OK가 왔어요. 자바 서버가 응답하고 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "이제 stop-instances로 이 서버를 멈춰요. --instance-ids가 멈출 서버를 정해요.",
+      "target": "text:--instance-ids로 멈출 서버를 정해요."
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 stop-instances --endpoint-url \"$LAB_ENDPOINT\" --instance-ids \"$LAB_SERVER_ID\"",
+      "say": "서버를 멈추는 명령을 입력해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "PreviousState는 running, CurrentState는 stopping이에요. 아직 다 멈춘 게 아니에요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 명령이 성공했다고 서버가 바로 멈춘 건 아니에요. 상태를 다시 확인해야 해요.",
+      "target": "text:상태가 stopped가 아니면 잠시 뒤 bash list-servers.sh를 다시 실행하세요."
+    },
+    {
+      "action": "bash_command",
+      "command": "aws ec2 wait --endpoint-url \"$LAB_ENDPOINT\" instance-stopped --instance-ids \"$LAB_SERVER_ID\"",
+      "say": "해설은 stopped가 될 때까지 기다리는 명령을 써요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 300
+    },
+    {
+      "action": "bash_command",
+      "command": "bash list-servers.sh",
+      "say": "표로 상태를 볼게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 60
+    },
+    {
+      "action": "say",
+      "text": "자바 서버가 stopped예요. 사설 IP 주소와 서브넷은 그대로 표에 남아 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "client-request \"$LAB_SERVER_IP\"",
+      "say": "멈춘 서버에 다시 요청해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 120,
+      "fails": true
+    },
+    {
+      "action": "say",
+      "text": "이번에는 연결하지 못했어요. 멈춘 서버는 요청에 응답하지 않아요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

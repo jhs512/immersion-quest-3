@@ -1069,3 +1069,168 @@ fn docker_cloud_lifecycle_preflight() {
         if let Err(p) = outcome { std::panic::resume_unwind(p); }
     });
 }
+
+#[test]
+fn lifecycle_goals_need_a_client_and_a_server_in_two_subnets() {
+    let base = |goal| {
+        let mut spec = cloud(goal, "10.91.0.0/16");
+        spec.subnets = vec![subnet("A", "10.91.1.0/24"), subnet("B", "10.91.2.0/24")];
+        spec.client_subnet = Some("A".into());
+        spec.server_subnet = Some("B".into());
+        spec
+    };
+    for goal in [CloudGoal::StopServer, CloudGoal::StartServer, CloudGoal::TerminateServer, CloudGoal::DeleteVpc] {
+        assert!(goal.lifecycle() && base(goal).guest());
+        assert!(base(goal).validate().is_ok(), "{goal:?}");
+        let mut same = base(goal);
+        same.server_subnet = Some("A".into());
+        assert!(same.validate().is_err(), "{goal:?} client and server share a subnet");
+        let mut address = base(goal);
+        address.address_file = Some("server-address.txt".into());
+        assert!(address.validate().is_err(), "{goal:?} has no address file");
+        let mut target = base(goal);
+        target.target_subnet = Some("B".into());
+        assert!(target.validate().is_err(), "{goal:?} has no target subnet");
+    }
+    let mut delete = base(CloudGoal::DeleteSubnet);
+    assert!(delete.validate().is_err(), "delete_subnet names its target");
+    delete.target_subnet = Some("A".into());
+    assert!(delete.validate().is_err(), "the target is the server's subnet");
+    delete.target_subnet = Some("B".into());
+    assert!(delete.validate().is_ok());
+    assert!(!CloudGoal::RequestServer.lifecycle() && !CloudGoal::CreateSubnet.lifecycle());
+    let parsed: CloudExercise = serde_json::from_value(serde_json::json!({"goal": "delete_vpc", "vpc_cidr": "10.91.0.0/16",
+        "subnets": [{"name": "A", "cidr": "10.91.1.0/24"}, {"name": "B", "cidr": "10.91.2.0/24"}], "client_subnet": "A", "server_subnet": "B"})).unwrap();
+    assert_eq!(parsed.goal, CloudGoal::DeleteVpc);
+}
+
+const LIFECYCLE_LESSON: &str = "courses/redesigned/cloud-ec2-lifecycle.json";
+fn lifecycle_steps() -> Vec<LessonStep> {
+    let raw = std::fs::read(Path::new(env!("CARGO_MANIFEST_DIR")).join(LIFECYCLE_LESSON)).expect("build the lesson first");
+    let lesson: Value = serde_json::from_slice(&raw).unwrap();
+    assert_eq!(lesson["schema_version"], 4);
+    lesson["tasks"].as_array().unwrap().iter().map(|t| LessonStep {
+        id: t["id"].as_str().unwrap().into(), title: t["title"].as_str().unwrap().into(),
+        exercise: serde_json::from_value(t["git_terminal"].clone()).unwrap(),
+        narration: t["narration"].as_array().unwrap().clone(),
+    }).collect()
+}
+fn ec2(verb_and_options: &str) -> String {
+    let (verb, options) = verb_and_options.split_once(' ').unwrap();
+    format!("aws ec2 {verb} --endpoint-url \"$LAB_ENDPOINT\" {options}")
+}
+
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine; runs privileged Docker-in-Docker with real Java 25 EC2 guests for the lifecycle lesson"]
+fn docker_cloud_lifecycle_lesson_steps() {
+    let steps = lifecycle_steps();
+    assert_eq!(steps.len(), 6);
+    guarded("lifecycle-lesson", |owned| {
+        let directory = tempfile::tempdir().unwrap();
+        let store = GitPracticeStore::new(directory.path()).unwrap();
+        let open = |owned: &mut Vec<String>, scope: &str, step: &LessonStep| {
+            let p = store.open(scope, step.exercise.clone()).unwrap();
+            owned.push(owner(p.root()));
+            let env = p.prepare_cloud().unwrap();
+            (p, env)
+        };
+        let reset = |owned: &mut Vec<String>, scope: &str, step: &LessonStep| {
+            let p = store.reset_step(scope, step.exercise.clone(), &step.id).unwrap();
+            owned.push(owner(p.root()));
+            let env = p.prepare_cloud().unwrap();
+            (p, env)
+        };
+        let server = |state: &str| ec2(&format!("wait instance-{state} --instance-ids \"$LAB_SERVER_ID\""));
+
+        // 1: terminating instead of stopping fails; after 초기화 the narration stops the server.
+        let (p, env) = open(owned, "s1", &steps[0]);
+        assert!(!report(&p).passed, "step 1 initial");
+        assert!(sh(&p, &env, &ec2("terminate-instances --instance-ids \"$LAB_SERVER_ID\"")).0);
+        let wrong = report(&p);
+        assert!(!wrong.passed && feedback(&wrong, "종료됐어요"), "step 1 terminated");
+        let (p, env) = reset(owned, "s1", &steps[0]);
+        assert!(!report(&p).passed, "step 1 after 초기화");
+        let out = replay(&p, &env, &steps[0], "student");
+        has(&out, 0, &["HTTP/1.1 200 OK", "java.version=25"]);
+        has(&out, 1, &["running", "stopping"]);
+        has(&out, 3, &["stopped", "10.91.2."]);
+        has(&out, 4, &["CONNECT_FAIL"]);
+        assert!(report(&p).passed, "step 1 narration");
+        p.cleanup_cloud().unwrap();
+
+        // 2: prepared stopped; start keeps the address, the program does not come back.
+        let (p, env) = open(owned, "s2", &steps[1]);
+        let ip = env.iter().find(|(k, _)| k == "LAB_SERVER_IP").unwrap().1.clone();
+        assert!(!report(&p).passed, "step 2 initial (stopped)");
+        let out = replay(&p, &env, &steps[1], "student");
+        has(&out, 0, &["stopped", &ip]);
+        has(&out, 1, &["stopped", "pending"]);
+        has(&out, 3, &["running", &ip]);
+        has(&out, 4, &["CONNECT_FAIL"]);
+        assert!(report(&p).passed, "step 2 narration");
+        p.cleanup_cloud().unwrap();
+
+        // 3: the starter stops the client; 초기화 then the narration stops only the server.
+        let (p, env) = open(owned, "s3", &steps[2]);
+        assert!(!report(&p).passed, "step 3 initial");
+        assert!(sh(&p, &env, &ec2("stop-instances --instance-ids \"$LAB_CLIENT_ID\"")).0);
+        let wrong = report(&p);
+        assert!(!wrong.passed && feedback(&wrong, "클라이언트 서버가"), "step 3 starter");
+        let (p, env) = reset(owned, "s3", &steps[2]);
+        let out = replay(&p, &env, &steps[2], "student");
+        has(&out, 1, &["i-"]);
+        has(&out, 4, &["stopped", "running"]);
+        assert!(report(&p).passed, "step 3 narration");
+        p.cleanup_cloud().unwrap();
+
+        // 4: stopping is not terminating; the narration terminates and start is refused.
+        let (p, env) = open(owned, "s4", &steps[3]);
+        assert!(!report(&p).passed, "step 4 initial");
+        assert!(sh(&p, &env, &format!("{} > /dev/null && {}", ec2("stop-instances --instance-ids \"$LAB_SERVER_ID\""), server("stopped"))).0);
+        let wrong = report(&p);
+        assert!(!wrong.passed && feedback(&wrong, "멈추기만"), "step 4 stopped only");
+        let (p, env) = reset(owned, "s4", &steps[3]);
+        let out = replay(&p, &env, &steps[3], "student");
+        has(&out, 0, &["running", "shutting-down"]);
+        has(&out, 2, &["terminated"]);
+        has(&out, 3, &["IncorrectInstanceState"]);
+        assert!(report(&p).passed, "step 4 narration");
+        p.cleanup_cloud().unwrap();
+
+        // 5 (representative): a stopped server still holds the subnet; printed success is not state.
+        let (p, env) = open(owned, "s5", &steps[4]);
+        assert!(!report(&p).passed, "step 5 initial");
+        assert!(sh(&p, &env, &format!("{} > /dev/null && {}", ec2("stop-instances --instance-ids \"$LAB_SERVER_ID\""), server("stopped"))).0);
+        let (ok, _, err) = sh(&p, &env, &ec2("delete-subnet --subnet-id \"$LAB_SUBNET_B_ID\""));
+        assert!(!ok && err.contains("DependencyViolation"), "a stopped server blocks the subnet: {err}");
+        assert!(sh(&p, &env, "echo 'deleted subnet B'").0);
+        let wrong = report(&p);
+        assert!(!wrong.passed && feedback(&wrong, "서브넷이 아직 있어요"), "step 5 stopped only");
+        let (p, env) = reset(owned, "s5", &steps[4]);
+        let out = replay(&p, &env, &steps[4], "student");
+        has(&out, 0, &["DependencyViolation"]);
+        has(&out, 5, &["10.91.1.0/24"]);
+        assert!(!out[5].contains("10.91.2.0/24"), "subnet B is gone: {}", out[5]);
+        assert!(report(&p).passed, "step 5 narration");
+        p.cleanup_cloud().unwrap();
+
+        // 6: one subnet left keeps the VPC; the narration removes everything in order.
+        let (p, env) = open(owned, "s6", &steps[5]);
+        assert!(!report(&p).passed, "step 6 initial");
+        assert!(sh(&p, &env, &format!("{} > /dev/null && {} && {}", ec2("terminate-instances --instance-ids \"$LAB_SERVER_ID\""),
+            server("terminated"), ec2("delete-subnet --subnet-id \"$LAB_SUBNET_B_ID\""))).0);
+        let (ok, _, err) = sh(&p, &env, &ec2("delete-vpc --vpc-id \"$LAB_VPC_ID\""));
+        assert!(!ok && err.contains("DependencyViolation"), "{err}");
+        let wrong = report(&p);
+        assert!(!wrong.passed && feedback(&wrong, "VPC가 아직 있어요"), "step 6 half done");
+        let (p, env) = reset(owned, "s6", &steps[5]);
+        let out = replay(&p, &env, &steps[5], "student");
+        has(&out, 0, &["DependencyViolation"]);
+        has(&out, 1, &["running"]);
+        has(&out, 6, &["\"Subnets\": []"]);
+        has(&out, 8, &["InvalidVpcID.NotFound"]);
+        assert!(report(&p).passed, "step 6 narration");
+        p.cleanup_cloud().unwrap();
+        println!("PASS lifecycle lesson steps 1-6");
+    });
+}
