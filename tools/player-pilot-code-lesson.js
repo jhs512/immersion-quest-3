@@ -106,7 +106,8 @@
     const gridOk=(terminal,label)=>{
      // Measure inside the workspace that holds this terminal: the learner's stays in the page during an explanation.
      const root=document.querySelector(terminal)?.closest('.git-terminal-shell');
-     const editorBox=root?.querySelector('.compose-source .cm-editor')??root?.querySelector('.compose-source textarea');
+     // A step with only read-only helpers shows the selected helper as a plain block instead of an editor.
+     const editorBox=root?.querySelector('.compose-source .cm-editor')??root?.querySelector('.compose-source textarea')??root?.querySelector('.compose-source pre.readonly-file');
      const code=editorBox?.getBoundingClientRect(),handle=root?.querySelector('.split-java-source')?.getBoundingClientRect(),term=document.querySelector(terminal)?.getBoundingClientRect();
      // Structure, not only size: the notes row must come first so the editor sits in the sized editor row
      // (a min-content row collapses a not-yet-measured editor to nothing).
