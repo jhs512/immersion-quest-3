@@ -8,6 +8,9 @@ import tempfile
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
+# The build script's out directory: build/<package>-<hash>/out before Cargo 1.100,
+# build/<package>/<hash>/out from Cargo 1.100 (CI's stable toolchain moved on 2026-11-12).
+OUT = 'mq-build-input-check*/**/out'
 
 
 def main():
@@ -40,7 +43,7 @@ winresource = "0.1"
         def build(label, changed):
             def outputs():
                 return {str(path): path.stat().st_mtime_ns for path in
-                        (root / 'target/debug/build').glob('mq-build-input-check-*/out/private-solutions.json')}
+                        (root / 'target/debug/build').glob(OUT + '/private-solutions.json')}
             before = outputs()
             start = time.perf_counter()
             result = subprocess.run(['cargo', 'check', '--offline', '-vv'], cwd=root,
@@ -55,7 +58,7 @@ winresource = "0.1"
             print(json.dumps(measurements[-1]), flush=True)
             assert rebuilt == changed, '\n'.join(line for line in result.stderr.splitlines()
                                                  if 'Dirty' in line or 'missing' in line or 'Fresh mq-' in line)
-            return next((root / 'target/debug/build').glob('mq-build-input-check-*/out'))
+            return next((root / 'target/debug/build').glob(OUT))
 
         build('initial absent inputs', True)
         build('unchanged absent inputs', False)
