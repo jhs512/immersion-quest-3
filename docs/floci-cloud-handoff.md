@@ -138,6 +138,14 @@
 - 회귀: 첫 수업 `docker_cloud_lesson_server_steps` 다시 **통과**(357초).
 - 미완료: 맥 검증, 릴리스·게시(사용자 승인 필요. 게시 스크립트 `tools/publish-cloud-first-lesson.py`는 첫 수업 전용이라 새 수업용으로 넓혀야 한다).
 
+### 11. 두 번째 수업 공개: build.190 (2026-11-13, 사용자 승인 「승인」)
+
+- main: `e6380e86`에 브랜치 커밋을 cherry-pick(main 트리 = 브랜치 `a46c7cdd` 트리였다). 첫 릴리스 실행 43331493413(build.189)은 **실패**했다. CI의 stable Rust가 1.99.1 → 1.100.0으로 바뀌어 Cargo가 build script 출력을 `build/<패키지>/<해시>/out`에 두면서 `tools/test_build_inputs.py`가 파일을 찾지 못했다(이 수업과 무관). 두 배치를 모두 찾도록 고쳤다(로컬 1.100.0·1.95 통과, `5bf1104a`).
+- 릴리스: 실행 43359912504 성공(windows·macos arm64·principles·release) → [v0.1.0-build.190](https://github.com/jhs512/immersion-quest-3/releases/tag/v0.1.0-build.190)(정식, 태그 커밋 `5bf1104a`, Windows 설치 파일·macOS DMG·SHA256SUMS). 맥 「복사」 버튼 수정(`1f9a482d`)도 이 릴리스에 들어 있다.
+- 수업 게시: `tools/publish-cloud-first-lesson.py --publish --player-release v0.1.0-build.190 --source-commit 5bf1104a…`. 운영 자바 과정 60 → 61수업. `cloud-ec2-lifecycle-1`이 `cloud-vpc-subnet-ec2` 바로 다음, 분류 `cloud`, 변경 기록 「클라우드 두 번째 수업을 추가했어요.」. 첫 클라우드 수업 `-3`과 다른 운영 참조는 그대로. 기록: `evidence/release/publish-190.log`.
+- 학생이 보려면 앱을 build.190으로 업데이트해야 한다. build.188 이하 앱은 자바 과정 업데이트를 받지 못하고 설치된 과정을 그대로 쓴다.
+- 남은 것: 맥 앱 파일럿(맥을 쓰지 않을 때), 설치 앱 업데이트 후 실제 화면 확인.
+
 ## 실패·미검증으로 남은 것
 
 - **고침(기존 실패)**: `tools/test_narration_openings.py`가 91개 수업에서 실패했다. 도입문을 넣기 전 고정 커밋 `8520082b`의 수업과 그대로 같아야 한다고 비교했는데, 그 뒤 정상적으로 바뀐 수업이 많았다. 이제 현재 원본(`content.json`)과 비교해 해설 말 이외의 필드·채점·동작이 그대로인지 확인한다. 전체 스텝 수도 1118로 고쳤다. 정답 필드나 명령 하나를 바꾸면 실패하는 것을 확인했다.
@@ -220,7 +228,7 @@ python tools/build-redesigned-course-bundle.py --check
 cargo test --test lesson_registry
 ```
 
-3. 두 번째 수업은 10절. 남은 것은 맥 검증과, 사용자 승인 뒤 앱 릴리스 → 수업 게시(첫 수업과 같은 순서: 앱이 먼저 새 목표를 알아야 한다). 그다음 S3 묶음은 별도 예고·PRD 승인부터 시작한다([추천 순서](../.scratch/floci-course-wayfinder/service-teaching-plan.md)).
+3. 두 번째 수업은 10·11절(build.190으로 공개됨). 남은 것은 맥 앱 파일럿(맥을 쓰지 않을 때)이다. 그다음 S3 묶음은 별도 예고·PRD 승인부터 시작한다([추천 순서](../.scratch/floci-course-wayfinder/service-teaching-plan.md)).
 
 ## 이전 기록
 
