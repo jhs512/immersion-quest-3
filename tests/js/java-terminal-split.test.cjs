@@ -21,6 +21,10 @@ for(const [name,engine] of Object.entries({chromium,webkit}))test(`${name}: Java
   assert.ok((await height())>=before+65,'the actual Java source pane did not grow');
   await handle.focus();const dragged=await height();await page.keyboard.press('ArrowUp');assert.ok((await height())<dragged,'arrow key did not adjust the source pane');
   const keyed=await height();await page.locator('.editor-pane').evaluate((node,html)=>node.innerHTML=html,markup);await page.waitForTimeout(80);assert.ok(Math.abs((await height())-keyed)<=1,'remount lost the stored Java split');
+  // Narration hides the learner's workspace and mounts its own copy beside it; neither may shrink the stored split.
+  await page.locator('.editor-pane').evaluate((node,html)=>{const real=node.querySelector('.java-build-workspace');const hidden=document.createElement('div');hidden.className='example-code-pane';hidden.style.display='none';real.replaceWith(hidden);hidden.appendChild(real);const demo=document.createElement('div');demo.className='example-code-pane narration-copy';demo.style.height='100%';demo.innerHTML=html;node.appendChild(demo)},markup);await page.waitForTimeout(80);
+  await page.locator('.editor-pane').evaluate(node=>{node.querySelector('.narration-copy').remove();node.querySelector('.example-code-pane').style.display='block'});await page.waitForTimeout(80);
+  assert.ok(Math.abs((await height())-keyed)<=1,`narration collapsed the Java source pane to ${await height()}px`);
   await page.locator('.editor-pane').evaluate(node=>node.style.height='280px');await page.waitForTimeout(80);
   assert.ok((await page.locator('.git-terminal-row').boundingBox()).height>=110,'terminal lost its minimum usable height');
   await handle.dblclick();assert.equal(await page.locator('.java-build-workspace').evaluate(node=>node.style.getPropertyValue('--java-source-height')),'');

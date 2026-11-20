@@ -27,7 +27,9 @@
     ? { key: 'exampleAnswer', prop: '--example-answer-height', container: handle.closest('.interaction-example-editor'), pane: '.interaction-example-answer', horizontal: false, min: 64, reserve: 58, invert: true }
     : { key: 'editor', prop: '--editor-height', container: handle.closest('.coding-pane'), pane: '.editor-pane', horizontal: false, min: 120, reserve: 54 + 8 + 140 };
 
-  function set(a, size, gesture) {
+  // `remember` is false when re-applying a stored size: clamping it to a pane that is
+  // momentarily small must not overwrite what the learner chose.
+  function set(a, size, gesture, remember = true) {
     // The answer pane yields first. Continue the same drag into the result pane
     // once answers reach their minimum, without accumulating repeated pointer deltas.
     if (a.key === 'exampleAnswer') {
@@ -55,12 +57,17 @@
     const max=Math.max(min,(a.horizontal ? bounds.width : bounds.height)-reserve);
     size = Math.round(Math.max(min, Math.min(max, size)));
     a.container.style.setProperty(a.prop, size + 'px');
-    saved[a.key] = size;
+    if (remember) saved[a.key] = size;
   }
   function applyAll() {
     for(const handle of document.querySelectorAll('.split-handle')) {
       const a=axis(handle);
-      if(a.container && saved[a.key]) set(a,saved[a.key]);
+      if(!a.container || !saved[a.key]) continue;
+      // A hidden workspace (the learner's terminal while narration plays its own copy)
+      // measures 0; clamping against that would collapse the pane to its minimum.
+      const bounds=a.container.getBoundingClientRect();
+      if(!bounds.width || !bounds.height) continue;
+      set(a,saved[a.key],undefined,false);
     }
   }
   const paneFor=a=>[...a.container.querySelectorAll(a.pane)].find(p=>p.getBoundingClientRect().height>0);
