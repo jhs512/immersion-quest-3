@@ -142,6 +142,24 @@ async fn run_c(dir:&Path,input:&str)->Result<Execution,String> {
 /// Replace the initializer of the first declaration of `name` (`int n = 3;`, `int *p = &a;`, `char s[] = "x";`).
 /// Comments, strings and character literals are skipped. Returns None when no such declaration exists.
 pub fn mutate_c(source:&str,name:&str,value:&str)->Option<String> {
+    let (begin,end)=*c_initializers(source,name).first()?;
+    Some(format!("{} {}{}",&source[..begin],value.trim(),&source[end..]))
+}
+
+/// Replace the initializer of the prepared declaration of `name`: the one whose initializer the
+/// starter gave it. A learner's own local with the same name (`Box a = new Box(original.count);`
+/// inside a helper above `main`) keeps its value. Falls back to the first declaration when the
+/// learner changed the prepared initializer itself.
+pub fn mutate_prepared(starter:&str,source:&str,name:&str,value:&str)->Option<String> {
+    let found=c_initializers(source,name);
+    let prepared=c_initializers(starter,name).first().map(|&(b,e)|starter[b..e].trim().to_string());
+    let (begin,end)=*prepared.and_then(|text|found.iter().find(|&&(b,e)|source[b..e].trim()==text)).or(found.first())?;
+    Some(format!("{} {}{}",&source[..begin],value.trim(),&source[end..]))
+}
+
+/// Byte ranges of every declaration initializer of `name`, in source order.
+fn c_initializers(source:&str,name:&str)->Vec<(usize,usize)> {
+    let mut found=vec![];
     let bytes=source.as_bytes();let mut i=0;let mut previous=b';';
     let ident=|c:u8|c.is_ascii_alphanumeric()||c==b'_';
     while i<bytes.len() {
@@ -170,8 +188,8 @@ pub fn mutate_c(source:&str,name:&str,value:&str)->Option<String> {
                         }
                         end+=1;
                     }
-                    if end>=bytes.len() {return None}
-                    return Some(format!("{} {}{}",&source[..begin],value.trim(),&source[end..]));
+                    if end>=bytes.len() {break}
+                    found.push((begin,end));
                 }
             }
             previous=bytes[i-1];continue;
@@ -179,7 +197,7 @@ pub fn mutate_c(source:&str,name:&str,value:&str)->Option<String> {
         if !c.is_ascii_whitespace() {previous=c}
         i+=1;
     }
-    None
+    found
 }
 
 async fn check_c(task:&Task,source:&str)->Result<TestReport,String> {
@@ -199,7 +217,7 @@ async fn append_prepared_variations(task:&Task,source:&str,cases:&mut Vec<TestCa
         for variation in &task.variations {
             let label=format!("준비 값 바꿈: {}",variation.values.iter().map(|(k,v)|format!("{k} = {v}")).collect::<Vec<_>>().join(", "));
             let mut changed=source.to_string();let mut missing=None;
-            for (name,value) in &variation.values {let next=if task.language==TaskLanguage::Rust {crate::rust_prepared::replace_initializer(&changed,name,value)}else{mutate_c(&changed,name,value)};match next {Some(next)=>changed=next,None=>{missing=Some(name.clone());break}}}
+            for (name,value) in &variation.values {let next=if task.language==TaskLanguage::Rust {crate::rust_prepared::replace_initializer(&changed,name,value)}else{mutate_prepared(&task.starter_code,&changed,name,value)};match next {Some(next)=>changed=next,None=>{missing=Some(name.clone());break}}}
             if let Some(name)=missing {
                 cases.push(TestCaseResult{input:label,expected:variation.expected.clone(),stdout:String::new(),stderr:format!("준비 코드의 {name} 선언과 처음 값은 그대로 두세요."),passed:false,state:"concept_error".into()});
                 continue;
@@ -484,6 +502,16 @@ mod c_tests {
         assert!(mutate_c(source,"missing","1").is_none());
         assert!(mutate_c("int f(int k) { return k; }","k","1").is_none());
     }
+    #[test]
+    fn mutate_prepared_targets_the_starter_declaration_not_an_earlier_same_name_local() {
+        let starter="static Box copy(Box o) {\n return o;\n}\nvoid main() {\n Box a = new Box(5);\n}\n";
+        let source="static Box copy(Box o) {\n Box a = new Box(o.count);\n return a;\n}\nvoid main() {\n Box a = new Box(5);\n}\n";
+        let changed=super::mutate_prepared(starter,source,"a","new Box(1)").unwrap();
+        assert!(changed.contains("Box a = new Box(o.count);")&&changed.contains("Box a = new Box(1);"),"{changed}");
+        // A learner who rewrote the prepared initializer still gets the first declaration changed.
+        let rewritten=source.replace("new Box(5)","new Box(9)");
+        assert!(super::mutate_prepared(starter,&rewritten,"a","new Box(1)").unwrap().contains("Box a = new Box(1);\n return a;"));
+    }
 }
 
 #[cfg(test)]
@@ -616,4 +644,26 @@ async fn check_sql(task:&Task,source:&str)->Result<TestReport,String> {
         }
     }
     Ok(TestReport{passed:!cases.is_empty()&&cases.iter().all(|case|case.passed),cases})
+}
+
+#[cfg(test)]
+mod prepared_variation_shadow_tests {
+    fn reference_task()->crate::repository_course::Task {
+        let lesson:crate::repository_course::Lesson=serde_json::from_str(include_str!("../courses/redesigned/java-references.json")).unwrap();
+        lesson.tasks.into_iter().find(|t|t.id=="stp_8b3e5a19-4c72-4d06-a9f1-2e6c7b04d38f").unwrap()
+    }
+
+    #[tokio::test]
+    async fn a_local_named_like_the_prepared_variable_does_not_steal_the_changed_value() {
+        // Reported: naming copy's local box `a` made every changed run print 7 for a.count.
+        let task=reference_task();
+        let shadowing=task.solution.replace("return new Box(original.count);","Box a = new Box(original.count);\n        return a;");
+        assert_ne!(shadowing,task.solution);
+        let report=super::check(&task,&shadowing).await.unwrap();
+        assert!(report.passed,"{}",serde_json::to_string(&report).unwrap());
+        let wrong=shadowing.replace("return a;","return original;");
+        assert!(!super::check(&task,&wrong).await.unwrap().passed);
+        assert!(!super::check(&task,&task.starter_code).await.unwrap().passed);
+        assert!(super::check(&task,&task.solution).await.unwrap().passed);
+    }
 }
