@@ -93,6 +93,25 @@ async fn inspect_voice() -> Check {
     Check { name: "해설 음성 · 인터넷(Edge)".into(), ready, detail }
 }
 
+/// The learning packages each check imports (import name, label). Every package in
+/// requirements-learning.txt the app or a lesson imports belongs here: the environment repair
+/// reinstalls only when a check fails, so an unchecked package that is missing stays missing
+/// (edge-tts: 「해설 재생」 stayed silent while the repair kept the environment).
+const PACKAGES: [(&str, &str); 12] = [
+    ("pandas", "pandas · 표 분석"),
+    ("matplotlib", "matplotlib · 그래프"),
+    ("seaborn", "seaborn · 시각화"),
+    ("sklearn", "scikit-learn · 모델 학습"),
+    ("tensorflow", "TensorFlow · 딥러닝"),
+    ("xgboost", "XGBoost · 부스팅 모델"),
+    ("openpyxl", "openpyxl · Excel 읽기"),
+    ("bs4", "BeautifulSoup · HTML 분석"),
+    ("requests", "requests · 웹 페이지 받기"),
+    ("FinanceDataReader", "FinanceDataReader · 주가 받기"),
+    ("yfinance", "yfinance · 주가 받기 (야후)"),
+    ("edge_tts", "edge-tts · 해설 음성"),
+];
+
 async fn inspect_python(python: &str, package_timeout: std::time::Duration) -> Vec<Check> {
     inspect_python_with_prefix(python, package_timeout, "").await
 }
@@ -127,7 +146,7 @@ async fn inspect_python_with_prefix(python: &str, package_timeout: std::time::Du
     if version.is_ok() {
         let limit = std::sync::Arc::new(tokio::sync::Semaphore::new(3));
         let mut workers = tokio::task::JoinSet::new();
-        for key in ["pandas", "matplotlib", "seaborn", "sklearn", "tensorflow", "xgboost", "openpyxl", "bs4", "requests", "FinanceDataReader", "yfinance"] {
+        for (key, _) in PACKAGES {
             let python = python.to_owned();
             let prefix = prefix.to_owned();
             let limit = limit.clone();
@@ -148,19 +167,7 @@ async fn inspect_python_with_prefix(python: &str, package_timeout: std::time::Du
             if let Ok((key, result)) = worker { results.insert(key, result); }
         }
     }
-    for (key, name) in [
-        ("pandas", "pandas · 표 분석"),
-        ("matplotlib", "matplotlib · 그래프"),
-        ("seaborn", "seaborn · 시각화"),
-        ("sklearn", "scikit-learn · 모델 학습"),
-        ("tensorflow", "TensorFlow · 딥러닝"),
-        ("xgboost", "XGBoost · 부스팅 모델"),
-        ("openpyxl", "openpyxl · Excel 읽기"),
-        ("bs4", "BeautifulSoup · HTML 분석"),
-        ("requests", "requests · 웹 페이지 받기"),
-        ("FinanceDataReader", "FinanceDataReader · 주가 받기"),
-        ("yfinance", "yfinance · 주가 받기 (야후)"),
-    ] {
+    for (key, name) in PACKAGES {
         let result = results.remove(key).unwrap_or_else(|| Err(
             if version.is_ok() { "패키지 검사를 완료하지 못했어요.".into() }
             else { "Python 실행을 확인한 뒤 패키지를 다시 검사하세요.".into() }
@@ -488,7 +495,7 @@ async fn install_inner(report: tokio::sync::mpsc::UnboundedSender<String>) -> Re
         env_dir.display()
     ));
     let python = prepare_python_environment(&report, &uv, &env_dir, &python_store).await?;
-    say("[3/3] 수업 패키지를 설치합니다 (pandas, scikit-learn, TensorFlow, XGBoost, matplotlib, seaborn, openpyxl, BeautifulSoup, requests, FinanceDataReader, yfinance). 몇 분 걸립니다.");
+    say("[3/3] 수업 패키지를 설치합니다 (pandas, scikit-learn, TensorFlow, XGBoost, matplotlib, seaborn, openpyxl, BeautifulSoup, requests, FinanceDataReader, yfinance, edge-tts). 몇 분 걸립니다.");
     let requirements =
         std::env::temp_dir().join(format!("molip-requirements-{}.txt", std::process::id()));
     std::fs::write(&requirements, learning_requirements()).map_err(|e| e.to_string())?;
@@ -640,7 +647,7 @@ mod install_tests {
         command.args([
                 "-I",
                 "-c",
-                "import pandas, sklearn, tensorflow, xgboost, matplotlib, seaborn, openpyxl, bs4, requests, FinanceDataReader, yfinance; print('ok')",
+                "import pandas, sklearn, tensorflow, xgboost, matplotlib, seaborn, openpyxl, bs4, requests, FinanceDataReader, yfinance, edge_tts; print('ok')",
             ]).kill_on_drop(true);
         #[cfg(windows)]
         command.creation_flags(0x08000000);
@@ -678,6 +685,28 @@ mod install_tests {
 
 #[cfg(test)]
 mod diagnostic_tests {
+    /// The repair reinstalls only when a check fails, so each pinned package must be checked.
+    #[test]
+    fn every_learning_requirement_is_checked() {
+        let checked: Vec<&str> = super::PACKAGES.iter().map(|(key, _)| *key).collect();
+        for line in super::REQUIREMENTS.lines().map(str::trim) {
+            if line.is_empty() || line.starts_with('#') { continue; }
+            let distribution = line.split(|c: char| c == '=' || c == ';' || c.is_whitespace()).next().unwrap();
+            let import = match distribution {
+                "scikit-learn" => "sklearn",
+                "beautifulsoup4" => "bs4",
+                "finance-datareader" => "FinanceDataReader",
+                "edge-tts" => "edge_tts",
+                "tensorflow-cpu" => "tensorflow",
+                "xgboost-cpu" => "xgboost",
+                // Only the C trace imports it, and it reports its own missing-module error.
+                "pycparser" => continue,
+                other => other,
+            };
+            assert!(checked.contains(&import), "{distribution} is installed but never checked");
+        }
+    }
+
     #[tokio::test]
     #[ignore = "requires uv and an existing Python 3.13/3.12 installation"]
     async fn package_repair_preserves_working_environment() {
