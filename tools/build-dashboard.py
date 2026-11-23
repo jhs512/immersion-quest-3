@@ -13,6 +13,8 @@ for name in ['dashboard', 'open']:
     for source in (root / 'site' / name).iterdir():
         if source.is_file():
             shutil.copyfile(source, folder / source.name)
+# The MQ privacy policy (site/mq) is published unchanged at /mq/privacy/.
+shutil.copytree(root / 'site' / 'mq', output / 'mq', dirs_exist_ok=True)
 html = (root / 'site/dashboard/index.html').read_text(encoding='utf-8')
 # Known basic courses return HTTP 200. Other public courses use the same app at
 # the original requested path via GitHub Pages' custom 404 document.
