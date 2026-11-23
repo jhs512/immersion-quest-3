@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Wrap the release binary in an .app bundle, sign it, and pack a .dmg.
-# With MACOS_SIGN_IDENTITY set (a "Developer ID Application: …" certificate in the keychain)
-# the bundle gets a hardened-runtime signature that CI can notarize. Without it the bundle is
-# ad-hoc signed, which Apple Silicon needs to launch at all; Gatekeeper then blocks the first
-# launch and the student follows "먼저 읽어 주세요.txt" in the image (System Settings → 그래도 열기).
+# With MACOS_SIGN_IDENTITY set (a "Developer ID Application: …" identity, see developer_id.sh)
+# the app and the image get hardened-runtime Developer ID signatures, and MQ3_NOTARIZE=1 also
+# notarizes and staples both. Release CI always does both. Without an identity (local builds)
+# the bundle is ad-hoc signed, which Apple Silicon needs to launch at all.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
@@ -32,8 +32,14 @@ done
 iconutil -c icns "$iconset" -o "$app/Contents/Resources/AppIcon.icns"
 
 if [ -n "${MACOS_SIGN_IDENTITY:-}" ]; then
-  codesign --force --deep --options runtime --timestamp --sign "$MACOS_SIGN_IDENTITY" "$app"
+  bash packaging/macos/developer_id.sh sign-app "$app"
+  # MQ3_NOTARIZE=1 (release CI): staple the app itself before it goes into the image, so an
+  # installed copy passes Gatekeeper offline too. The image is notarized separately afterwards.
+  if [ "${MQ3_NOTARIZE:-0}" = 1 ]; then
+    bash packaging/macos/developer_id.sh notarize "$app"
+  fi
 else
+  [ "${MQ3_NOTARIZE:-0}" != 1 ] || { echo "MQ3_NOTARIZE=1 needs MACOS_SIGN_IDENTITY" >&2; exit 1; }
   codesign --force --deep --sign - "$app"
 fi
 
@@ -41,3 +47,9 @@ cp "packaging/macos/먼저 읽어 주세요.txt" target/bundle/
 ln -s /Applications target/bundle/Applications
 python3 packaging/macos/create_dmg.py --volume "MQ" \
   --source target/bundle --destination "$image"
+if [ -n "${MACOS_SIGN_IDENTITY:-}" ]; then
+  bash packaging/macos/developer_id.sh sign-dmg "$image"
+  if [ "${MQ3_NOTARIZE:-0}" = 1 ]; then
+    bash packaging/macos/developer_id.sh notarize "$image"
+  fi
+fi

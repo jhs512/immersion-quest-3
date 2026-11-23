@@ -237,13 +237,37 @@ jobs:
             target/mq-content-submit-native-result.json
             target/mq3-*-process.log
           if-no-files-found: ignore
-      - name: Build and package macOS app
+      - name: Import the Developer ID certificate into a temporary keychain
+        env:
+          MQ_MAC_DEVELOPER_ID_P12_BASE64: ${{ secrets.MQ_MAC_DEVELOPER_ID_P12_BASE64 }}
+          MQ_MAC_DEVELOPER_ID_P12_PASSWORD: ${{ secrets.MQ_MAC_DEVELOPER_ID_P12_PASSWORD }}
+        run: bash packaging/macos/developer_id.sh keychain-setup
+      - name: Build, sign, notarize and package macOS app
+        env:
+          MQ3_NOTARIZE: '1'
+          MQ_MAC_NOTARY_KEY_ID: ${{ secrets.MQ_MAC_NOTARY_KEY_ID }}
+          MQ_MAC_NOTARY_ISSUER_ID: ${{ secrets.MQ_MAC_NOTARY_ISSUER_ID }}
+          MQ_MAC_NOTARY_KEY_P8_BASE64: ${{ secrets.MQ_MAC_NOTARY_KEY_P8_BASE64 }}
+          MQ_MAC_NOTARY_APPLE_ID: ${{ secrets.MQ_MAC_NOTARY_APPLE_ID }}
+          MQ_MAC_NOTARY_APP_PASSWORD: ${{ secrets.MQ_MAC_NOTARY_APP_PASSWORD }}
+          MQ_MAC_NOTARY_TEAM_ID: ${{ secrets.MQ_MAC_NOTARY_TEAM_ID }}
         run: |
+          set -euo pipefail
           cargo build --release --locked --bin molip-quest
           bash packaging/macos/bundle.sh
-          codesign --verify --deep --strict 'target/bundle/MQ.app'
           /usr/libexec/PlistBuddy -c 'Print :CFBundleURLTypes:0:CFBundleURLSchemes:0' 'target/bundle/MQ.app/Contents/Info.plist' | grep -qx molipquest
           hdiutil verify "target/installers/molip-quest-3-macos-${MQ3_MAC_ARCH}.dmg"
+      - name: Require Developer ID signatures, notarization tickets and Gatekeeper approval
+        run: |
+          set -euo pipefail
+          dmg="target/installers/molip-quest-3-macos-${MQ3_MAC_ARCH}.dmg"
+          bash packaging/macos/developer_id.sh verify-app 'target/bundle/MQ.app'
+          bash packaging/macos/developer_id.sh verify-dmg "$dmg"
+          # The app a student actually installs is the copy inside the image.
+          mount="$(mktemp -d)"
+          hdiutil attach "$dmg" -mountpoint "$mount" -nobrowse -readonly >/dev/null
+          trap 'hdiutil detach "$mount" -quiet || true' EXIT
+          bash packaging/macos/developer_id.sh verify-app "$mount/MQ.app"
       - name: Verify native launch and architecture
         run: |
           set -euo pipefail
@@ -261,6 +285,9 @@ jobs:
           path: target/installers/molip-quest-3-macos-${{ matrix.arch }}.dmg
           if-no-files-found: error
           retention-days: 7
+      - name: Remove the temporary keychain
+        if: always()
+        run: bash packaging/macos/developer_id.sh keychain-cleanup
   release:
     if: github.repository == 'jhs512/immersion-quest-3' && github.ref == 'refs/heads/main'
     needs: [windows, macos, principles]
@@ -300,7 +327,7 @@ jobs:
               exit 0
             fi
           else
-            printf 'MQ3 Windows x64, macOS Apple Silicon installers. Source commit: %s\n\nLearning progress uses your existing gh login.\nWindows code signing and Apple notarization are not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
+            printf 'MQ3 Windows x64, macOS Apple Silicon installers. Source commit: %s\n\nLearning progress uses your existing gh login.\nThe macOS image and app are Developer ID signed and notarized by Apple. Windows code signing is not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
             gh release create "$tag" --draft --target "$COMMIT_SHA" --title "MQ · $tag" --notes-file "$RUNNER_TEMP/notes.md"
           fi
           gh release upload "$tag" --clobber target/release-assets/molip-quest-3-windows-x64-setup.exe target/release-assets/molip-quest-3-macos-arm64.dmg target/release-assets/SHA256SUMS

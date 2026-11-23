@@ -34,7 +34,7 @@
 
 - 실제 음성 청취는 다운로드·캐시·재생 동기화 자동 검사와 다르다. 모든 해설을 사람이 들었다고 보고하지 않는다.
 - 최초 검증에서는 실제 Windows F11과 Unicode 입력·복사만 확인했고, IME 자모 조합 및 Mac OS 키보드·clipboard는 미확인이었다. 아래 2026-10-20 추가 검증에서 이 범위를 보완했다. DOM 키 이벤트를 실제 OS 입력 통과로 계산하지 않는다.
-- Windows 코드 서명과 Apple notarization은 구성되어 있지 않다. Mac의 ad-hoc codesign 검사 통과를 Developer ID 서명으로 표현하지 않는다.
+- Windows 코드 서명은 구성되어 있지 않다. Mac 릴리스는 Developer ID 서명과 Apple 공증을 거친다(docs/releases.md). 로컬 ad-hoc codesign 검사 통과를 Developer ID 서명으로 표현하지 않는다.
 
 원본 결과는 로컬 target/player-pilot-audit/, 진행 이력과 티켓은 .scratch/player-content-redesign/에 보관한다. 실패·취소된 실행도 삭제하지 않는다.
 
