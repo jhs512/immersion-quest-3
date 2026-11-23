@@ -30,10 +30,26 @@ keychain_setup() {
   security create-keychain -p "$password" "$keychain"
   security set-keychain-settings -lut 21600 "$keychain"
   security unlock-keychain -p "$password" "$keychain"
-  printf '%s' "$MQ_MAC_DEVELOPER_ID_P12_BASE64" | base64 --decode > "$p12"
-  security import "$p12" -k "$keychain" -P "$MQ_MAC_DEVELOPER_ID_P12_PASSWORD" \
-    -T /usr/bin/codesign -T /usr/bin/security >/dev/null
-  rm -f "$p12"
+  ( umask 077; printf '%s' "$MQ_MAC_DEVELOPER_ID_P12_BASE64" | base64 --decode > "$p12" )
+  # security import cannot read OpenSSL 3's default PKCS#12 (PBES2/AES-256, SHA-256 MAC) and
+  # reports it as "MAC verification failed (wrong password?)". Open it with OpenSSL 3, which
+  # tells a wrong password apart, and repack it as SHA1/3DES PKCS#12 for the import.
+  local openssl pem="$work/mq-developer-id.pem" legacy="$work/mq-developer-id-legacy.p12" transit
+  openssl="$(brew --prefix openssl@3 2>/dev/null)/bin/openssl"
+  [ -x "$openssl" ] || die "OpenSSL 3 (brew openssl@3) is required to read the certificate"
+  transit="$(uuidgen)"
+  ( umask 077
+    MQ_P12_PASSWORD="$MQ_MAC_DEVELOPER_ID_P12_PASSWORD" "$openssl" pkcs12 -in "$p12" -passin env:MQ_P12_PASSWORD -noenc -out "$pem" \
+      || { rm -f "$p12" "$pem"; echo "developer_id: MQ_MAC_DEVELOPER_ID_P12_PASSWORD does not open MQ_MAC_DEVELOPER_ID_P12_BASE64" >&2; exit 1; }
+    MQ_P12_TRANSIT="$transit" "$openssl" pkcs12 -export -in "$pem" -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -macalg sha1 \
+      -passout env:MQ_P12_TRANSIT -out "$legacy" )
+  rm -f "$p12" "$pem"
+  security import "$legacy" -k "$keychain" -P "$transit" -T /usr/bin/codesign -T /usr/bin/security >/dev/null
+  rm -f "$legacy"
+  # The identity is only valid with its issuer; runners may not have Apple's current intermediate.
+  curl -fsSL --retry 3 https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer -o "$work/DeveloperIDG2CA.cer"
+  security import "$work/DeveloperIDG2CA.cer" -k "$keychain" >/dev/null 2>&1 || true
+  rm -f "$work/DeveloperIDG2CA.cer"
   security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" >/dev/null
   # Keep the login keychain searchable and put ours first.
   local existing=() line
@@ -52,7 +68,7 @@ keychain_setup() {
 keychain_cleanup() {
   local keychain="${MQ_MAC_KEYCHAIN:-$work/mq-signing.keychain-db}"
   [ -e "$keychain" ] && security delete-keychain "$keychain" || true
-  rm -f "$work/mq-developer-id.p12" "$work/mq-notary-key.p8"
+  rm -f "$work/mq-developer-id.p12" "$work/mq-developer-id.pem" "$work/mq-developer-id-legacy.p12" "$work/mq-notary-key.p8"
 }
 
 # Options shared by every signature; the keychain is pinned when keychain-setup made one.
