@@ -120,10 +120,20 @@ notarize() {
     ditto -c -k --sequesterRsrc --keepParent "$target" "$upload"
   fi
   result="$work/notary-$(basename "$target").json"
-  xcrun notarytool submit "$upload" "${notary[@]}" --wait --timeout 30m --output-format json > "$result"
+  # Earlier submissions (ids and Apple's status only) explain a slow or failed run.
+  xcrun notarytool history "${notary[@]}" 2>&1 | head -n 12 || true
+  # Upload first and record the id at once, so a timed-out wait still leaves a traceable submission.
+  # A fresh upload every run: an earlier Accepted ticket is never reused for a rebuilt artifact.
+  xcrun notarytool submit "$upload" "${notary[@]}" --output-format json > "$result"
   id="$(/usr/bin/plutil -extract id raw -o - "$result")"
+  echo "notary submission for $(basename "$target"): $id"
+  [ -z "${GITHUB_STEP_SUMMARY:-}" ] || echo "- notary submission for \`$(basename "$target")\`: \`$id\`" >> "$GITHUB_STEP_SUMMARY"
+  # Waiting ends with a non-zero exit on timeout, which fails the job before any release.
+  xcrun notarytool wait "$id" "${notary[@]}" --timeout "${MQ_MAC_NOTARY_WAIT:-100m}"
+  xcrun notarytool info "$id" "${notary[@]}" --output-format json > "$result"
   status="$(/usr/bin/plutil -extract status raw -o - "$result")"
   echo "notary submission $id: $status"
+  [ -z "${GITHUB_STEP_SUMMARY:-}" ] || echo "  - status: $status" >> "$GITHUB_STEP_SUMMARY"
   if [ "$status" != Accepted ]; then
     xcrun notarytool log "$id" "${notary[@]}" || true
     die "notarization of $target was $status"

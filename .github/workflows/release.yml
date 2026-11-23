@@ -143,7 +143,10 @@ jobs:
           - runner: macos-15
             arch: arm64
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 45
+    # Tests and the build take about 20 minutes. Apple's notary service usually answers in
+    # minutes but can take hours (a team's first submissions especially); the app and the image
+    # are each allowed MQ_MAC_NOTARY_WAIT (100 min), so the job limit covers both waits.
+    timeout-minutes: 240
     env:
       MACOSX_DEPLOYMENT_TARGET: '12.0'
       MQ3_MAC_ARCH: ${{ matrix.arch }}
